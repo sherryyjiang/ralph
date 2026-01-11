@@ -16,11 +16,11 @@ Add a dark/light mode toggle to the existing todo list app.
 
 ## Success Criteria
 
-1. [ ] Toggle button visible in top-right corner (sun/moon icon)
-2. [ ] Clicking toggle switches between light and dark themes
-3. [ ] Light mode has a clean white/gray aesthetic
-4. [ ] Theme preference persists after page refresh (localStorage)
-5. [ ] On first visit, respects system color scheme preference
+1. [x] Toggle button visible in top-right corner (sun/moon icon)
+2. [x] Clicking toggle switches between light and dark themes
+3. [x] Light mode has a clean white/gray aesthetic
+4. [x] Theme preference persists after page refresh (localStorage)
+5. [x] On first visit, respects system color scheme preference
 
 ## Technical Notes
 

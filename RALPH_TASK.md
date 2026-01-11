@@ -1,44 +1,42 @@
 ---
-task: Build a simple web-based todo list app
+task: Add dark mode toggle to the todo app
 test_command: "npm run dev"
 ---
 
-# Task: Simple Todo List Web App
+# Task: Dark Mode Toggle
 
-Build a beautiful, simple todo list web app using Next.js and Tailwind CSS.
+Add a dark/light mode toggle to the existing todo list app.
 
 ## Requirements
 
-1. Single page app at the root route (`/`)
-2. Users can add new todos
-3. Users can mark todos as complete (strikethrough)
-4. Users can delete todos
-5. Todos persist in localStorage
-6. Clean, modern UI with nice styling
+1. Toggle button in the top-right corner
+2. Saves preference to localStorage
+3. Respects system preference on first load
+4. Smooth transition between modes
 
 ## Success Criteria
 
-1. [x] App runs without errors on `npm run dev`
-2. [x] Page shows a heading "My Todos" and an input field
-3. [x] Typing a todo and pressing Enter adds it to the list
-4. [x] Clicking a todo toggles its completed state (strikethrough)
-5. [x] Each todo has a delete button that removes it
-6. [x] Todos persist after page refresh (localStorage)
+1. [ ] Toggle button visible in top-right corner (sun/moon icon)
+2. [ ] Clicking toggle switches between light and dark themes
+3. [ ] Light mode has a clean white/gray aesthetic
+4. [ ] Theme preference persists after page refresh (localStorage)
+5. [ ] On first visit, respects system color scheme preference
 
 ## Technical Notes
 
-- Use the existing Next.js setup (already installed)
-- Keep it simple - all logic can live in `app/page.tsx`
-- Use Tailwind for styling (already configured)
-- Use React hooks for state management
+- The existing app uses Tailwind CSS with dark: variants
+- Keep all logic in `app/page.tsx` for simplicity
+- Use `window.matchMedia('(prefers-color-scheme: dark)')` for system preference
+- Store theme in localStorage key: `ralph-theme`
 
 ---
 
 ## Ralph Instructions
 
-1. Work on the next incomplete criterion (marked [ ])
-2. Check off completed criteria (change [ ] to [x])
-3. Run the dev server to test changes
-4. Commit your changes frequently
-5. When ALL criteria are [x], output: `<ralph>COMPLETE</ralph>`
-6. If stuck on the same issue 3+ times, output: `<ralph>GUTTER</ralph>`
+1. Read the existing `app/page.tsx` first to understand current implementation
+2. Work on the next incomplete criterion (marked [ ])
+3. Check off completed criteria (change [ ] to [x])
+4. Run the dev server to test changes visually
+5. Commit your changes frequently with descriptive messages
+6. When ALL criteria are [x], output: `<ralph>COMPLETE</ralph>`
+7. If stuck on the same issue 3+ times, output: `<ralph>GUTTER</ralph>`

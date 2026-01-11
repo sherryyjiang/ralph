@@ -18,12 +18,12 @@ Build a beautiful, simple todo list web app using Next.js and Tailwind CSS.
 
 ## Success Criteria
 
-1. [ ] App runs without errors on `npm run dev`
-2. [ ] Page shows a heading "My Todos" and an input field
-3. [ ] Typing a todo and pressing Enter adds it to the list
-4. [ ] Clicking a todo toggles its completed state (strikethrough)
-5. [ ] Each todo has a delete button that removes it
-6. [ ] Todos persist after page refresh (localStorage)
+1. [x] App runs without errors on `npm run dev`
+2. [x] Page shows a heading "My Todos" and an input field
+3. [x] Typing a todo and pressing Enter adds it to the list
+4. [x] Clicking a todo toggles its completed state (strikethrough)
+5. [x] Each todo has a delete button that removes it
+6. [x] Todos persist after page refresh (localStorage)
 
 ## Technical Notes
 

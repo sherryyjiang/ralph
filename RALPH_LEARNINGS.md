@@ -80,6 +80,77 @@ When an AI agent runs out of context (token limit), Ralph "rotates" to a fresh a
 
 ---
 
+### Session 2: 2026-01-11 — First Successful Ralph Run! 🎉
+
+**What I did:**
+1. Created a new task in `RALPH_TASK.md` for dark mode toggle
+2. Reset `.ralph/progress.md` for the new task
+3. Ran `ralph-once.sh` to let Ralph work on it
+
+**Task Definition (how I wrote it):**
+```markdown
+---
+task: Add dark mode toggle to the todo app
+test_command: "npm run dev"
+---
+
+# Task: Dark Mode Toggle
+
+## Success Criteria
+1. [ ] Toggle button visible in top-right corner (sun/moon icon)
+2. [ ] Clicking toggle switches between light and dark themes
+... etc
+```
+
+**What Ralph did (from activity.log):**
+1. Read all the state files (task, progress, guardrails, errors)
+2. Read the existing `app/page.tsx` to understand current code
+3. Made code changes to add the toggle
+4. Ran linting to verify no errors
+5. Committed with a descriptive message
+6. Marked all criteria as `[x]` complete
+7. Pushed to git
+
+**Time to complete:** ~4 minutes for 5 criteria!
+
+**Key insight:** Ralph read the existing code first, understood the structure, then made changes. It also ran linting multiple times to verify its work.
+
+---
+
+## Task Writing Template
+
+```markdown
+---
+task: One-line description
+test_command: "npm test" or "npm run dev"
+---
+
+# Task: Title
+
+Brief description of what to build.
+
+## Requirements
+- Requirement 1
+- Requirement 2
+
+## Success Criteria
+1. [ ] Specific, testable criterion
+2. [ ] Another criterion
+3. [ ] Each should be independently verifiable
+
+## Technical Notes
+- Helpful context for the agent
+- What files to modify
+- Any constraints or preferences
+
+---
+
+## Ralph Instructions
+(Standard boilerplate - always include this)
+```
+
+---
+
 ## Tips & Best Practices
 
 1. **Start with `ralph-once.sh`** - Run single iterations to learn how it works
@@ -88,14 +159,38 @@ When an AI agent runs out of context (token limit), Ralph "rotates" to a fresh a
 4. **Include a test command** - Put it in the YAML frontmatter
 5. **Commit often** - Ralph's memory IS the git history
 6. **Check guardrails** - Add "Signs" when things go wrong
+7. **Include technical notes** - Help Ralph understand the codebase
+8. **Reset progress.md** - When starting a new task, reset the progress file
+
+---
+
+## Command Reference
+
+```bash
+# Run single iteration (best for learning)
+./.cursor/ralph-scripts/ralph-once.sh
+
+# Interactive setup with options
+./.cursor/ralph-scripts/ralph-setup.sh
+
+# CLI mode (power users)
+./.cursor/ralph-scripts/ralph-loop.sh -n 50 -m sonnet-4.5-thinking
+
+# Watch Ralph work in real-time
+tail -f .ralph/activity.log
+
+# See what Ralph did
+git log --oneline -10
+```
 
 ---
 
 ## Next Steps
 
-- [ ] Create a new task for Ralph
-- [ ] Run Ralph and watch it work
-- [ ] Learn about context rotation
-- [ ] Learn about guardrails and "Signs"
+- [x] Create a new task for Ralph
+- [x] Run Ralph and watch it work
+- [ ] Learn about context rotation (happens with big tasks)
+- [ ] Learn about guardrails and "Signs" (happens when things fail)
+- [ ] Try a bigger multi-step task
 
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, KeyboardEvent } from "react";
+import { useState, useEffect, useLayoutEffect, KeyboardEvent } from "react";
 
 interface Todo {
   id: number;
@@ -8,19 +8,65 @@ interface Todo {
   completed: boolean;
 }
 
+type Theme = "light" | "dark";
+
+function getInitialTheme(): Theme {
+  // Check localStorage first
+  const storedTheme = localStorage.getItem("ralph-theme") as Theme | null;
+  if (storedTheme) {
+    return storedTheme;
+  }
+  // Fall back to system preference
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function getInitialTodos(): Todo[] {
+  const stored = localStorage.getItem("ralph-todos");
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  return [];
+}
+
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
+  const [theme, setTheme] = useState<Theme>("dark");
 
-  // Load todos from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem("ralph-todos");
-    if (stored) {
-      setTodos(JSON.parse(stored));
-    }
+  // Initialize state from localStorage on client mount
+  // Using useLayoutEffect to prevent flash of wrong theme
+  useLayoutEffect(() => {
+    const initialTheme = getInitialTheme();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: hydrating state from localStorage on mount
+    setTheme(initialTheme);
+    
+    const initialTodos = getInitialTodos();
+    setTodos(initialTodos);
     setIsLoaded(true);
+    
+    // Apply theme class immediately
+    if (initialTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, []);
+
+  // Apply theme class to document when theme changes
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const newTheme: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("ralph-theme", newTheme);
+  };
 
   // Save todos to localStorage whenever they change
   useEffect(() => {
@@ -61,14 +107,53 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-zinc-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-100 to-gray-100 transition-colors duration-300 dark:from-violet-950 dark:via-slate-900 dark:to-zinc-900">
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed right-4 top-4 z-50 rounded-full border border-gray-200 bg-white/80 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-xl dark:border-white/10 dark:bg-white/10"
+        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {theme === "dark" ? (
+          // Sun icon for dark mode (click to switch to light)
+          <svg
+            className="h-5 w-5 text-yellow-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+        ) : (
+          // Moon icon for light mode (click to switch to dark)
+          <svg
+            className="h-5 w-5 text-slate-700"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            />
+          </svg>
+        )}
+      </button>
+
       <div className="mx-auto max-w-xl px-6 py-16">
         {/* Header */}
         <div className="mb-10 text-center">
-          <h1 className="font-serif text-5xl font-light tracking-tight text-white">
+          <h1 className="font-serif text-5xl font-light tracking-tight text-slate-800 transition-colors duration-300 dark:text-white">
             My Todos
           </h1>
-          <p className="mt-2 text-sm text-violet-300/60">
+          <p className="mt-2 text-sm text-slate-500 transition-colors duration-300 dark:text-violet-300/60">
             {todos.filter((t) => !t.completed).length} remaining ·{" "}
             {todos.filter((t) => t.completed).length} done
           </p>
@@ -82,7 +167,7 @@ export default function Home() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="What needs to be done?"
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-lg text-white placeholder-white/30 backdrop-blur-sm transition-all focus:border-violet-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+            className="w-full rounded-xl border border-gray-200 bg-white px-5 py-4 text-lg text-slate-800 placeholder-slate-400 shadow-sm transition-all duration-300 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-white/30 dark:shadow-none"
           />
           <button
             onClick={addTodo}
@@ -95,18 +180,18 @@ export default function Home() {
         {/* Todo List */}
         <div className="space-y-3">
           {todos.length === 0 && isLoaded && (
-            <div className="rounded-xl border border-dashed border-white/10 px-6 py-12 text-center">
-              <p className="text-white/40">No todos yet. Add one above!</p>
+            <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center transition-colors duration-300 dark:border-white/10">
+              <p className="text-slate-400 transition-colors duration-300 dark:text-white/40">No todos yet. Add one above!</p>
             </div>
           )}
           
           {todos.map((todo) => (
             <div
               key={todo.id}
-              className={`group flex items-center gap-4 rounded-xl border px-5 py-4 transition-all ${
+              className={`group flex items-center gap-4 rounded-xl border px-5 py-4 transition-all duration-300 ${
                 todo.completed
-                  ? "border-white/5 bg-white/[0.02]"
-                  : "border-white/10 bg-white/5"
+                  ? "border-gray-100 bg-gray-50 dark:border-white/5 dark:bg-white/[0.02]"
+                  : "border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
               }`}
             >
               {/* Checkbox */}
@@ -115,7 +200,7 @@ export default function Home() {
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                   todo.completed
                     ? "border-violet-500 bg-violet-500"
-                    : "border-white/30 hover:border-violet-400"
+                    : "border-gray-300 hover:border-violet-400 dark:border-white/30"
                 }`}
               >
                 {todo.completed && (
@@ -138,10 +223,10 @@ export default function Home() {
               {/* Text */}
               <span
                 onClick={() => toggleTodo(todo.id)}
-                className={`flex-1 cursor-pointer text-lg transition-all ${
+                className={`flex-1 cursor-pointer text-lg transition-all duration-300 ${
                   todo.completed
-                    ? "text-white/30 line-through"
-                    : "text-white/90"
+                    ? "text-slate-400 line-through dark:text-white/30"
+                    : "text-slate-800 dark:text-white/90"
                 }`}
               >
                 {todo.text}
@@ -150,7 +235,7 @@ export default function Home() {
               {/* Delete button */}
               <button
                 onClick={() => deleteTodo(todo.id)}
-                className="rounded-lg p-2 text-white/20 opacity-0 transition-all hover:bg-red-500/20 hover:text-red-400 group-hover:opacity-100"
+                className="rounded-lg p-2 text-slate-300 opacity-0 transition-all hover:bg-red-500/20 hover:text-red-400 group-hover:opacity-100 dark:text-white/20"
               >
                 <svg
                   className="h-5 w-5"
@@ -174,7 +259,7 @@ export default function Home() {
         {todos.some((t) => t.completed) && (
           <button
             onClick={() => setTodos(todos.filter((t) => !t.completed))}
-            className="mt-6 w-full rounded-lg border border-white/10 py-3 text-sm text-white/40 transition-colors hover:border-white/20 hover:text-white/60"
+            className="mt-6 w-full rounded-lg border border-gray-200 py-3 text-sm text-slate-400 transition-colors duration-300 hover:border-gray-300 hover:text-slate-600 dark:border-white/10 dark:text-white/40 dark:hover:border-white/20 dark:hover:text-white/60"
           >
             Clear completed
           </button>

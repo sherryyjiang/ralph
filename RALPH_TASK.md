@@ -1,40 +1,36 @@
 ---
-task: Build a CLI todo app in TypeScript
-test_command: "npx ts-node todo.ts list"
+task: Build a simple web-based todo list app
+test_command: "npm run dev"
 ---
 
-# Task: CLI Todo App (TypeScript)
+# Task: Simple Todo List Web App
 
-Build a simple command-line todo application in TypeScript.
+Build a beautiful, simple todo list web app using Next.js and Tailwind CSS.
 
 ## Requirements
 
-1. Single file: `todo.ts`
-2. Uses `todos.json` for persistence
-3. Three commands: add, list, done
-4. TypeScript with proper types
+1. Single page app at the root route (`/`)
+2. Users can add new todos
+3. Users can mark todos as complete (strikethrough)
+4. Users can delete todos
+5. Todos persist in localStorage
+6. Clean, modern UI with nice styling
 
 ## Success Criteria
 
-1. [ ] `npx ts-node todo.ts add "Buy milk"` adds a todo and confirms
-2. [ ] `npx ts-node todo.ts list` shows all todos with IDs and status
-3. [ ] `npx ts-node todo.ts done 1` marks todo 1 as complete
-4. [ ] Todos survive script restart (JSON persistence)
-5. [ ] Invalid commands show helpful usage message
-6. [ ] Code has proper TypeScript types (no `any`)
+1. [ ] App runs without errors on `npm run dev`
+2. [ ] Page shows a heading "My Todos" and an input field
+3. [ ] Typing a todo and pressing Enter adds it to the list
+4. [ ] Clicking a todo toggles its completed state (strikethrough)
+5. [ ] Each todo has a delete button that removes it
+6. [ ] Todos persist after page refresh (localStorage)
 
-## Example Output
+## Technical Notes
 
-```
-$ npx ts-node todo.ts add "Buy milk"
-✓ Added: "Buy milk" (id: 1)
-
-$ npx ts-node todo.ts list
-1. [ ] Buy milk
-
-$ npx ts-node todo.ts done 1
-✓ Completed: "Buy milk"
-```
+- Use the existing Next.js setup (already installed)
+- Keep it simple - all logic can live in `app/page.tsx`
+- Use Tailwind for styling (already configured)
+- Use React hooks for state management
 
 ---
 
@@ -42,7 +38,7 @@ $ npx ts-node todo.ts done 1
 
 1. Work on the next incomplete criterion (marked [ ])
 2. Check off completed criteria (change [ ] to [x])
-3. Run tests after changes
+3. Run the dev server to test changes
 4. Commit your changes frequently
 5. When ALL criteria are [x], output: `<ralph>COMPLETE</ralph>`
 6. If stuck on the same issue 3+ times, output: `<ralph>GUTTER</ralph>`

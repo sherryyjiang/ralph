@@ -5,13 +5,11 @@
 ## Summary
 
 - Iterations completed: 0
-- Current status: Initialized
+- Current status: Ready to start
 
-## How This Works
+## Task
 
-Progress is tracked in THIS FILE, not in LLM context.
-When context is rotated (fresh agent), the new agent reads this file.
-This is how Ralph maintains continuity across iterations.
+Building a simple web-based todo list app with Next.js and Tailwind.
 
 ## Session History
 

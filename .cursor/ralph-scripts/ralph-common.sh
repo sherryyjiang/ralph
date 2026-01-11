@@ -381,7 +381,7 @@ run_iteration() {
   log_progress "$workspace" "**Session $iteration started** (model: $MODEL)"
   
   # Build cursor-agent command
-  local cmd="cursor-agent -p --force --output-format stream-json --model $MODEL"
+  local cmd="${CURSOR_AGENT_CMD:-agent} -p --force --output-format stream-json --model $MODEL"
   
   if [[ -n "$session_id" ]]; then
     echo "Resuming session: $session_id" >&2
@@ -618,14 +618,19 @@ check_prerequisites() {
     return 1
   fi
   
-  # Check for cursor-agent CLI
-  if ! command -v cursor-agent &> /dev/null; then
+  # Check for cursor agent CLI (can be 'agent' or 'cursor-agent')
+  if command -v cursor-agent &> /dev/null; then
+    CURSOR_AGENT_CMD="cursor-agent"
+  elif command -v agent &> /dev/null; then
+    CURSOR_AGENT_CMD="agent"
+  else
     echo "❌ cursor-agent CLI not found"
     echo ""
     echo "Install via:"
     echo "  curl https://cursor.com/install -fsS | bash"
     return 1
   fi
+  export CURSOR_AGENT_CMD
   
   # Check for git repo
   if ! git -C "$workspace" rev-parse --git-dir > /dev/null 2>&1; then

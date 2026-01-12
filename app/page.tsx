@@ -128,13 +128,13 @@ export default function Home() {
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
-        className="fixed right-4 top-4 z-50 rounded-full border border-gray-200 bg-white/80 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-xl dark:border-white/10 dark:bg-white/10"
+        className="fixed right-4 top-4 z-50 rounded-full border border-gray-200 bg-white/80 p-3 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-xl active:scale-95 dark:border-white/10 dark:bg-white/10"
         aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       >
         {theme === "dark" ? (
           // Sun icon for dark mode (click to switch to light)
           <svg
-            className="h-5 w-5 text-yellow-400"
+            className="h-5 w-5 text-yellow-400 transition-transform duration-500 hover:rotate-45"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -149,7 +149,7 @@ export default function Home() {
         ) : (
           // Moon icon for light mode (click to switch to dark)
           <svg
-            className="h-5 w-5 text-slate-700"
+            className="h-5 w-5 text-slate-700 transition-transform duration-500 hover:-rotate-12"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -188,7 +188,7 @@ export default function Home() {
           />
           <button
             onClick={addTodo}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-500"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-all duration-150 hover:bg-violet-500 hover:shadow-lg hover:shadow-violet-500/25 active:scale-95 active:shadow-md"
           >
             Add
           </button>
@@ -240,9 +240,9 @@ export default function Home() {
               style={{
                 animationDelay: isInitialMount ? `${index * 50}ms` : "0ms",
               }}
-              className={`group flex items-center gap-4 rounded-xl border px-5 py-4 transition-all duration-300 ${
+              className={`group flex items-center gap-4 rounded-xl border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-violet-500/5 ${
                 todo.completed
-                  ? "border-gray-100 bg-gray-50 dark:border-white/5 dark:bg-white/[0.02]"
+                  ? "border-gray-100 bg-gray-50 dark:border-white/5 dark:bg-white/[0.02] hover:shadow-sm"
                   : "border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
               } ${
                 newlyAddedId === todo.id
@@ -261,15 +261,15 @@ export default function Home() {
               {/* Checkbox */}
               <button
                 onClick={() => toggleTodo(todo.id)}
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 active:scale-90 ${
                   todo.completed
-                    ? "border-violet-500 bg-violet-500"
-                    : "border-gray-300 hover:border-violet-400 dark:border-white/30"
+                    ? "border-violet-500 bg-violet-500 scale-100"
+                    : "border-gray-300 hover:border-violet-400 hover:scale-110 dark:border-white/30"
                 }`}
               >
                 {todo.completed && (
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="h-3 w-3 text-white animate-in zoom-in duration-200"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -299,7 +299,7 @@ export default function Home() {
               {/* Delete button */}
               <button
                 onClick={() => deleteTodo(todo.id)}
-                className="rounded-lg p-2 text-slate-300 opacity-0 transition-all hover:bg-red-500/20 hover:text-red-400 group-hover:opacity-100 dark:text-white/20"
+                className="rounded-lg p-2 text-slate-300 opacity-0 transition-all duration-200 hover:bg-red-500/20 hover:text-red-500 hover:shadow-lg hover:shadow-red-500/20 active:scale-90 group-hover:opacity-100 dark:text-white/20 dark:hover:text-red-400 dark:hover:shadow-red-500/10"
               >
                 <svg
                   className="h-5 w-5"
@@ -323,7 +323,7 @@ export default function Home() {
         {todos.some((t) => t.completed) && (
           <button
             onClick={() => setTodos(todos.filter((t) => !t.completed))}
-            className="mt-6 w-full rounded-lg border border-gray-200 py-3 text-sm text-slate-400 transition-colors duration-300 hover:border-gray-300 hover:text-slate-600 dark:border-white/10 dark:text-white/40 dark:hover:border-white/20 dark:hover:text-white/60"
+            className="mt-6 w-full rounded-lg border border-gray-200 py-3 text-sm text-slate-400 transition-all duration-200 hover:border-gray-300 hover:text-slate-600 hover:bg-gray-50 active:scale-[0.98] dark:border-white/10 dark:text-white/40 dark:hover:border-white/20 dark:hover:text-white/60 dark:hover:bg-white/5"
           >
             Clear completed
           </button>

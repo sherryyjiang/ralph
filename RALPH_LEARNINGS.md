@@ -185,12 +185,89 @@ git log --oneline -10
 
 ---
 
+### Session 3: 2026-01-11 — Multi-Phase Task with Brainstorming! 🎨
+
+**What I did:**
+1. Created a bigger task with 8 criteria in multiple phases
+2. Task required Ralph to brainstorm FIRST, then implement
+3. Used `ralph-loop.sh -n 10` instead of single iteration
+
+**Task structure (phases):**
+```markdown
+### Brainstorming Phase
+1. [ ] Create design-ideas.md with 3 improvements
+2. [ ] Each idea includes problem, description, approach
+
+### Implementation Phase  
+3. [ ] Implement improvement #1
+4. [ ] Implement improvement #2
+5. [ ] Implement improvement #3
+
+### Verification Phase
+6. [ ] Pass linting
+7. [ ] App runs
+8. [ ] Commit all changes
+```
+
+**What Ralph produced:**
+
+Ralph created `.ralph/design-ideas.md` with 3 creative improvements:
+1. **Animated Todo Entries** - Staggered fade-in on load, slide animations
+2. **Enhanced Empty State** - Clipboard illustration with gradient icon
+3. **Micro-Interactions** - Hover lifts, button press effects, glow on delete
+
+Then implemented all 3 and made **5 commits:**
+- `ralph: brainstorm 3 design improvements`
+- `ralph: add animated todo entries with stagger effects`
+- `ralph: enhance empty state with clipboard illustration`
+- `ralph: add micro-interactions and hover delight effects`
+- `ralph: mark all design improvement criteria complete`
+
+**Key insight:** Ralph can handle multi-phase tasks! By structuring the task with a "brainstorm first" requirement, Ralph thought through the design before coding. This produced more cohesive results.
+
+**New pattern learned:** Use phases in your task criteria to guide Ralph's workflow.
+
+---
+
+## Advanced Patterns
+
+### Multi-Phase Tasks
+```markdown
+## Success Criteria
+
+### Phase 1: Research/Planning
+1. [ ] Create a design doc / plan
+2. [ ] Document the approach
+
+### Phase 2: Implementation
+3. [ ] Build feature A
+4. [ ] Build feature B
+
+### Phase 3: Verification
+5. [ ] Tests pass
+6. [ ] Linting passes
+```
+
+### Using `ralph-loop.sh` for Bigger Tasks
+```bash
+# Single iteration (small tasks, 1-3 criteria)
+./.cursor/ralph-scripts/ralph-once.sh
+
+# Full loop with max 10 iterations (bigger tasks)
+./.cursor/ralph-scripts/ralph-loop.sh -n 10
+
+# Skip confirmation prompt (for scripting)
+echo "y" | ./.cursor/ralph-scripts/ralph-loop.sh -n 10
+```
+
+---
+
 ## Next Steps
 
 - [x] Create a new task for Ralph
 - [x] Run Ralph and watch it work
-- [ ] Learn about context rotation (happens with big tasks)
+- [x] Try a bigger multi-step task
+- [ ] Learn about context rotation (happens with very big tasks)
 - [ ] Learn about guardrails and "Signs" (happens when things fail)
-- [ ] Try a bigger multi-step task
-
+- [ ] Try running Ralph overnight on a complex feature
 

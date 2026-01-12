@@ -20,8 +20,8 @@ Before implementing anything, analyze the current app and document 3 design impr
 ## Success Criteria
 
 ### Brainstorming Phase
-1. [ ] Create `.ralph/design-ideas.md` with 3 specific, actionable design improvements
-2. [ ] Each idea includes: problem it solves, visual description, and implementation approach
+1. [x] Create `.ralph/design-ideas.md` with 3 specific, actionable design improvements
+2. [x] Each idea includes: problem it solves, visual description, and implementation approach
 
 ### Implementation Phase  
 3. [ ] Implement Design Improvement #1 from the brainstorm doc

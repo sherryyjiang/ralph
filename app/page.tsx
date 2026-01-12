@@ -33,6 +33,9 @@ export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [theme, setTheme] = useState<Theme>("dark");
+  const [newlyAddedId, setNewlyAddedId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isInitialMount, setIsInitialMount] = useState(true);
 
   // Initialize state from localStorage on client mount
   // Using useLayoutEffect to prevent flash of wrong theme
@@ -51,6 +54,11 @@ export default function Home() {
     } else {
       document.documentElement.classList.remove("dark");
     }
+    
+    // Mark initial mount complete after a brief delay for stagger animations
+    setTimeout(() => {
+      setIsInitialMount(false);
+    }, 500);
   }, []);
 
   // Apply theme class to document when theme changes
@@ -84,8 +92,12 @@ export default function Home() {
       completed: false,
     };
     
+    setNewlyAddedId(newTodo.id);
     setTodos([...todos, newTodo]);
     setInputValue("");
+    
+    // Clear animation state after animation completes
+    setTimeout(() => setNewlyAddedId(null), 300);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -103,7 +115,12 @@ export default function Home() {
   };
 
   const deleteTodo = (id: number) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+    setDeletingId(id);
+    // Delay actual removal for animation
+    setTimeout(() => {
+      setTodos(todos.filter((todo) => todo.id !== id));
+      setDeletingId(null);
+    }, 200);
   };
 
   return (
@@ -185,13 +202,28 @@ export default function Home() {
             </div>
           )}
           
-          {todos.map((todo) => (
+          {todos.map((todo, index) => (
             <div
               key={todo.id}
+              style={{
+                animationDelay: isInitialMount ? `${index * 50}ms` : "0ms",
+              }}
               className={`group flex items-center gap-4 rounded-xl border px-5 py-4 transition-all duration-300 ${
                 todo.completed
                   ? "border-gray-100 bg-gray-50 dark:border-white/5 dark:bg-white/[0.02]"
                   : "border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
+              } ${
+                newlyAddedId === todo.id
+                  ? "animate-in slide-in-from-top-2 fade-in duration-300"
+                  : ""
+              } ${
+                deletingId === todo.id
+                  ? "animate-out slide-out-to-right fade-out duration-200"
+                  : ""
+              } ${
+                isInitialMount && isLoaded
+                  ? "animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both"
+                  : ""
               }`}
             >
               {/* Checkbox */}

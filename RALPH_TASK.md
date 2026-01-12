@@ -29,9 +29,9 @@ Before implementing anything, analyze the current app and document 3 design impr
 5. [x] Implement Design Improvement #3 from the brainstorm doc
 
 ### Verification Phase
-6. [ ] All changes pass linting (npm run lint)
-7. [ ] App runs without errors
-8. [ ] Commit all changes with descriptive messages
+6. [x] All changes pass linting (npm run lint)
+7. [x] App runs without errors
+8. [x] Commit all changes with descriptive messages
 
 ## Technical Notes
 

@@ -1,42 +1,54 @@
 ---
-task: Add dark mode toggle to the todo app
+task: Brainstorm and implement 3 design improvements for the todo app
 test_command: "npm run dev"
 ---
 
-# Task: Dark Mode Toggle
+# Task: Design Improvement Sprint
 
-Add a dark/light mode toggle to the existing todo list app.
+Analyze the current todo app, brainstorm 3 meaningful design improvements, then implement them one by one.
 
-## Requirements
+## Phase 1: Brainstorming
 
-1. Toggle button in the top-right corner
-2. Saves preference to localStorage
-3. Respects system preference on first load
-4. Smooth transition between modes
+Before implementing anything, analyze the current app and document 3 design improvements in `.ralph/design-ideas.md`. Consider:
+- Visual hierarchy and typography
+- Micro-interactions and animations  
+- Empty states and loading states
+- Accessibility improvements
+- Mobile responsiveness
+- Delightful details (shadows, gradients, hover effects)
 
 ## Success Criteria
 
-1. [x] Toggle button visible in top-right corner (sun/moon icon)
-2. [x] Clicking toggle switches between light and dark themes
-3. [x] Light mode has a clean white/gray aesthetic
-4. [x] Theme preference persists after page refresh (localStorage)
-5. [x] On first visit, respects system color scheme preference
+### Brainstorming Phase
+1. [ ] Create `.ralph/design-ideas.md` with 3 specific, actionable design improvements
+2. [ ] Each idea includes: problem it solves, visual description, and implementation approach
+
+### Implementation Phase  
+3. [ ] Implement Design Improvement #1 from the brainstorm doc
+4. [ ] Implement Design Improvement #2 from the brainstorm doc
+5. [ ] Implement Design Improvement #3 from the brainstorm doc
+
+### Verification Phase
+6. [ ] All changes pass linting (npm run lint)
+7. [ ] App runs without errors
+8. [ ] Commit all changes with descriptive messages
 
 ## Technical Notes
 
-- The existing app uses Tailwind CSS with dark: variants
-- Keep all logic in `app/page.tsx` for simplicity
-- Use `window.matchMedia('(prefers-color-scheme: dark)')` for system preference
-- Store theme in localStorage key: `ralph-theme`
+- The app is at `app/page.tsx` - a Next.js + Tailwind todo app
+- It already has dark/light mode toggle
+- Keep all logic in `page.tsx` for simplicity
+- Focus on CSS/Tailwind changes, minimal JS changes
+- Make each improvement visually distinct and noticeable
 
 ---
 
 ## Ralph Instructions
 
-1. Read the existing `app/page.tsx` first to understand current implementation
-2. Work on the next incomplete criterion (marked [ ])
-3. Check off completed criteria (change [ ] to [x])
-4. Run the dev server to test changes visually
-5. Commit your changes frequently with descriptive messages
+1. Read `app/page.tsx` first to understand the current design
+2. Create the brainstorm doc BEFORE implementing anything
+3. Work through improvements one at a time
+4. Commit after each improvement is complete
+5. Check off criteria as you complete them
 6. When ALL criteria are [x], output: `<ralph>COMPLETE</ralph>`
 7. If stuck on the same issue 3+ times, output: `<ralph>GUTTER</ralph>`

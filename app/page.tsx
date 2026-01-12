@@ -197,8 +197,40 @@ export default function Home() {
         {/* Todo List */}
         <div className="space-y-3">
           {todos.length === 0 && isLoaded && (
-            <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center transition-colors duration-300 dark:border-white/10">
-              <p className="text-slate-400 transition-colors duration-300 dark:text-white/40">No todos yet. Add one above!</p>
+            <div className="animate-in fade-in duration-500 rounded-2xl border border-dashed border-gray-200 px-8 py-16 text-center transition-colors duration-300 dark:border-white/10">
+              {/* Clipboard illustration with floating animation */}
+              <div className="mx-auto mb-6 w-20 h-20 animate-bounce [animation-duration:3s]">
+                <svg
+                  viewBox="0 0 80 80"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-full"
+                >
+                  {/* Gradient definition */}
+                  <defs>
+                    <linearGradient id="clipboardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#a78bfa" />
+                    </linearGradient>
+                  </defs>
+                  {/* Clipboard body */}
+                  <rect x="12" y="16" width="56" height="56" rx="6" fill="url(#clipboardGradient)" opacity="0.15" />
+                  <rect x="12" y="16" width="56" height="56" rx="6" stroke="url(#clipboardGradient)" strokeWidth="2" fill="none" />
+                  {/* Clipboard clip */}
+                  <rect x="28" y="10" width="24" height="12" rx="3" fill="url(#clipboardGradient)" />
+                  {/* Check lines */}
+                  <path d="M26 36L32 42L42 30" stroke="url(#clipboardGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+                  <rect x="48" y="34" width="12" height="3" rx="1.5" fill="url(#clipboardGradient)" opacity="0.4" />
+                  <path d="M26 52L32 58L42 46" stroke="url(#clipboardGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+                  <rect x="48" y="50" width="12" height="3" rx="1.5" fill="url(#clipboardGradient)" opacity="0.4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-slate-600 dark:text-white/70 mb-2">
+                Ready to be productive?
+              </h3>
+              <p className="text-sm text-slate-400 dark:text-white/40">
+                Add your first task above to get started
+              </p>
             </div>
           )}
           

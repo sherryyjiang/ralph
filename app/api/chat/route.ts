@@ -30,8 +30,8 @@ interface ChatRequest {
   transaction: Transaction;
   session: CheckInSession;
   stream?: boolean;
-  probingDepth?: number; // 0-3, tracks Layer 2 probing exchanges
-  requestModeAssignment?: boolean; // Trigger mode assignment
+  requestModeAssignment?: boolean; // Trigger mode assignment after sufficient probing
+  forceModeAssignment?: boolean; // Force mode assignment at max probing depth
 }
 
 // =============================================================================
@@ -41,7 +41,7 @@ interface ChatRequest {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as ChatRequest;
-    const { messages, transaction, session, stream, probingDepth = 0 } = body;
+    const { messages, transaction, session, stream, requestModeAssignment, forceModeAssignment } = body;
 
     // Validate required fields
     if (!messages || !transaction || !session) {
@@ -51,24 +51,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get probing depth from session metadata
+    const probingDepth = session.metadata?.probingDepth || 0;
+
     // Get question tree context for the current path
     const questionTreeSection = session.path 
       ? getQuestionTreeSection(session.path) 
       : undefined;
 
-    // Build system prompt with probing depth for Layer 2
+    // Build system prompt with mode assignment instructions if needed
     const systemPrompt = buildSystemPrompt({
       transaction,
       session,
       questionTreeSection,
       probingDepth: session.currentLayer === 2 ? probingDepth : undefined,
+      requestModeAssignment: requestModeAssignment || false,
+      forceModeAssignment: forceModeAssignment || false,
     });
 
     // Handle streaming vs non-streaming
     if (stream) {
       return handleStreamingResponse(messages, systemPrompt);
     } else {
-      return handleNonStreamingResponse(messages, systemPrompt);
+      return handleNonStreamingResponse(messages, systemPrompt, requestModeAssignment || forceModeAssignment);
     }
   } catch (error) {
     console.error("Chat API error:", error);
@@ -85,7 +90,8 @@ export async function POST(request: NextRequest) {
 
 async function handleNonStreamingResponse(
   messages: Message[],
-  systemPrompt: string
+  systemPrompt: string,
+  expectModeAssignment = false
 ): Promise<NextResponse> {
   const client = getClient();
 
@@ -107,7 +113,7 @@ async function handleNonStreamingResponse(
   });
 
   const text = response.text || "";
-  const parsedResponse = parseResponse(text);
+  const parsedResponse = parseResponse(text, expectModeAssignment);
 
   return NextResponse.json(parsedResponse);
 }

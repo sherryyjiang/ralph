@@ -658,6 +658,213 @@ export function getReflectionOptions(): FixedQuestionResponse {
 }
 
 // =============================================================================
+// Sub-Path Exploration Goals (for Layer 2 probing)
+// =============================================================================
+
+export interface SubPathExplorationGoal {
+  subPath: string;
+  mode: string;
+  explorationGoal: string;
+  probingHints: string[];
+  keySignals: string[];
+  possibleModes?: string[];  // For paths that branch to multiple modes
+}
+
+/**
+ * Impulse sub-path exploration goals - based on PEEK_QUESTION_TREES.md
+ */
+export const impulseSubPathGoals: Record<string, SubPathExplorationGoal> = {
+  price_felt_right: {
+    subPath: "price_felt_right",
+    mode: "#intuitive-threshold-spender",
+    explorationGoal: "Understand their internal price threshold around 'reasonable' to justify purchases",
+    probingHints: [
+      "What price did you get it for?",
+      "What price would've made you pause?",
+      "Do things under $X usually feel like a no-brainer for you?",
+    ],
+    keySignals: [
+      "saw it, wanted it, bought it",
+      "the price felt right",
+      "Clear mental threshold around price",
+      "Low cognitive load purchases - 'don't think about it as much'",
+    ],
+  },
+  treating_myself: {
+    subPath: "treating_myself",
+    mode: "", // Determined by probing
+    explorationGoal: "What triggered the need for reward/treat? Is it tied to an event, emotion, or habit?",
+    probingHints: [
+      "What were you treating yourself for?",
+      "Was it tied to something or more of a random mood?",
+      "Do you just enjoy shopping as a fun activity?",
+    ],
+    keySignals: [],
+    possibleModes: [
+      "#reward-driven-spender",   // Celebrating wins/accomplishments
+      "#comfort-driven-spender",  // Retail therapy (stress, sadness, boredom)
+      "#routine-treat-spender",   // Habitual treating (no specific trigger)
+    ],
+  },
+  caught_eye: {
+    subPath: "caught_eye",
+    mode: "#visual-impulse-driven",
+    explorationGoal: "Where/how did they encounter it? Is this a pattern (scroll, in-store, etc)?",
+    probingHints: [
+      "Where did you see it?",
+      "What caught your eye about it?",
+      "Is this similar to things you already own?",
+      "How many similar items do you have?",
+      "Is trying new stuff kind of the fun part for you?",
+    ],
+    keySignals: [
+      "I was scrolling and saw it",
+      "it came up in my feed",
+      "I was just walking by",
+      "it was so pretty",
+      "I loved the packaging",
+    ],
+  },
+  trending: {
+    subPath: "trending",
+    mode: "#trend-susceptibility-driven",
+    explorationGoal: "How susceptible are they to trends, especially trend-following that leads to purchases that don't fit them",
+    probingHints: [
+      "Where have you been seeing it?",
+      "Do you feel like it's you or more of a trend buy?",
+    ],
+    keySignals: [
+      "I saw it on TikTok",
+      "everyone's posting about it",
+      "a creator I follow had it",
+      "my friend got one",
+      "everyone at work has it",
+    ],
+  },
+};
+
+/**
+ * Deal sub-path exploration goals - based on PEEK_QUESTION_TREES.md
+ */
+export const dealSubPathGoals: Record<string, SubPathExplorationGoal> = {
+  limited_edition: {
+    subPath: "limited_edition",
+    mode: "#scarcity-driven",
+    explorationGoal: "Susceptibility to FOMO - do they buy because something is special, or does 'running out' create urgency that overrides their judgment?",
+    probingHints: [
+      "Tell me more about the limited edition event or drop",
+      "Would you have bought it if it wasn't running out?",
+      "First one or adding to the collection?",
+      "What would've happened if you missed it?",
+    ],
+    keySignals: [
+      "it was selling out",
+      "limited drop",
+      "only a few left",
+      "had to grab it before it was gone",
+    ],
+  },
+  sale_discount: {
+    subPath: "sale_discount",
+    mode: "#deal-driven",
+    explorationGoal: "Do they buy things they already wanted at a better price, or does the deal itself create the want?",
+    probingHints: [
+      "Tell me more about the sale, deal or discount",
+      "What amount made it feel like the deal was worth it?",
+      "Were you already looking for this or the deal caught your eye?",
+      "Would you have bought it at full price?",
+    ],
+    keySignals: [
+      "it was such a good deal",
+      "X% off",
+      "couldn't pass up the savings",
+    ],
+  },
+  free_shipping: {
+    subPath: "free_shipping",
+    mode: "#threshold-spending-driven",
+    explorationGoal: "Understand if they bought more than they needed to hit a threshold or get a bonus - did the 'free' thing cost them more than they realize?",
+    probingHints: [
+      "Was this online or in-store?",
+      "Did you add any items to the cart that you didn't originally intend to buy? What were they?",
+      "Would you have bought just the original item without the bonus?",
+      "Was it worth what you added?",
+    ],
+    keySignals: [
+      "hit the free shipping threshold",
+      "added something to get the bonus",
+      "got a free sample",
+    ],
+  },
+};
+
+/**
+ * Deliberate sub-path exploration goals (light probing)
+ */
+export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
+  afford_it: {
+    subPath: "afford_it",
+    mode: "#deliberate-budget-saver",
+    explorationGoal: "Were they saving toward a goal or waiting for cash flow to clear?",
+    probingHints: [
+      "What changed that made it feel okay to buy?",
+    ],
+    keySignals: ["saved up for it", "waited until I had the money"],
+  },
+  right_price: {
+    subPath: "right_price",
+    mode: "#deliberate-deal-hunter",
+    explorationGoal: "Understand their deal-seeking patience - how do they track prices or find deals?",
+    probingHints: [
+      "What deal did you find?",
+    ],
+    keySignals: ["waited for a sale", "price tracking"],
+  },
+  right_one: {
+    subPath: "right_one",
+    mode: "#deliberate-researcher",
+    explorationGoal: "Understand their research/standards process - what made this the 'right' one?",
+    probingHints: [
+      "Where did you go for your research?",
+      "Where did you end up finding it?",
+    ],
+    keySignals: ["researched options", "read reviews", "compared features"],
+  },
+  still_wanted: {
+    subPath: "still_wanted",
+    mode: "#deliberate-pause-tester",
+    explorationGoal: "Validate their intentional pause - how long did they sit with it? Did the desire persist?",
+    probingHints: [
+      "How long was it on your radar?",
+    ],
+    keySignals: ["gave it time", "let the excitement pass", "still wanted it"],
+  },
+  got_around: {
+    subPath: "got_around",
+    mode: "#deliberate-low-priority",
+    explorationGoal: "Understand what was creating the delay - friction, low priority, or just life?",
+    probingHints: [
+      "What finally made you do it?",
+    ],
+    keySignals: ["kept putting it off", "finally had time"],
+  },
+};
+
+/**
+ * Get exploration goal for a specific sub-path
+ */
+export function getSubPathExplorationGoal(path: string, subPath: string): SubPathExplorationGoal | undefined {
+  if (path === "impulse") {
+    return impulseSubPathGoals[subPath];
+  } else if (path === "deal") {
+    return dealSubPathGoals[subPath];
+  } else if (path === "deliberate") {
+    return deliberateSubPathGoals[subPath];
+  }
+  return undefined;
+}
+
+// =============================================================================
 // Mode Definitions
 // =============================================================================
 
@@ -670,40 +877,101 @@ export interface ModeDefinition {
 }
 
 export const modeDefinitions: Record<string, ModeDefinition> = {
+  "#intuitive-threshold-spender": {
+    id: "#intuitive-threshold-spender",
+    name: "Intuitive Threshold Spender",
+    description: "Buys on impulse but has invisible price ceilings that act as automatic guardrails",
+    indicators: [
+      "saw it, wanted it, bought it",
+      "the price felt right",
+      "Clear mental threshold around price",
+    ],
+    reflectionGuidance: "Explore what your internal price thresholds are. Are they serving you well?",
+  },
+  "#reward-driven-spender": {
+    id: "#reward-driven-spender",
+    name: "Reward-Driven Spender",
+    description: "Buys to celebrate wins or accomplishments - 'I earned this'",
+    indicators: [
+      "I hit my goal",
+      "finished a hard week",
+      "got a promotion",
+    ],
+    reflectionGuidance: "You work hard and deserve to celebrate. Consider if there are other ways to reward yourself too.",
+  },
   "#comfort-driven-spender": {
     id: "#comfort-driven-spender",
     name: "Comfort-Driven Spender",
-    description: "Uses shopping as emotional regulation or self-care",
+    description: "Buys to soothe stress, sadness, boredom - retail therapy",
     indicators: [
-      "Purchases linked to stress or emotional state",
-      'Uses words like "deserve", "treat myself"',
-      "Shopping improves mood",
+      "rough week",
+      "felt down",
+      "needed a pick-me-up",
     ],
-    reflectionGuidance:
-      "Explore alternative ways to meet emotional needs. Consider if purchases bring lasting satisfaction.",
+    reflectionGuidance: "Explore alternative ways to meet emotional needs. Consider if purchases bring lasting satisfaction.",
   },
-  "#novelty-seeker": {
-    id: "#novelty-seeker",
-    name: "Novelty Seeker",
-    description: "Drawn to new, trendy, or unique items",
+  "#routine-treat-spender": {
+    id: "#routine-treat-spender",
+    name: "Routine Treat Spender",
+    description: "Regular self-treating as habit - not tied to specific trigger",
     indicators: [
-      "Excited by new releases or trends",
-      "Fear of missing out on limited items",
-      "Quick to adopt new products",
+      "I always do this on Fridays",
+      "it's just my thing",
+      "no specific reason",
     ],
-    reflectionGuidance:
-      "Consider whether the excitement comes from the item itself or the newness. How do past 'new' purchases feel now?",
+    reflectionGuidance: "Consider if this routine is serving you well or if it's running on autopilot.",
   },
-  "#deal-hunter": {
-    id: "#deal-hunter",
-    name: "Deal Hunter",
+  "#visual-impulse-driven": {
+    id: "#visual-impulse-driven",
+    name: "Visual Impulse Driven",
+    description: "Gets caught by things visually - either online or in physical stores",
+    indicators: [
+      "I was scrolling and saw it",
+      "it was so pretty",
+      "I loved the packaging",
+    ],
+    reflectionGuidance: "You have a good eye! Consider adding a cooling-off period for visual finds.",
+  },
+  "#trend-susceptibility-driven": {
+    id: "#trend-susceptibility-driven",
+    name: "Trend Susceptibility Driven",
+    description: "Buys things because they're popular or trending",
+    indicators: [
+      "saw it on TikTok",
+      "everyone's posting about it",
+      "a creator I follow had it",
+    ],
+    reflectionGuidance: "Consider if the item fits YOUR style and life, not just the trend.",
+  },
+  "#scarcity-driven": {
+    id: "#scarcity-driven",
+    name: "Scarcity Driven",
+    description: "Susceptible to FOMO and limited availability",
+    indicators: [
+      "limited edition",
+      "selling out",
+      "had to grab it before it was gone",
+    ],
+    reflectionGuidance: "Ask yourself: what would've actually happened if you missed it?",
+  },
+  "#deal-driven": {
+    id: "#deal-driven",
+    name: "Deal Driven",
     description: "Motivated by discounts and perceived savings",
     indicators: [
-      "Actively seeks deals and discounts",
-      "Feels validated by savings",
-      "May buy unneeded items if on sale",
+      "such a good deal",
+      "couldn't pass up the savings",
     ],
-    reflectionGuidance:
-      "Calculate true savings by considering if you would have bought at full price. Quality of deals vs quantity.",
+    reflectionGuidance: "Calculate true savings by considering if you would have bought at full price.",
+  },
+  "#threshold-spending-driven": {
+    id: "#threshold-spending-driven",
+    name: "Threshold Spending Driven",
+    description: "Adds items to hit shipping thresholds or get bonuses",
+    indicators: [
+      "free shipping threshold",
+      "got a bonus",
+    ],
+    reflectionGuidance: "Consider if the 'free' thing actually cost you more than you realize.",
   },
 };

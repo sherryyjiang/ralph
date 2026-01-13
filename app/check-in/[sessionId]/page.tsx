@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useCallback, useRef } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
-import { useChatAPI } from "@/lib/hooks/use-chat-api";
 import { getTransactionById } from "@/lib/data/synthetic-transactions";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
+import type { QuickReplyOption, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // FIXED QUESTIONS - Shopping Check-In (Layer 1)
@@ -210,7 +209,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         setLayer(2);
         setLoading(true);
 
-        // Call LLM for probing
+        // Call LLM for initial Layer 2 probing (depth = 0)
         fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -226,8 +225,9 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
               path: currentPath,
               subPath,
               messages,
-              metadata: { tags: [] },
+              metadata: { tags: [], probingDepth: 0 },
             },
+            probingDepth: 0,
           }),
         })
           .then(res => res.json())

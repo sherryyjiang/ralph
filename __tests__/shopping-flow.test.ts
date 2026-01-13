@@ -312,6 +312,7 @@ describe("Impulse Sub-Path Exploration Goals", () => {
     expect(impulseSubPathGoals.treating_myself).toBeDefined();
     expect(impulseSubPathGoals.caught_eye).toBeDefined();
     expect(impulseSubPathGoals.trending).toBeDefined();
+    expect(impulseSubPathGoals.other).toBeDefined();
   });
 
   it("price_felt_right should target intuitive-threshold-spender mode", () => {
@@ -346,6 +347,8 @@ describe("Impulse Sub-Path Probing Tags", () => {
     expect(getSubPathProbing("impulse", "treating_myself")?.explorationTag).toBe("#self-reward-driven");
     expect(getSubPathProbing("impulse", "caught_eye")?.explorationTag).toBe("#visual-impulse-driven");
     expect(getSubPathProbing("impulse", "trending")?.explorationTag).toBe("#trend-susceptibility-driven");
+    // "other" is intentionally untagged: it's an open-ended branch.
+    expect(getSubPathProbing("impulse", "other")?.explorationTag).toBeUndefined();
   });
 });
 
@@ -738,12 +741,13 @@ describe("Question Tree Routing - Shopping Paths", () => {
   });
 
   describe("Sub-Path Routing (Fixed Q2)", () => {
-    it("should route impulse to 4 sub-paths", () => {
-      expect(Object.keys(impulseSubPathGoals).length).toBe(4);
+    it("should route impulse to 5 sub-paths", () => {
+      expect(Object.keys(impulseSubPathGoals).length).toBe(5);
       expect(impulseSubPathGoals.price_felt_right).toBeDefined();
       expect(impulseSubPathGoals.treating_myself).toBeDefined();
       expect(impulseSubPathGoals.caught_eye).toBeDefined();
       expect(impulseSubPathGoals.trending).toBeDefined();
+      expect(impulseSubPathGoals.other).toBeDefined();
     });
 
     it("should route deal to 3 sub-paths", () => {

@@ -46,7 +46,8 @@ export type ImpulseSubPath =
   | "price_felt_right"   // [YELLOW] "The price felt right" → #intuitive-threshold-spender
   | "treating_myself"    // [YELLOW] "Treating myself" → branches to reward/comfort/routine
   | "caught_eye"         // [YELLOW] "Just caught my eye" → #visual-impulse-driven
-  | "trending";          // [YELLOW] "It's been trending lately" → #trend-susceptibility-driven
+  | "trending"           // [YELLOW] "It's been trending lately" → #trend-susceptibility-driven
+  | "other";             // [YELLOW] Other/Custom → open exploration
 
 /**
  * Sub-paths for deliberate shopping (Fixed Question 2 responses)
@@ -57,7 +58,8 @@ export type DeliberateSubPath =
   | "right_price"        // [WHITE] "Waiting for the right price/deal" → #deliberate-deal-hunter
   | "right_one"          // [WHITE] "Waiting for the right one" → #deliberate-researcher
   | "still_wanted"       // [WHITE] "Letting it sit to see if I still wanted it" → #deliberate-pause-tester
-  | "got_around";        // [WHITE] "Finally got around to it" → #deliberate-low-priority
+  | "got_around"         // [WHITE] "Finally got around to it" → #deliberate-low-priority
+  | "other";             // [WHITE] Other/Custom → open exploration
 
 /**
  * Sub-paths for deal/scarcity shopping (Fixed Question 2 responses)

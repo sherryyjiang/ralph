@@ -252,6 +252,7 @@ export function getFixedQuestion2Options(category: TransactionCategory, path: st
       { id: "right_one", label: "Waiting for the right one", emoji: "✨", value: "right_one", color: "white" },
       { id: "still_wanted", label: "Letting it sit to see if I still wanted it", emoji: "⏳", value: "still_wanted", color: "white" },
       { id: "got_around", label: "Finally got around to it", emoji: "✅", value: "got_around", color: "white" },
+      { id: "other", label: "Other/Custom", emoji: "📝", value: "other", color: "white" },
     ],
     deal: [
       { id: "limited_edition", label: "Limited edition or drop running out", emoji: "⚡", value: "limited_edition", color: "yellow" },

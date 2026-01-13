@@ -354,6 +354,29 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
     },
     counterProfileExit: "If user confirms 'it's me' when asked if it's them or a trend buy, exit gracefully - this is intentional",
   },
+  other: {
+    subPath: "other",
+    explorationGoal: "Open-ended: understand what actually drove the impulse purchase when none of the fixed options fit",
+    probingHints: [
+      "What was the thing that made you want it right then?",
+      "Was it more about the price, your mood, or how it looked?",
+      "If you hadn't bought it today, what do you think would've happened?",
+    ],
+    targetModes: [
+      "#intuitive-threshold-spender",
+      "#reward-driven-spender",
+      "#comfort-driven-spender",
+      "#routine-treat-spender",
+      "#scroll-triggered",
+      "#in-store-wanderer",
+      "#aesthetic-driven",
+      "#duplicate-collector",
+      "#exploration-hobbyist",
+      "#social-media-influenced",
+      "#friend-peer-influenced",
+    ],
+    modeSignals: {},
+  },
 };
 
 /**
@@ -412,6 +435,24 @@ export const deliberateSubPathProbing: Record<string, SubPathProbing> = {
     modeSignals: {
       "#deliberate-low-priority": ["just got around to it", "finally had time", "was on my list for a while"],
     },
+    lightProbing: true,
+  },
+  other: {
+    subPath: "other",
+    explorationGoal: "Open-ended: understand what they were waiting on when none of the fixed reasons fit",
+    probingHints: [
+      "What was the main thing you were waiting on?",
+      "What changed that made it feel like the right time to buy?",
+      "Was it more about budget, finding the right option, or just having the bandwidth?",
+    ],
+    targetModes: [
+      "#deliberate-budget-saver",
+      "#deliberate-deal-hunter",
+      "#deliberate-researcher",
+      "#deliberate-pause-tester",
+      "#deliberate-low-priority",
+    ],
+    modeSignals: {},
     lightProbing: true,
   },
 };
@@ -1493,6 +1534,31 @@ export const impulseSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "everyone at work has it",
     ],
     possibleModes: ["#social-media-influenced", "#friend-peer-influenced"],
+  },
+  other: {
+    subPath: "other",
+    // Open-ended branch: mode is determined by probing.
+    mode: "",
+    explorationGoal: "Open-ended: understand what actually drove the impulse purchase when none of the fixed options fit",
+    probingHints: [
+      "What was the thing that made you want it right then?",
+      "Was it more about the price, your mood, or how it looked?",
+      "If you hadn't bought it today, what do you think would've happened?",
+    ],
+    keySignals: [],
+    possibleModes: [
+      "#intuitive-threshold-spender",
+      "#reward-driven-spender",
+      "#comfort-driven-spender",
+      "#routine-treat-spender",
+      "#scroll-triggered",
+      "#in-store-wanderer",
+      "#aesthetic-driven",
+      "#duplicate-collector",
+      "#exploration-hobbyist",
+      "#social-media-influenced",
+      "#friend-peer-influenced",
+    ],
   },
 };
 

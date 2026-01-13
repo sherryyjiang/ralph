@@ -5,7 +5,7 @@
  */
 
 import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount, getTransactionsByCategory } from "@/lib/data/synthetic-transactions";
-import { getFixedQuestion1Options, explorationGoals } from "@/lib/llm/prompts";
+import { explorationGoals } from "@/lib/llm/prompts";
 import { 
   getShoppingFixedQuestion1, 
   getCoffeeFrequencyCalibration, 
@@ -593,7 +593,7 @@ describe("Awareness Calibration Phase Transitions - Coffee", () => {
       ];
       
       modes.forEach(mode => {
-        const evaluation = getCoffeeEconomicEvaluation(mode as any, actualMonthlySpend, actualMonthlyCount);
+        const evaluation = getCoffeeEconomicEvaluation(mode as CoffeeMode, actualMonthlySpend, actualMonthlyCount);
         expect(evaluation.content).toContain("worth");
         expect(evaluation.options.length).toBe(3); // worth_it, not_worth, mixed
       });

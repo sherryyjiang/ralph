@@ -1,189 +1,124 @@
 ---
-task: Build Peek Check-In Chat App - Iteration 2
-test_command: "npm run dev"
+task: Fix Shopping Question Tree Logic - Iteration 3
+test_command: "pnpm test shopping-flow"
 ---
 
-# Task: Peek Check-In Chat App - Iteration 2
+# Task: Fix Shopping Question Tree Logic - Iteration 3
 
-Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LLM quality enhancements.
+Align shopping check-in flow precisely with `docs/question-trees/shopping-check-in.md` specification. The current implementation has drifted from the spec with incorrect Q1→Q2 mappings, "base mode" concepts that shouldn't exist, probing turn limit gaps, and missing Layer 3 reflection logic.
 
 ## Reference Documents
 
 ### Core Specs
-- **PEEK_QUESTION_TREES.md** - Complete question tree logic (MUST follow exactly)
-- **PEEK_CHECKIN_SPEC.md** - Technical specification and data models
+- **RALPH_ITERATION_3.md** - Detailed implementation guide and success criteria
+- **docs/question-trees/shopping-check-in.md** - Authoritative spec for shopping flow
+- **.cursorrules/question-tree-design-and-testing.md** - Testing skill guide
 
-### Iteration 2 Documents (NEW)
-- **RALPH_ITERATION_2.md** - Main task list and implementation guide
-- **docs/HOME_PAGE_REDESIGN.md** - Transaction card redesign with inline entry questions
-- **docs/AWARENESS_CALIBRATION_FLOW.md** - Food/Coffee awareness flow specification
-- **docs/BUG_DIAGNOSIS_CALIBRATION_LOOP.md** - Bug analysis and fix
-- **docs/GRACEFUL_EXIT_PATTERNS.md** - Exit flows for deliberate/intentional behavior
-- **docs/AI_TONE_GUIDELINES.md** - Warmth and validation guidelines
-- **docs/LLM_PROBING_ADHERENCE.md** - Making LLM follow probing hints
-- **docs/SYNTHETIC_TRANSACTIONS_V2.md** - Reduced transaction set
+### Previous Iterations
+- **RALPH_ITERATION_2.md** - Previous iteration (inline entry questions, calibration fixes)
+- **PEEK_CHECKIN_SPEC.md** - Original technical specification
 
 ---
 
-## Iteration 2 Success Criteria
+## Success Criteria
 
-### Phase A: Data Layer Updates
-1. [x] Reduce synthetic transactions to 4 key items (Zara, H&M, Food category, Coffee category)
-2. [x] Add category aggregate functions: `getFoodCategoryStats()`, `getCoffeeCategoryStats()`
-3. [x] Verify aggregate totals match spec (~$251 food, ~$112 coffee)
+### Phase A: Fix Core Data Structures
+1. [ ] Add `other` option to `getShoppingFixedQuestion1` options array
+2. [ ] Remove "base mode" concept - all modes are flat (no `#visual-impulse-driven` as parent)
+3. [ ] Update `shoppingExplorationGoals` to use exploration TAGS (not modes)
+4. [ ] Fix `getFixedQuestion2Options` to use correct variable names (`*SubPathProbing`)
+5. [ ] Add Q2 question text mapping (Q1 response → specific Q2 question)
 
-### Phase B: Home Page Redesign
-4. [x] Remove `WeeklySummary` component from home page
-5. [x] Create `ShoppingTransactionCard` with inline Fixed Q1 options
-6. [x] Create `CategoryCheckInCard` with freeform text input for guess
-7. [x] Update navigation to pass path/guess via URL params
-8. [x] Verify only 4 cards show on home page
+### Phase B: Fix Fixed Q2 Options and Labels
+6. [ ] Impulse Q2: question = "What made you go for it?", options = price_felt_right, treating_myself, caught_eye, trending, other
+7. [ ] Deliberate Q2: question = "What were you waiting for?", options = afford_it, right_price, right_one, still_wanted, got_around, other
+8. [ ] Deal Q2: question = "Tell me more about the deal, discount or limited event?", options = limited_edition, sale_discount, free_shipping
+9. [ ] Gift Q2: question = "Who was it for?", options = family, friend, partner, coworker, other
+10. [ ] Maintenance Q2: question = "Did you get the same thing or switched it up?", options = same_thing, switched_up, upgraded
 
-### Phase C: Fix Awareness Calibration Loop
-9. [x] Add `calibrationPhase` state to session management
-10. [x] Update check-in page to read guess from URL params (not re-ask)
-11. [x] Fix option handler to properly track calibration phases
-12. [x] Implement full flow: guess → result → feeling → (breakdown) → Layer 2
-13. [x] Test Food check-in flows completely
-14. [x] Test Coffee check-in flows completely
+### Phase C: Fix Mode Definitions (Flat, No Hierarchy)
+11. [ ] Remove `#visual-impulse-driven` as a mode - it's only an exploration TAG
+12. [ ] Remove `#trend-susceptibility-driven` as a mode - it's only an exploration TAG
+13. [ ] Ensure all modes are flat: `#scroll-triggered`, `#in-store-wanderer`, `#aesthetic-driven`, etc.
+14. [ ] Update `targetModes` in all SubPathProbing to list only actual modes
 
-### Phase D: Exit Experience
-15. [x] Remove "Thanks for the reflection!" perpetual message
-16. [x] Add X close button to chat header
-17. [x] Implement graceful exit messages for deliberate paths
-18. [x] Add "Magnets" mention to graceful exits
-19. [x] Add freeform follow-up option after graceful exit
+### Phase D: Add Counter-Profiles
+15. [ ] Add `intentional-collector` counter-profile with patterns and exit message
+16. [ ] Add `trend-but-fits-me` counter-profile with patterns and exit message
+17. [ ] Add `deal-assisted-intentional` counter-profile with patterns and exit message
+18. [ ] Add `no-clear-threshold` counter-profile with reroute logic
 
-### Phase E: AI Quality
-20. [x] Update system prompt with tone guidelines (warmth, validation, mirroring)
-21. [x] Make probing hints REQUIRED in prompt (not suggestions)
-22. [x] Add negative examples to prevent generic questions
-23. [x] Test probing adherence for "right_one" path specifically
+### Phase E: Add Layer 3 Reflection Logic
+19. [ ] Implement reflection option routing (problem, feel, worth, different, done)
+20. [ ] Add mode-based entry questions for Behavioral Excavation
+21. [ ] Add mode-aware question adaptation for Emotional Reflection
+22. [ ] Add mode-aware question adaptation for Cost Comparison
+23. [ ] Add probing hints for each reflection path
+24. [ ] Implement graceful exit messages
 
-### Phase F: Testing
-24. [x] Write tests for question tree routing (shopping paths)
-25. [x] Write tests for awareness calibration phase transitions
-26. [x] Write tests for graceful exit detection
-27. [x] Manual verification of all 4 check-in cards
+### Phase F: Update prompts.ts to Align
+25. [ ] Update `getFixedQuestion2Options` to return both question text AND options
+26. [ ] Update mode indicators to use only flat modes (not exploration tags)
+27. [ ] Add reflection path prompts
 
----
+### Phase G: Probing Turn Limits
+28. [ ] Verify `lightProbing: true` is set on ALL deliberate sub-paths
+29. [ ] Verify `lightProbing: true` is set on ALL gift sub-paths
+30. [ ] Verify `lightProbing: true` is set on ALL maintenance sub-paths
+31. [ ] Verify impulse sub-paths have `lightProbing: false` or undefined (defaults to 2-3)
+32. [ ] Verify deal sub-paths have `lightProbing: false` or undefined (defaults to 2-3)
+33. [ ] Add `maxProbingTurns` to SubPathProbing interface for explicit control
+34. [ ] Update prompt to tell LLM exactly when to transition based on turn count
+35. [ ] Verify `probingTurn` is tracked in session state and incremented on each LLM response
 
-## Key Implementation Details
-
-### URL Parameters
-
-**Shopping Check-In:**
-```
-/check-in/[sessionId]?txn=[transactionId]&path=[selectedPath]
-```
-- `path` values: impulse, deliberate, deal, gift, maintenance
-- Chat starts with Fixed Q2 (NOT Fixed Q1)
-
-**Food Check-In:**
-```
-/check-in/[sessionId]?category=food&guess=[dollarAmount]
-```
-- `guess` is user's guess in dollars
-- Chat starts with calibration result + feeling question
-
-**Coffee Check-In:**
-```
-/check-in/[sessionId]?category=coffee&guessCount=[count]
-```
-- `guessCount` is user's guess in number of purchases
-- Chat starts with calibration result + feeling question
-
-### Calibration Phase State Machine
-
-```typescript
-type CalibrationPhase = 
-  | "awaiting_guess"        // Initial state (but guess comes from URL)
-  | "awaiting_feeling"      // After showing result, waiting for feeling response
-  | "awaiting_breakdown"    // Asked if they want breakdown (only if way off)
-  | "complete";             // Ready for Layer 2 or exit
-```
-
-### Actual Category Totals (for comparison)
-
-- **Food:** $251 total, 9 orders
-- **Coffee:** ~$112 total, 18 purchases
-
-### Feeling Options After Calibration
-
-```typescript
-const FEELING_OPTIONS = [
-  { id: "ok_with_it", label: "I'm ok with it", emoji: "👍" },
-  { id: "could_be_better", label: "Feel like it could be better", emoji: "🤔" },
-];
-```
-
-### When to Offer Breakdown
-
-Offer breakdown if BOTH:
-1. User's guess was "way off" (>20% difference AND $75+ difference)
-2. User selected "Feel like it could be better"
+### Phase H: Testing
+36. [ ] Create `__tests__/shopping-flow.test.ts` with Q1 → Q2 mapping tests
+37. [ ] Add Q2 options tests for each path
+38. [ ] Add mode assignment tests (flat modes only)
+39. [ ] Add counter-profile detection tests
+40. [ ] Add reflection path routing tests
+41. [ ] Add probing turn limit tests (verify lightProbing = 1 turn, default = 2-3 turns)
+42. [ ] Run all tests: `pnpm test shopping-flow`
 
 ---
 
-## Technical Notes
+## Key Concepts
 
-### Files to Modify
+### Q1 → Q2 Mapping (Fixed Questions)
+| Q1 Response | Q2 Question |
+|-------------|-------------|
+| "Saw it and bought it in the moment" | "What made you go for it?" |
+| "Been thinking about this for a while" | "What were you waiting for?" |
+| "A good deal/discount or limited drop made me go for it" | "Tell me more about the deal, discount or limited event?" |
+| "Bought it for someone else" | "Who was it for?" |
+| "Restocking or replacing" | "Did you get the same thing or switched it up?" |
 
-| File | Changes |
-|------|---------|
-| `lib/data/synthetic-transactions.ts` | Reduce to 4 items, add aggregate functions |
-| `app/page.tsx` | Remove header, add new card components |
-| `app/check-in/[sessionId]/page.tsx` | Read URL params, fix calibration flow |
-| `lib/hooks/use-check-in-session.ts` | Add calibrationPhase state |
-| `lib/llm/prompts.ts` | Add tone guidelines, stricter probing |
-| `app/api/chat/route.ts` | Update system prompt construction |
+### Probing Turn Limits
+| Path Type | Probing Depth | Max Questions |
+|-----------|---------------|---------------|
+| Impulse (YELLOW) | Deep | 2-3 |
+| Deal (YELLOW) | Moderate | 2-3 |
+| Deliberate (WHITE) | Light | 1 |
+| Gift (WHITE) | Light | 1 |
+| Maintenance (WHITE) | Light | 1 |
 
-### New Components to Create
+### Modes Are FLAT (No Hierarchy)
+- ❌ WRONG: `#visual-impulse-driven` as base mode with `#scroll-triggered` as submode
+- ✅ CORRECT: `#scroll-triggered`, `#in-store-wanderer`, `#aesthetic-driven` are all equal-level modes
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| `ShoppingTransactionCard` | `components/transaction-card.tsx` | Shopping card with inline options |
-| `CategoryCheckInCard` | `components/category-card.tsx` | Food/Coffee card with guess input |
+### Exploration Tags vs Modes
+- **Tags** (used for categorization only): `#price-sensitivity-driven`, `#self-reward-driven`, `#visual-impulse-driven`, `#trend-susceptibility-driven`
+- **Modes** (assigned after probing): `#intuitive-threshold-spender`, `#scroll-triggered`, `#social-media-influenced`, etc.
 
 ---
 
 ## Ralph Instructions
 
-1. Read ALL docs in `docs/` folder before starting (especially the iteration 2 docs)
-2. Start with Phase A (data layer) - it unblocks everything else
-3. Work through phases in order: A → B → C → D → E → F
-4. Run `npm run dev` after each phase to verify
-5. For Phase C, carefully follow the state machine in `BUG_DIAGNOSIS_CALIBRATION_LOOP.md`
-6. Commit after completing each numbered criterion
-7. When ALL criteria are [x], output: `<ralph>COMPLETE</ralph>`
-8. If stuck on the same issue 3+ times, output: `<ralph>GUTTER</ralph>`
+1. Read `RALPH_ITERATION_3.md` for full implementation details
+2. Read `docs/question-trees/shopping-check-in.md` line by line
+3. Work through phases in order: A → B → C → D → E → F → G → H
+4. Run `pnpm test shopping-flow` after each phase
+5. Commit after completing each numbered criterion
+6. When ALL criteria are `[x]`, output: `<ralph>COMPLETE</ralph>`
+7. If stuck on same issue 3+ times, output: `<ralph>GUTTER</ralph>`
 
----
-
-## Previous Iteration (v1) - COMPLETED
-
-<details>
-<summary>Click to expand v1 criteria</summary>
-
-### Phase 1: Foundation
-1. [x] Create TypeScript interfaces in `lib/types/index.ts`
-2. [x] Create synthetic transaction data in `lib/data/synthetic-transactions.ts`
-3. [x] Create LLM wrapper in `lib/llm/client.ts`
-4. [x] Build basic dashboard page with weekly spend summary
-
-### Phase 2: Chat Infrastructure
-5. [x] Create chat components
-6. [x] Create check-in session state management
-7. [x] Create `/check-in/[sessionId]/page.tsx`
-8. [x] Connect transaction tap to check-in flow
-
-### Phase 3: Gemini Integration
-9. [x] Create API route at `/api/chat/route.ts`
-10. [x] Build system prompt construction
-11. [x] Handle streaming responses
-12. [x] Add error handling
-
-### Phase 4-8: All Complete
-[All 31 criteria completed in v1]
-
-</details>

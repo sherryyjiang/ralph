@@ -156,3 +156,12 @@ To build a chat app that implements these question trees, we need:
    - Transaction data API
    - Analytics/logging
 
+---
+
+## Developer Skills Documentation
+
+For comprehensive guidance on designing, implementing, and testing question trees:
+
+- **Quick Reference**: [`docs/QUESTION_TREE_SKILL.md`](../QUESTION_TREE_SKILL.md)
+- **Full Guide**: `.cursorrules/question-tree-design-and-testing.md`
+

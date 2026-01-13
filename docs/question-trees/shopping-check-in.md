@@ -271,9 +271,6 @@ The mode is assigned AFTER probing is complete.
 │                           │  [GREEN]                        │                           │
 │                           └─────────────────────────────────┘                           │
 │                                                                                          │
-│  MODE: #visual-impulse-driven                                                            │
-│  Gets caught by things visually — either online or in physical stores                   │
-│                                                                                          │
 │  🟢 PROBING QUESTION HINTS:                                                              │
 │  • "Where did you see it?"                                                               │
 │  • "What caught your eye about it?"                                                      │
@@ -286,7 +283,7 @@ The mode is assigned AFTER probing is complete.
 │  • "I was just walking by" / "it was right there"                                        │
 │  • "it was so pretty" / "I loved the packaging" / "the color got me"                     │
 │                                                                                          │
-│  NOTE: Based on probing, may refine to sub-modes:                                        │
+│  POSSIBLE MODES:                                                                         │
 │  • #scroll-triggered — caught while browsing online                                      │
 │  • #in-store-wanderer — caught while physically shopping                                 │
 │  • #aesthetic-driven — drawn to how things look                                          │
@@ -313,9 +310,6 @@ The mode is assigned AFTER probing is complete.
 │                           │  [GREEN]                        │                           │
 │                           └─────────────────────────────────┘                           │
 │                                                                                          │
-│  MODE: #trend-susceptibility-driven                                                      │
-│  Buys things because they're popular or trending                                        │
-│                                                                                          │
 │  🟢 PROBING QUESTION HINTS:                                                              │
 │  • "Where have you been seeing it?"                                                      │
 │  • "Do you feel like it's you or more of a trend buy?"                                   │
@@ -325,7 +319,7 @@ The mode is assigned AFTER probing is complete.
 │  • "a creator I follow had it"                                                           │
 │  • "my friend got one" / "everyone at work has it"                                       │
 │                                                                                          │
-│  NOTE: Based on probing, may refine to sub-modes:                                        │
+│  POSSIBLE MODES:                                                                         │
 │  • #social-media-influenced — saw it on TikTok/Instagram/YouTube                         │
 │  • #friend-peer-influenced — someone they know has it or recommended it                  │
 │                                                                                          │
@@ -497,16 +491,14 @@ These paths require **lighter probing** because the purchase was intentional. Mo
 │  ├─ #comfort-driven-spender      ← retail therapy (stress, sadness, boredom)            │
 │  └─ #routine-treat-spender       ← habitual treating (no specific trigger)              │
 │                                                                                          │
-│  FROM "just caught my eye" (may refine to sub-modes):                                    │
-│  ├─ #visual-impulse-driven       ← base mode                                            │
+│  FROM "just caught my eye":                                                              │
 │  ├─ #scroll-triggered            ← caught while browsing online                         │
 │  ├─ #in-store-wanderer           ← caught while physically shopping                     │
 │  ├─ #aesthetic-driven            ← drawn to how things look                             │
 │  ├─ #duplicate-collector         ← already owns similar items                           │
 │  └─ #exploration-hobbyist        ← likes trying new things                              │
 │                                                                                          │
-│  FROM "it's been trending lately" (may refine to sub-modes):                             │
-│  ├─ #trend-susceptibility-driven ← base mode                                            │
+│  FROM "it's been trending lately":                                                       │
 │  ├─ #social-media-influenced     ← saw it on TikTok/Instagram/YouTube                   │
 │  └─ #friend-peer-influenced      ← someone they know has/recommended it                 │
 │                                                                                          │
@@ -621,8 +613,8 @@ The entry question is **dynamically generated based on the assigned mode**:
 | `#reward-driven-spender` | "can you think of another time you bought something to celebrate or reward yourself?" |
 | `#comfort-driven-spender` | "can you think of another time you shopped because you were stressed or needed a pick-me-up?" |
 | `#routine-treat-spender` | "can you think of another time you treated yourself as part of your regular routine?" |
-| `#visual-impulse-driven` / `#scroll-triggered` / `#in-store-wanderer` | "can you think of another time something just caught your eye and you went for it?" |
-| `#trend-susceptibility-driven` / `#social-media-influenced` | "can you think of another time you bought something because everyone seemed to have it?" |
+| `#scroll-triggered` / `#in-store-wanderer` / `#aesthetic-driven` / `#duplicate-collector` / `#exploration-hobbyist` | "can you think of another time something just caught your eye and you went for it?" |
+| `#social-media-influenced` / `#friend-peer-influenced` | "can you think of another time you bought something because everyone seemed to have it?" |
 | `#scarcity-driven` | "can you think of another time you bought something because it was running out or limited?" |
 | `#deal-driven` | "can you think of another time a sale or deal made you go for something?" |
 | `#threshold-spending-driven` | "can you think of another time you added stuff to hit free shipping or get a bonus?" |
@@ -708,7 +700,7 @@ The questions are **structurally the same** but the LLM should **incorporate mod
 |------|------------------|----------------------|
 | `#comfort-driven-spender` | "does this sit well with you?" | "does spending money shopping because you're stressed sit well with you?" |
 | `#routine-treat-spender` | "does this sit well with you?" | "does spending money on these regular treats sit well with you?" |
-| `#visual-impulse-driven` | "does this sit well with you?" | "does buying things just because they caught your eye sit well with you?" |
+| `#aesthetic-driven` | "does this sit well with you?" | "does buying things just because they caught your eye sit well with you?" |
 | `#deal-driven` | "does this sit well with you?" | "does buying things because they were on sale sit well with you?" |
 
 #### Probing Question Hints

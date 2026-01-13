@@ -28,9 +28,9 @@ Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LL
 ## Iteration 2 Success Criteria
 
 ### Phase A: Data Layer Updates
-1. [ ] Reduce synthetic transactions to 4 key items (Zara, H&M, Food category, Coffee category)
-2. [ ] Add category aggregate functions: `getFoodCategoryStats()`, `getCoffeeCategoryStats()`
-3. [ ] Verify aggregate totals match spec (~$251 food, ~$112 coffee)
+1. [x] Reduce synthetic transactions to 4 key items (Zara, H&M, Food category, Coffee category)
+2. [x] Add category aggregate functions: `getFoodCategoryStats()`, `getCoffeeCategoryStats()`
+3. [x] Verify aggregate totals match spec (~$251 food, ~$112 coffee)
 
 ### Phase B: Home Page Redesign
 4. [ ] Remove `WeeklySummary` component from home page

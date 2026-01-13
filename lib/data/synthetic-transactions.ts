@@ -1,10 +1,10 @@
 /**
- * Synthetic Transaction Data
+ * Synthetic Transaction Data v2
  * 
- * Pre-populated transactions covering all check-in paths and scenarios:
- * - Shopping: impulse, deliberate, deal, gift, maintenance
- * - Food: frequency patterns, timing patterns, merchant concentration
- * - Coffee: autopilot routine, environment triggered, emotional, productivity
+ * Reduced transaction set for iteration 2:
+ * - Shopping: Zara, H&M (2 transactions)
+ * - Food: 9 orders from various merchants (~$251 total)
+ * - Coffee: 18 purchases, primarily Starbucks (~$112 total)
  */
 
 import { Transaction, WeeklySummary } from "@/lib/types";
@@ -16,18 +16,17 @@ const daysAgo = (days: number): Date => {
   return date;
 };
 
-export const syntheticTransactions: Transaction[] = [
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SHOPPING TRANSACTIONS - Cover all 5 paths
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  // Impulse path triggers
+// ═══════════════════════════════════════════════════════════════════════════
+// SHOPPING TRANSACTIONS - 2 items
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const shoppingTransactions: Transaction[] = [
   {
     id: "txn_001",
     merchant: "Zara",
     amount: 45.00,
     category: "shopping",
-    date: daysAgo(0),
+    date: daysAgo(0), // Today
     isFirstTime: true,
   },
   {
@@ -35,302 +34,137 @@ export const syntheticTransactions: Transaction[] = [
     merchant: "H&M",
     amount: 32.50,
     category: "shopping",
-    date: daysAgo(1),
+    date: daysAgo(1), // Yesterday
     isFirstTime: false,
     frequencyThisMonth: 2,
   },
-  {
-    id: "txn_003",
-    merchant: "Free People",
-    amount: 78.00,
-    category: "shopping",
-    date: daysAgo(2),
-    isFirstTime: true,
-  },
-  
-  // Deliberate path triggers
-  {
-    id: "txn_004",
-    merchant: "Nuuly",
-    amount: 98.00,
-    category: "shopping",
-    date: daysAgo(3),
-    isFirstTime: true,
-  },
-  {
-    id: "txn_005",
-    merchant: "Everlane",
-    amount: 128.00,
-    category: "shopping",
-    date: daysAgo(5),
-    isFirstTime: false,
-    frequencyThisMonth: 1,
-  },
-  
-  // Deal/Scarcity path triggers
-  {
-    id: "txn_006",
-    merchant: "Urban Outfitters",
-    amount: 29.00,
-    category: "shopping",
-    date: daysAgo(4),
-    isFirstTime: true,
-  },
-  {
-    id: "txn_007",
-    merchant: "Nordstrom Rack",
-    amount: 55.00,
-    category: "shopping",
-    date: daysAgo(6),
-    isFirstTime: false,
-    frequencyThisMonth: 3,
-  },
-  
-  // Gift path triggers
-  {
-    id: "txn_008",
-    merchant: "Anthropologie",
-    amount: 55.00,
-    category: "shopping",
-    date: daysAgo(7),
-    isFirstTime: false,
-    frequencyThisMonth: 1,
-  },
-  {
-    id: "txn_009",
-    merchant: "Etsy",
-    amount: 42.00,
-    category: "shopping",
-    date: daysAgo(8),
-    isFirstTime: false,
-    frequencyThisMonth: 2,
-  },
-  
-  // Maintenance path triggers
-  {
-    id: "txn_010",
-    merchant: "Target",
-    amount: 22.00,
-    category: "shopping",
-    date: daysAgo(2),
-    isFirstTime: false,
-    frequencyThisMonth: 4,
-  },
-  {
-    id: "txn_011",
-    merchant: "Amazon",
-    amount: 35.99,
-    category: "shopping",
-    date: daysAgo(4),
-    isFirstTime: false,
-    frequencyThisMonth: 6,
-  },
+];
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FOOD TRANSACTIONS - For pattern detection
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  // DoorDash frequency pattern (user underestimates)
+// ═══════════════════════════════════════════════════════════════════════════
+// FOOD TRANSACTIONS - 9 orders, ~$251 total
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const foodTransactions: Transaction[] = [
+  // DoorDash - 4 orders ($112)
   {
-    id: "txn_012",
+    id: "txn_food_001",
     merchant: "DoorDash",
     amount: 28.50,
     category: "food",
     date: daysAgo(0),
     isFirstTime: false,
-    frequencyThisWeek: 3,
-    frequencyThisMonth: 12,
   },
   {
-    id: "txn_013",
+    id: "txn_food_002",
     merchant: "DoorDash",
-    amount: 35.00,
-    category: "food",
-    date: daysAgo(2),
-    isFirstTime: false,
-    frequencyThisWeek: 3,
-    frequencyThisMonth: 12,
-  },
-  {
-    id: "txn_014",
-    merchant: "DoorDash",
-    amount: 24.75,
-    category: "food",
-    date: daysAgo(4),
-    isFirstTime: false,
-    frequencyThisWeek: 3,
-    frequencyThisMonth: 12,
-  },
-  
-  // Uber Eats pattern
-  {
-    id: "txn_015",
-    merchant: "Uber Eats",
-    amount: 42.00,
-    category: "food",
-    date: daysAgo(1),
-    isFirstTime: false,
-    frequencyThisMonth: 5,
-  },
-  {
-    id: "txn_016",
-    merchant: "Uber Eats",
-    amount: 38.50,
-    category: "food",
-    date: daysAgo(5),
-    isFirstTime: false,
-    frequencyThisMonth: 5,
-  },
-  
-  // Merchant concentration pattern (same restaurant multiple times)
-  {
-    id: "txn_017",
-    merchant: "Sweetgreen",
-    amount: 18.00,
-    category: "food",
-    date: daysAgo(1),
-    isFirstTime: false,
-    frequencyThisMonth: 6,
-  },
-  {
-    id: "txn_018",
-    merchant: "Sweetgreen",
-    amount: 16.50,
-    category: "food",
-    date: daysAgo(3),
-    isFirstTime: false,
-    frequencyThisMonth: 6,
-  },
-  
-  // Timing pattern (Friday concentration - stress/end of week)
-  {
-    id: "txn_019",
-    merchant: "Chipotle",
-    amount: 15.50,
-    category: "food",
-    date: daysAgo(2), // Assume this is a Friday
-    isFirstTime: false,
-    frequencyThisMonth: 8,
-  },
-  
-  // Late-night orders (potential stress eating)
-  {
-    id: "txn_020",
-    merchant: "Grubhub",
     amount: 32.00,
     category: "food",
     date: daysAgo(3),
     isFirstTime: false,
-    frequencyThisMonth: 4,
   },
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COFFEE/TREATS TRANSACTIONS - For habit detection
-  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: "txn_food_003",
+    merchant: "DoorDash",
+    amount: 25.50,
+    category: "food",
+    date: daysAgo(7),
+    isFirstTime: false,
+  },
+  {
+    id: "txn_food_004",
+    merchant: "DoorDash",
+    amount: 26.00,
+    category: "food",
+    date: daysAgo(12),
+    isFirstTime: false,
+  },
   
-  // Autopilot routine (high frequency Starbucks)
+  // Uber Eats - 3 orders ($89)
   {
-    id: "txn_021",
-    merchant: "Starbucks",
-    amount: 6.75,
-    category: "coffee",
-    date: daysAgo(0),
-    isFirstTime: false,
-    frequencyThisWeek: 5,
-    frequencyThisMonth: 18,
-  },
-  {
-    id: "txn_022",
-    merchant: "Starbucks",
-    amount: 7.25,
-    category: "coffee",
-    date: daysAgo(1),
-    isFirstTime: false,
-    frequencyThisWeek: 5,
-    frequencyThisMonth: 18,
-  },
-  {
-    id: "txn_023",
-    merchant: "Starbucks",
-    amount: 6.50,
-    category: "coffee",
+    id: "txn_food_005",
+    merchant: "Uber Eats",
+    amount: 35.00,
+    category: "food",
     date: daysAgo(2),
     isFirstTime: false,
-    frequencyThisWeek: 5,
-    frequencyThisMonth: 18,
+  },
+  {
+    id: "txn_food_006",
+    merchant: "Uber Eats",
+    amount: 28.00,
+    category: "food",
+    date: daysAgo(6),
+    isFirstTime: false,
+  },
+  {
+    id: "txn_food_007",
+    merchant: "Uber Eats",
+    amount: 26.00,
+    category: "food",
+    date: daysAgo(10),
+    isFirstTime: false,
   },
   
-  // Environment triggered (near work - local cafe)
+  // Grubhub - 2 orders ($50)
   {
-    id: "txn_024",
-    merchant: "Fount Coffee Kitchen",
-    amount: 19.78,
-    category: "coffee",
-    date: daysAgo(1),
-    isFirstTime: false,
-    frequencyThisWeek: 3,
-    frequencyThisMonth: 8,
-  },
-  {
-    id: "txn_025",
-    merchant: "Fount Coffee Kitchen",
-    amount: 15.50,
-    category: "coffee",
-    date: daysAgo(3),
-    isFirstTime: false,
-    frequencyThisWeek: 3,
-    frequencyThisMonth: 8,
-  },
-  
-  // Afternoon pick-me-up / productivity justification
-  {
-    id: "txn_026",
-    merchant: "Blue Bottle Coffee",
-    amount: 8.50,
-    category: "coffee",
-    date: daysAgo(2),
-    isFirstTime: true,
-  },
-  {
-    id: "txn_027",
-    merchant: "Philz Coffee",
-    amount: 7.00,
-    category: "coffee",
-    date: daysAgo(4),
-    isFirstTime: false,
-    frequencyThisMonth: 4,
-  },
-  
-  // Treat/emotional pattern (bakery, dessert spots)
-  {
-    id: "txn_028",
-    merchant: "Levain Bakery",
-    amount: 12.00,
-    category: "coffee",
+    id: "txn_food_008",
+    merchant: "Grubhub",
+    amount: 27.00,
+    category: "food",
     date: daysAgo(5),
     isFirstTime: false,
-    frequencyThisMonth: 3,
   },
   {
-    id: "txn_029",
-    merchant: "Milk Bar",
-    amount: 14.50,
-    category: "coffee",
-    date: daysAgo(6),
-    isFirstTime: true,
-  },
-  
-  // Quick convenience coffee
-  {
-    id: "txn_030",
-    merchant: "Dunkin'",
-    amount: 4.25,
-    category: "coffee",
-    date: daysAgo(3),
+    id: "txn_food_009",
+    merchant: "Grubhub",
+    amount: 23.00,
+    category: "food",
+    date: daysAgo(14),
     isFirstTime: false,
-    frequencyThisMonth: 5,
   },
 ];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COFFEE TRANSACTIONS - 18 purchases, ~$112 total
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const coffeeTransactions: Transaction[] = [
+  // Starbucks - 15 purchases (~$95)
+  { id: "txn_coffee_001", merchant: "Starbucks", amount: 6.50, category: "coffee", date: daysAgo(0), isFirstTime: false },
+  { id: "txn_coffee_002", merchant: "Starbucks", amount: 6.75, category: "coffee", date: daysAgo(1), isFirstTime: false },
+  { id: "txn_coffee_003", merchant: "Starbucks", amount: 6.25, category: "coffee", date: daysAgo(2), isFirstTime: false },
+  { id: "txn_coffee_004", merchant: "Starbucks", amount: 7.00, category: "coffee", date: daysAgo(3), isFirstTime: false },
+  { id: "txn_coffee_005", merchant: "Starbucks", amount: 6.50, category: "coffee", date: daysAgo(4), isFirstTime: false },
+  { id: "txn_coffee_006", merchant: "Starbucks", amount: 6.75, category: "coffee", date: daysAgo(5), isFirstTime: false },
+  { id: "txn_coffee_007", merchant: "Starbucks", amount: 6.25, category: "coffee", date: daysAgo(7), isFirstTime: false },
+  { id: "txn_coffee_008", merchant: "Starbucks", amount: 6.50, category: "coffee", date: daysAgo(8), isFirstTime: false },
+  { id: "txn_coffee_009", merchant: "Starbucks", amount: 6.75, category: "coffee", date: daysAgo(9), isFirstTime: false },
+  { id: "txn_coffee_010", merchant: "Starbucks", amount: 6.00, category: "coffee", date: daysAgo(10), isFirstTime: false },
+  { id: "txn_coffee_011", merchant: "Starbucks", amount: 6.50, category: "coffee", date: daysAgo(12), isFirstTime: false },
+  { id: "txn_coffee_012", merchant: "Starbucks", amount: 6.25, category: "coffee", date: daysAgo(14), isFirstTime: false },
+  { id: "txn_coffee_013", merchant: "Starbucks", amount: 6.75, category: "coffee", date: daysAgo(16), isFirstTime: false },
+  { id: "txn_coffee_014", merchant: "Starbucks", amount: 6.50, category: "coffee", date: daysAgo(18), isFirstTime: false },
+  { id: "txn_coffee_015", merchant: "Starbucks", amount: 6.25, category: "coffee", date: daysAgo(20), isFirstTime: false },
+  
+  // Local Cafe - 3 purchases (~$17)
+  { id: "txn_coffee_016", merchant: "Local Cafe", amount: 5.50, category: "coffee", date: daysAgo(6), isFirstTime: false },
+  { id: "txn_coffee_017", merchant: "Local Cafe", amount: 5.75, category: "coffee", date: daysAgo(11), isFirstTime: false },
+  { id: "txn_coffee_018", merchant: "Local Cafe", amount: 5.75, category: "coffee", date: daysAgo(15), isFirstTime: false },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMBINED TRANSACTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const syntheticTransactions: Transaction[] = [
+  ...shoppingTransactions,
+  ...foodTransactions,
+  ...coffeeTransactions,
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * Get transactions for the current week (last 7 days)
@@ -388,16 +222,16 @@ export function getTransactionById(id: string): Transaction | undefined {
  * Get total monthly food spending (for awareness calibration)
  */
 export function getMonthlyFoodSpend(): number {
-  const foodTransactions = getTransactionsByCategory("food");
-  return foodTransactions.reduce((sum, txn) => sum + txn.amount, 0);
+  const foodTxns = getTransactionsByCategory("food");
+  return Math.round(foodTxns.reduce((sum, txn) => sum + txn.amount, 0) * 100) / 100;
 }
 
 /**
  * Get total monthly coffee/treats spending
  */
 export function getMonthlyCoffeeSpend(): number {
-  const coffeeTransactions = getTransactionsByCategory("coffee");
-  return coffeeTransactions.reduce((sum, txn) => sum + txn.amount, 0);
+  const coffeeTxns = getTransactionsByCategory("coffee");
+  return Math.round(coffeeTxns.reduce((sum, txn) => sum + txn.amount, 0) * 100) / 100;
 }
 
 /**
@@ -405,4 +239,105 @@ export function getMonthlyCoffeeSpend(): number {
  */
 export function getMonthlyCoffeeCount(): number {
   return getTransactionsByCategory("coffee").length;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CATEGORY STATS - For category check-in cards
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface CategoryStats {
+  totalSpend: number;
+  orderCount?: number;      // For food
+  purchaseCount?: number;   // For coffee
+  avgPerVisit?: number;     // For coffee
+  topMerchants: { name: string; count: number; spend: number }[];
+  topDays: { day: string; count: number }[];
+}
+
+/**
+ * Get aggregate stats for food category (for category check-in card)
+ */
+export function getFoodCategoryStats(): CategoryStats {
+  const foodTxns = getTransactionsByCategory("food");
+  
+  const totalSpend = foodTxns.reduce((sum, t) => sum + t.amount, 0);
+  const orderCount = foodTxns.length;
+  
+  // Group by merchant
+  const byMerchant = foodTxns.reduce((acc, t) => {
+    if (!acc[t.merchant]) {
+      acc[t.merchant] = { name: t.merchant, count: 0, spend: 0 };
+    }
+    acc[t.merchant].count++;
+    acc[t.merchant].spend += t.amount;
+    return acc;
+  }, {} as Record<string, { name: string; count: number; spend: number }>);
+  
+  const topMerchants = Object.values(byMerchant)
+    .sort((a, b) => b.count - a.count);
+  
+  // Group by day of week
+  const byDay = foodTxns.reduce((acc, t) => {
+    const day = t.date.toLocaleDateString("en-US", { weekday: "long" });
+    if (!acc[day]) {
+      acc[day] = { day, count: 0 };
+    }
+    acc[day].count++;
+    return acc;
+  }, {} as Record<string, { day: string; count: number }>);
+  
+  const topDays = Object.values(byDay)
+    .sort((a, b) => b.count - a.count);
+  
+  return {
+    totalSpend: Math.round(totalSpend * 100) / 100,
+    orderCount,
+    topMerchants,
+    topDays,
+  };
+}
+
+/**
+ * Get aggregate stats for coffee category (for category check-in card)
+ */
+export function getCoffeeCategoryStats(): CategoryStats {
+  const coffeeTxns = getTransactionsByCategory("coffee");
+  
+  const totalSpend = coffeeTxns.reduce((sum, t) => sum + t.amount, 0);
+  const purchaseCount = coffeeTxns.length;
+  const avgPerVisit = purchaseCount > 0 ? totalSpend / purchaseCount : 0;
+  
+  // Group by merchant
+  const byMerchant = coffeeTxns.reduce((acc, t) => {
+    if (!acc[t.merchant]) {
+      acc[t.merchant] = { name: t.merchant, count: 0, spend: 0 };
+    }
+    acc[t.merchant].count++;
+    acc[t.merchant].spend += t.amount;
+    return acc;
+  }, {} as Record<string, { name: string; count: number; spend: number }>);
+  
+  const topMerchants = Object.values(byMerchant)
+    .sort((a, b) => b.count - a.count);
+  
+  // Group by day of week
+  const byDay = coffeeTxns.reduce((acc, t) => {
+    const day = t.date.toLocaleDateString("en-US", { weekday: "long" });
+    if (!acc[day]) {
+      acc[day] = { day, count: 0 };
+    }
+    acc[day].count++;
+    return acc;
+  }, {} as Record<string, { day: string; count: number }>);
+  
+  const topDays = Object.values(byDay)
+    .sort((a, b) => b.count - a.count);
+  
+  return {
+    totalSpend: Math.round(totalSpend * 100) / 100,
+    purchaseCount,
+    avgPerVisit: Math.round(avgPerVisit * 100) / 100,
+    topMerchants,
+    topDays,
+  };
 }

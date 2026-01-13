@@ -134,7 +134,7 @@ const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: Quick
       { id: "friend", label: "Friend", emoji: "👋", value: "friend", color: "white" },
       { id: "partner", label: "Partner", emoji: "💕", value: "partner", color: "white" },
       { id: "coworker", label: "Coworker", emoji: "💼", value: "coworker", color: "white" },
-      { id: "other", label: "Someone else", emoji: "📝", value: "other", color: "white" },
+      { id: "other", label: "Other/Custom", emoji: "📝", value: "other", color: "white" },
     ],
   },
   maintenance: {

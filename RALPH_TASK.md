@@ -17,8 +17,8 @@ Build a mock-up chat application that helps users understand their spending beha
 ### Phase 1: Foundation
 1. [x] Create TypeScript interfaces in `lib/types/index.ts` (Transaction, CheckInSession, Message)
 2. [x] Create synthetic transaction data in `lib/data/synthetic-transactions.ts` covering all check-in paths
-3. [ ] Create LLM wrapper in `lib/llm/client.ts` that reads model from `NEXT_PUBLIC_LLM_MODEL` env var
-4. [ ] Build basic dashboard page with weekly spend summary and transaction list
+3. [x] Create LLM wrapper in `lib/llm/client.ts` that reads model from `NEXT_PUBLIC_LLM_MODEL` env var
+4. [x] Build basic dashboard page with weekly spend summary and transaction list
 
 ### Phase 2: Chat Infrastructure
 5. [ ] Create chat components: `chat-container.tsx`, `message-bubble.tsx`, `quick-reply.tsx`

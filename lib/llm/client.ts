@@ -1,7 +1,7 @@
 // LLM Client Wrapper for Peek Check-In Chat
 // Allows model switching via NEXT_PUBLIC_LLM_MODEL environment variable
 
-import { GoogleGenAI, type GenerateContentResult } from "@google/genai";
+import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import type { CheckInContext, LLMResponse, Message } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
@@ -43,7 +43,7 @@ export async function chat(options: ChatOptions): Promise<LLMResponse> {
   }));
 
   try {
-    const response: GenerateContentResult = await client.models.generateContent({
+    const response: GenerateContentResponse = await client.models.generateContent({
       model: MODEL_ID,
       contents: conversationHistory,
       config: {

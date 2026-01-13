@@ -708,10 +708,10 @@ Summary of verification:
 
 ### 2026-01-13 16:26:00
 **Iteration 3 (Shopping Question Tree Logic) - Progress**
-- Completed criterion #2: removed “base mode” concept from `SubPathProbing` by removing exploration tags from `targetModes`
-  - `caught_eye` no longer includes `#visual-impulse-driven` in `targetModes` (flat modes only)
-  - `trending` no longer includes `#trend-susceptibility-driven` in `targetModes` (flat modes only)
-- Verified with `pnpm test shopping-flow` (107 tests passing)
+- Completed criterion #2: removed “base mode” concept so modes are flat (no exploration tags treated as modes)
+  - Updated `impulseSubPathGoals` so `caught_eye` / `trending` are “mode determined by probing” (mode = `""`) with `possibleModes` listing only flat modes
+  - Added tests asserting `getSubPathProbing(...).targetModes` never includes `#visual-impulse-driven` / `#trend-susceptibility-driven`
+- Verified with `pnpm test shopping-flow` (109 tests passing)
 
 ### 2026-01-13 16:23:08
 **Session 5 ended** - 🔄 Context rotation (token limit reached)
@@ -748,3 +748,9 @@ Summary of verification:
 
 ### 2026-01-13 16:26:24
 **Session 11 started** (model: gpt-5.2-high)
+
+### 2026-01-13 16:27:23
+**Session 11 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 16:27:25
+**Session 12 started** (model: gpt-5.2-high)

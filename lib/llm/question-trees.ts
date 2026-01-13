@@ -94,20 +94,27 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "Had you been in that store/site for a different reason?",
     ],
     modeIndicators: {
-      "#comfort-driven-spender": [
-        "mentions stress, bad day, needing a treat",
-        "uses words like 'deserve', 'reward myself'",
-        "links purchase to emotional state",
+      // Exploration TAGS (not modes): these are categorization labels for *why* they bought,
+      // not the behavioral modes assigned after probing completes.
+      "#price-sensitivity-driven": [
+        "mentions the price felt right / good value / a steal",
+        "references a personal 'under $X' threshold or mental price ceiling",
+        "talks about comparing price vs what it normally costs",
       ],
-      "#novelty-seeker": [
-        "excited by new things, trends",
-        "mentions fear of missing out",
-        "drawn to unique or limited items",
+      "#self-reward-driven": [
+        "frames it as a treat / reward / 'I deserved it'",
+        "connects the purchase to celebrating, a hard week, or needing a pick-me-up",
+        "uses language like 'earned it' or 'finally letting myself'",
       ],
-      "#social-spender": [
-        "influenced by friends, social media",
-        "mentions what others have or like",
-        "shopping as social activity",
+      "#visual-impulse-driven": [
+        "says it 'caught my eye' / 'looked cute' / 'so pretty'",
+        "mentions scrolling, seeing it in a feed, or walking past it in-store",
+        "describes being drawn in by aesthetics (color, packaging, vibe)",
+      ],
+      "#trend-susceptibility-driven": [
+        "mentions it was trending / everyone has it / hype",
+        "references TikTok/Instagram/YouTube or an influencer/creator",
+        "mentions friends/peers having it or recommending it",
       ],
     },
     counterProfilePatterns: [
@@ -125,15 +132,15 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "What made you finally decide to buy?",
     ],
     modeIndicators: {
-      "#intentional-planner": [
-        "researched options",
-        "compared prices/features",
-        "waited for the right time",
+      "#deliberate-purchase": [
+        "researched options or compared alternatives",
+        "waited for timing, availability, or readiness",
+        "made a conscious decision after thinking about it",
       ],
-      "#quality-seeker": [
-        "focused on durability, longevity",
-        "willing to pay more for better",
-        "mentions value over price",
+      "#value-standards-driven": [
+        "mentions durability, longevity, or build quality",
+        "talks about 'worth it' beyond price alone",
+        "mentions standards/preferences they were trying to meet",
       ],
     },
     counterProfilePatterns: [],
@@ -147,15 +154,20 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "Do you have other similar items?",
     ],
     modeIndicators: {
-      "#deal-hunter": [
-        "actively seeks discounts",
-        "feels validated by savings",
-        "might buy more than needed for deals",
+      "#deal-driven": [
+        "the discount/savings is the main justification",
+        "mentions tracking sales, coupons, or waiting for a markdown",
+        "frames the purchase as 'smart' because it was cheaper",
       ],
-      "#scarcity-susceptible": [
-        "responds to limited time/quantity",
-        "fears missing out on deals",
-        "urgency drives decision",
+      "#scarcity-driven": [
+        "mentions limited drop, running out, or time pressure",
+        "fear of missing out / urgency is the primary driver",
+        "would likely hesitate without the scarcity framing",
+      ],
+      "#threshold-spending-driven": [
+        "mentions free shipping threshold, bonus/sample, or add-ons",
+        "added extra items to hit a minimum spend",
+        "frames additions as 'it was basically free' or 'might as well'",
       ],
     },
     counterProfilePatterns: [
@@ -173,15 +185,15 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "How does gift-giving make you feel?",
     ],
     modeIndicators: {
-      "#generous-giver": [
-        "enjoys making others happy",
-        "thoughtful about gift selection",
-        "might overspend on gifts",
+      "#gift-giving": [
+        "mentions a specific person and what they'd like",
+        "references occasion, relationship, or intention behind the gift",
+        "talks about how giving affects them (joy, pressure, connection)",
       ],
-      "#obligation-driven": [
-        "feels pressure to give gifts",
-        "mentions expectations",
-        "gift-giving as social currency",
+      "#obligation-pressure": [
+        "mentions expectations, 'had to', or social pressure",
+        "frames it as keeping up / not wanting to disappoint",
+        "mentions budgets being stretched due to obligation",
       ],
     },
     counterProfilePatterns: [],
@@ -195,15 +207,15 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "Did you consider any alternatives?",
     ],
     modeIndicators: {
-      "#organized-restockers": [
-        "has system for tracking supplies",
-        "buys before running out",
-        "maintains inventory",
+      "#maintenance-need": [
+        "the old item was used up, broken, or worn out",
+        "frames it as a practical replacement, not a want",
+        "mentions consistency ('it works', 'I always get this')",
       ],
-      "#just-in-case-buyer": [
-        "buys extras 'just in case'",
-        "might have unused duplicates",
-        "anxiety about running out",
+      "#just-in-case-buffering": [
+        "buys backups or extras to avoid running out",
+        "mentions anxiety about not having it when needed",
+        "might already have duplicates at home",
       ],
     },
     counterProfilePatterns: [],

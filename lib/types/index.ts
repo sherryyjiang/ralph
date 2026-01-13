@@ -77,7 +77,8 @@ export type GiftSubPath =
   | "family"             // [WHITE] "Family member"
   | "friend"             // [WHITE] "Friend"
   | "partner"            // [WHITE] "Partner"
-  | "coworker";          // [WHITE] "Coworker"
+  | "coworker"           // [WHITE] "Coworker"
+  | "other";             // [WHITE] Other/Custom
 
 /**
  * Sub-paths for maintenance shopping (Fixed Question 2 responses)

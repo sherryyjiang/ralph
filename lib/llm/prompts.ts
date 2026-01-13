@@ -244,6 +244,7 @@ export function getFixedQuestion2Options(category: TransactionCategory, path: st
       { id: "treating_myself", label: "Treating myself", emoji: "🎁", value: "treating_myself", color: "yellow" },
       { id: "caught_eye", label: "Just caught my eye", emoji: "👀", value: "caught_eye", color: "yellow" },
       { id: "trending", label: "It's been trending lately", emoji: "📈", value: "trending", color: "yellow" },
+      { id: "other", label: "Other/Custom", emoji: "📝", value: "other", color: "yellow" },
     ],
     deliberate: [
       { id: "afford_it", label: "Waiting until I could afford it", emoji: "💳", value: "afford_it", color: "white" },

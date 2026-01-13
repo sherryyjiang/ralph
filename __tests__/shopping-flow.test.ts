@@ -6,8 +6,12 @@
 
 import { getFixedQuestion1Options, explorationGoals } from "@/lib/llm/prompts";
 import { 
+  getFixedQuestion2Options as getTreeFixedQuestion2Options,
   getSubPathExplorationGoal, 
   getSubPathProbing,
+  impulseSubPathProbing,
+  deliberateSubPathProbing,
+  dealSubPathProbing,
   impulseSubPathGoals, 
   dealSubPathGoals,
   deliberateSubPathGoals,
@@ -266,6 +270,19 @@ describe("Impulse Sub-Path Probing Tags", () => {
     expect(getSubPathProbing("impulse", "treating_myself")?.explorationTag).toBe("#self-reward-driven");
     expect(getSubPathProbing("impulse", "caught_eye")?.explorationTag).toBe("#visual-impulse-driven");
     expect(getSubPathProbing("impulse", "trending")?.explorationTag).toBe("#trend-susceptibility-driven");
+  });
+});
+
+describe("getFixedQuestion2Options (question-trees)", () => {
+  it("should derive impulse/deliberate/deal options from *SubPathProbing keys", () => {
+    const impulseOptions = getTreeFixedQuestion2Options("shopping", "impulse") ?? [];
+    expect(impulseOptions.map((o) => o.value).sort()).toEqual(Object.keys(impulseSubPathProbing).sort());
+
+    const deliberateOptions = getTreeFixedQuestion2Options("shopping", "deliberate") ?? [];
+    expect(deliberateOptions.map((o) => o.value).sort()).toEqual(Object.keys(deliberateSubPathProbing).sort());
+
+    const dealOptions = getTreeFixedQuestion2Options("shopping", "deal") ?? [];
+    expect(dealOptions.map((o) => o.value).sort()).toEqual(Object.keys(dealSubPathProbing).sort());
   });
 });
 

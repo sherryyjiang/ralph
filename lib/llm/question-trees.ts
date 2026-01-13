@@ -6,6 +6,7 @@
  */
 
 import { QuickReplyOption } from "@/lib/types";
+import type { ShoppingPath } from "@/lib/types";
 
 // =============================================================================
 // Shopping Check-In Fixed Questions
@@ -15,6 +16,19 @@ export interface FixedQuestionResponse {
   content: string;
   options: QuickReplyOption[];
 }
+
+/**
+ * Shopping Fixed Question 2 question text mapping (by Q1 path).
+ *
+ * Spec source: docs/question-trees/shopping-check-in.md
+ */
+export const SHOPPING_Q2_QUESTIONS: Record<ShoppingPath, string> = {
+  impulse: "What made you go for it?",
+  deliberate: "What were you waiting for?",
+  deal: "Tell me more about the deal, discount or limited event?",
+  gift: "Who was it for?",
+  maintenance: "Did you get the same thing or switched it up?",
+};
 
 /**
  * Shopping Fixed Question 1: "What's the story behind this purchase?"
@@ -69,29 +83,6 @@ export function getShoppingFixedQuestion1(
       },
     ],
   };
-}
-
-/**
- * Shopping Fixed Question 2 question text mapping (Q1 response → specific Q2 question)
- *
- * NOTE: "other" is handled as open-ended exploration (no fixed Q2).
- */
-export const SHOPPING_Q2_QUESTIONS: Record<
-  "impulse" | "deliberate" | "deal" | "gift" | "maintenance",
-  string
-> = {
-  impulse: "What made you go for it?",
-  deliberate: "What were you waiting for?",
-  deal: "Tell me more about the deal, discount or limited event?",
-  gift: "Who was it for?",
-  maintenance: "Did you get the same thing or switched it up?",
-};
-
-export function getShoppingFixedQuestion2Text(path: string): string | null {
-  if (path in SHOPPING_Q2_QUESTIONS) {
-    return SHOPPING_Q2_QUESTIONS[path as keyof typeof SHOPPING_Q2_QUESTIONS];
-  }
-  return null;
 }
 
 // =============================================================================
@@ -154,9 +145,19 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "Did you compare options?",
       "What made you finally decide to buy?",
     ],
-    // Deliberate path uses light probing and assigns modes after probing;
-    // keep this empty to avoid implying modes during path-level exploration.
-    modeIndicators: {},
+    // Exploration TAGS (not modes): categorize what kind of intentionality is present.
+    modeIndicators: {
+      "#deliberate-purchase": [
+        "describes planning, waiting, or intentionally deciding over time",
+        "mentions comparing options, reading reviews, or doing research",
+        "frames it as a considered decision rather than a spur-of-the-moment buy",
+      ],
+      "#value-standards-driven": [
+        "mentions durability, quality, or 'the right one' standards",
+        "talks about long-term value (cost-per-use, investment piece)",
+        "emphasizes fit with needs/style rather than urgency or hype",
+      ],
+    },
     counterProfilePatterns: [],
   },
   deal: {
@@ -167,9 +168,21 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "How did you find out about the deal?",
       "Do you have other similar items?",
     ],
-    // Deal path splits into Fixed Q2 sub-paths; avoid mode names here and let
-    // SubPathProbing/LLM determine the final mode after probing.
-    modeIndicators: {},
+    // Exploration TAGS (not modes): categorize what kind of deal/urgency is driving the purchase.
+    modeIndicators: {
+      "#scarcity-driven": [
+        "mentions limited drop, running out, urgency, or FOMO",
+        "describes pressure to buy now because availability might disappear",
+      ],
+      "#deal-driven": [
+        "focuses on discount amount, sale, or feeling good about savings",
+        "mentions waiting for a sale or tracking price drops",
+      ],
+      "#threshold-spending-driven": [
+        "mentions free shipping thresholds, bonuses, samples, or add-ons to qualify",
+        "describes adding extra items just to unlock a perk",
+      ],
+    },
     counterProfilePatterns: [
       "I was already planning to buy this",
       "I would have bought it anyway",

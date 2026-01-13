@@ -19,11 +19,22 @@ import type {
 // STATE TYPES
 // ═══════════════════════════════════════════════════════════════
 
+// Calibration phase for Food/Coffee check-ins
+export type CalibrationPhase = 
+  | "awaiting_guess"    // Initial state (but guess comes from URL)
+  | "result_shown"      // Just showed the calibration result
+  | "feeling_asked"     // Waiting for feeling response
+  | "breakdown_offered" // Asked if they want breakdown (only if way off)
+  | "breakdown_shown"   // Showed the breakdown
+  | "layer_2_ready"     // Ready to transition to Layer 2
+  | "complete";         // Calibration done, in Layer 2+
+
 export interface CheckInState {
   session: CheckInSession;
   isLoading: boolean;
   error: string | null;
   probingExchangeCount: number; // Track Layer 2 exchanges
+  calibrationPhase: CalibrationPhase; // Track awareness calibration phase
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -52,6 +63,7 @@ export type CheckInAction =
   | { type: "SET_COFFEE_MOTIVATION"; payload: string }
   | { type: "ADD_TAG"; payload: string }
   | { type: "INCREMENT_PROBING_DEPTH" }
+  | { type: "SET_CALIBRATION_PHASE"; payload: CalibrationPhase }
   | { type: "COMPLETE_SESSION" }
   | { type: "DISMISS_SESSION" };
 
@@ -380,6 +392,12 @@ function checkInReducer(state: CheckInState, action: CheckInAction): CheckInStat
         },
       };
 
+    case "SET_CALIBRATION_PHASE":
+      return {
+        ...state,
+        calibrationPhase: action.payload,
+      };
+
     case "COMPLETE_SESSION":
       return {
         ...state,
@@ -441,6 +459,7 @@ function createInitialState(
     isLoading: false,
     error: null,
     probingExchangeCount: 0,
+    calibrationPhase: "awaiting_guess",
   };
 }
 

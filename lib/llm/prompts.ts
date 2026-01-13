@@ -264,6 +264,7 @@ export function getFixedQuestion2Options(category: TransactionCategory, path: st
       { id: "friend", label: "Friend", emoji: "👋", value: "friend", color: "white" },
       { id: "partner", label: "Partner", emoji: "💕", value: "partner", color: "white" },
       { id: "coworker", label: "Coworker", emoji: "💼", value: "coworker", color: "white" },
+      { id: "other", label: "Someone else", emoji: "👤", value: "other", color: "white" },
     ],
     maintenance: [
       { id: "same_thing", label: "Got the same thing", emoji: "🔁", value: "same_thing", color: "white" },

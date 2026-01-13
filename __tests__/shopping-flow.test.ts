@@ -123,6 +123,18 @@ describe("Shopping Fixed Question 2 options (prompt helpers)", () => {
       ["limited_edition", "sale_discount", "free_shipping"].sort()
     );
   });
+
+  it("gift should have exactly 5 options", () => {
+    const options = getFixedQuestion2Options("shopping", "gift");
+    expect(options).toHaveLength(5);
+  });
+
+  it("gift should include the 5 required gift sub-paths", () => {
+    const options = getFixedQuestion2Options("shopping", "gift") ?? [];
+    expect(options.map((o) => o.value).sort()).toEqual(
+      ["family", "friend", "partner", "coworker", "other"].sort()
+    );
+  });
 });
 
 describe("Shopping Fixed Question 2 options (question-trees)", () => {
@@ -146,6 +158,18 @@ describe("Shopping Fixed Question 2 options (question-trees)", () => {
     const options = getTreeFixedQuestion2Options("shopping", "deal") ?? [];
     expect(options.map((o) => o.value).sort()).toEqual(
       ["limited_edition", "sale_discount", "free_shipping"].sort()
+    );
+  });
+
+  it("gift should have exactly 5 options", () => {
+    const options = getTreeFixedQuestion2Options("shopping", "gift");
+    expect(options).toHaveLength(5);
+  });
+
+  it("gift should include the 5 required gift sub-paths", () => {
+    const options = getTreeFixedQuestion2Options("shopping", "gift") ?? [];
+    expect(options.map((o) => o.value).sort()).toEqual(
+      ["family", "friend", "partner", "coworker", "other"].sort()
     );
   });
 });

@@ -1288,3 +1288,50 @@ describe("Cost Comparison mode-aware adaptation", () => {
     expect(getCostComparisonModeAdaptedQuestion("#deal-driven", 30)).toBeUndefined();
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Layer 3 Reflection Probing Hints (Criterion 23)
+// ═══════════════════════════════════════════════════════════════
+
+describe("Layer 3 Reflection: probing hints", () => {
+  it("behavioral excavation should include frequency + usage checks", () => {
+    const all = BEHAVIORAL_EXCAVATION_PROBING_HINTS.join(" ").toLowerCase();
+    expect(all).toContain("a lot, sometimes, or rarely");
+    expect(all).toContain("do you end up using it");
+  });
+
+  it("emotional reflection should include naming feelings + values alignment", () => {
+    const all = EMOTIONAL_REFLECTION_PROBING_HINTS.join(" ").toLowerCase();
+    expect(all).toContain("name what you're feeling");
+    expect(all).toContain("lines up with how you want to spend");
+  });
+
+  it("cost comparison should include regret test + cost-per-use framing", () => {
+    const all = COST_COMPARISON_PROBING_HINTS.join(" ").toLowerCase();
+    expect(all).toContain("spend that");
+    expect(all).toContain("per use");
+  });
+
+  it("open-ended guidance should start with 'what's on your mind' and route by intent", () => {
+    const all = OPEN_ENDED_REFLECTION_GUIDANCE.join(" ").toLowerCase();
+    expect(all).toContain("what's on your mind");
+    expect(all).toContain("frequency");
+    expect(all).toContain("feelings");
+    expect(all).toContain("value");
+  });
+
+  it("reflection hints should not include generic banned questions", () => {
+    const allHints = [
+      ...BEHAVIORAL_EXCAVATION_PROBING_HINTS,
+      ...EMOTIONAL_REFLECTION_PROBING_HINTS,
+      ...COST_COMPARISON_PROBING_HINTS,
+      ...OPEN_ENDED_REFLECTION_GUIDANCE,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    expect(allHints).not.toContain("can you tell me more");
+    expect(allHints).not.toContain("what factors did you consider");
+    expect(allHints).not.toContain("can you elaborate");
+  });
+});

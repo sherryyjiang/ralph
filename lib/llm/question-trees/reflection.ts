@@ -8,11 +8,11 @@ export function getReflectionOptions(): FixedQuestionResponse {
   return {
     content: "Would you like to explore any of these?",
     options: [
-      { id: "problem", label: "Is this a problem?", emoji: "thinking", value: "problem", color: "white" },
-      { id: "feel", label: "How do I feel about this?", emoji: "thought", value: "feel", color: "white" },
-      { id: "worth", label: "Is this a good use of money?", emoji: "money", value: "worth", color: "white" },
-      { id: "different", label: "I have a different question", emoji: "question", value: "different", color: "white" },
-      { id: "done", label: "I am good for now", emoji: "check", value: "done", color: "white" },
+      { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
+      { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
+      { id: "worth", label: "Is this a good use of money?", emoji: "💰", value: "worth", color: "white" },
+      { id: "different", label: "I have a different question", emoji: "❓", value: "different", color: "white" },
+      { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
     ],
   };
 }
@@ -25,11 +25,11 @@ export interface ReflectionPath {
 }
 
 export const REFLECTION_PATHS: Record<string, ReflectionPath> = {
-  problem: { id: "problem", label: "Is this a problem?", emoji: "thinking", type: "behavioral_excavation" },
-  feel: { id: "feel", label: "How do I feel about this?", emoji: "thought", type: "emotional_reflection" },
-  worth: { id: "worth", label: "Is this a good use of money?", emoji: "money", type: "cost_comparison" },
-  different: { id: "different", label: "I have a different question", emoji: "question", type: "open_ended" },
-  done: { id: "done", label: "I am good for now", emoji: "check", type: "exit" },
+  problem: { id: "problem", label: "Is this a problem?", emoji: "🤔", type: "behavioral_excavation" },
+  feel: { id: "feel", label: "How do I feel about this?", emoji: "💭", type: "emotional_reflection" },
+  worth: { id: "worth", label: "Is this a good use of money?", emoji: "💰", type: "cost_comparison" },
+  different: { id: "different", label: "I have a different question", emoji: "❓", type: "open_ended" },
+  done: { id: "done", label: "I'm good for now", emoji: "✅", type: "exit" },
 };
 
 export const BEHAVIORAL_EXCAVATION_ENTRY_QUESTIONS: Record<string, string> = {
@@ -107,21 +107,31 @@ export const OPEN_ENDED_REFLECTION_GUIDANCE = [
  */
 export function getCostComparisonModeAdaptedQuestion(mode: string, amount: number): string | undefined {
   if (mode === "#threshold-spending-driven")
-    return `was adding those extra items to hit free shipping worth the $${amount.toFixed(2)} you spent?`;
+    return `Was adding those extra items to hit free shipping worth the $${amount.toFixed(2)} you spent?`;
 
   if (mode === "#scarcity-driven")
-    return `if that limited drop came back, would you buy it again at $${amount.toFixed(2)}?`;
+    return `If that limited drop came back, would you buy it again at $${amount.toFixed(2)}?`;
 
-  if (mode === "#reward-driven-spender") return "is this reward something you'll get a lot of use out of?";
+  if (mode === "#reward-driven-spender") return "Is this reward something you'll get a lot of use out of?";
 
   return undefined;
 }
 
+/**
+ * Spec source: docs/question-trees/shopping-check-in.md ("I'm good for now" exit path)
+ */
 export const GRACEFUL_EXIT_MESSAGES = [
-  "got it - thanks for walking through this with me.",
+  "got it — thanks for walking through this with me.",
   "cool, we can always pick this up later if something comes up.",
-];
+] as const;
 
-export const MODE_AWARE_EXIT_MESSAGE = "I will keep an eye on this pattern and check in if I notice it happening again.";
+export const MODE_AWARE_EXIT_MESSAGE =
+  "i'll keep an eye on this pattern and check in if i notice it happening again.";
+
+export function getGracefulExitMessage(hasAssignedMode: boolean): string {
+  const base = GRACEFUL_EXIT_MESSAGES[0];
+  if (!hasAssignedMode) return base;
+  return `${base} ${MODE_AWARE_EXIT_MESSAGE}`;
+}
 
 

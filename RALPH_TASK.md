@@ -26,7 +26,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 1. [x] Add `other` option to `getShoppingFixedQuestion1` options array
 2. [x] Remove "base mode" concept - all modes are flat (no `#visual-impulse-driven` as parent)
 3. [x] Update `shoppingExplorationGoals` to use exploration TAGS (not modes)
-4. [ ] Fix `getFixedQuestion2Options` to use correct variable names (`*SubPathProbing`)
+4. [x] Fix `getFixedQuestion2Options` to use correct variable names (`*SubPathProbing`)
 5. [ ] Add Q2 question text mapping (Q1 response → specific Q2 question)
 
 ### Phase B: Fix Fixed Q2 Options and Labels

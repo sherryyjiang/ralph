@@ -96,24 +96,21 @@ describe("Mode Assignment Logic", () => {
 // ═══════════════════════════════════════════════════════════════
 
 describe("Path to Mode Mapping", () => {
-  it("should map impulse to emotional modes", () => {
+  it("impulse should surface exploration tags (not modes) at path level", () => {
     const indicators = explorationGoals.impulse.modeIndicators.join(" ");
-    const emotionalKeywords = ["comfort", "stress", "treat", "reward"];
-    const hasEmotional = emotionalKeywords.some(k => indicators.toLowerCase().includes(k));
-    expect(hasEmotional).toBe(true);
+    expect(indicators).toContain("#price-sensitivity-driven");
+    expect(indicators).toContain("#self-reward-driven");
+    expect(indicators).toContain("#visual-impulse-driven");
+    expect(indicators).toContain("#trend-susceptibility-driven");
   });
 
-  it("should map deal to value-seeking modes", () => {
-    const indicators = explorationGoals.deal.modeIndicators.join(" ");
-    const valueKeywords = ["deal", "discount", "savings"];
-    const hasValue = valueKeywords.some(k => indicators.toLowerCase().includes(k));
-    expect(hasValue).toBe(true);
+  it("deal should avoid path-level indicators (sub-path probing determines the mode)", () => {
+    expect(explorationGoals.deal.modeIndicators).toHaveLength(0);
+    expect(explorationGoals.deal.probingHints.join(" ").toLowerCase()).toContain("full price");
   });
 
-  it("should map deliberate to planning modes", () => {
-    const indicators = explorationGoals.deliberate.modeIndicators.join(" ");
-    const planningKeywords = ["intentional", "research", "quality"];
-    const hasPlanning = planningKeywords.some(k => indicators.toLowerCase().includes(k));
-    expect(hasPlanning).toBe(true);
+  it("deliberate should avoid path-level indicators (sub-path probing determines the mode)", () => {
+    expect(explorationGoals.deliberate.modeIndicators).toHaveLength(0);
+    expect(explorationGoals.deliberate.probingHints.length).toBeGreaterThan(0);
   });
 });

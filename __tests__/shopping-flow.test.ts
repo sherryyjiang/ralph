@@ -20,7 +20,8 @@ import {
   impulseSubPathGoals, 
   dealSubPathGoals,
   deliberateSubPathGoals,
-  modeDefinitions 
+  modeDefinitions,
+  getCostComparisonModeAdaptedQuestion,
 } from "@/lib/llm/question-trees";
 
 // ═══════════════════════════════════════════════════════════════
@@ -201,6 +202,30 @@ describe("Shopping Fixed Question 2 question mapping", () => {
   it("should return null for unknown paths (including 'other')", () => {
     expect(getShoppingFixedQuestion2Text("other")).toBeNull();
     expect(getShoppingFixedQuestion2Text("unknown")).toBeNull();
+  });
+});
+
+describe("Layer 3 Cost Comparison mode-aware adaptations", () => {
+  it("threshold-spending-driven should use the free-shipping worth question", () => {
+    expect(getCostComparisonModeAdaptedQuestion("#threshold-spending-driven", 42)).toBe(
+      "was adding those extra items to hit free shipping worth the $42.00 you spent?"
+    );
+  });
+
+  it("scarcity-driven should use the limited-drop buy-again question", () => {
+    expect(getCostComparisonModeAdaptedQuestion("#scarcity-driven", 89.99)).toBe(
+      "if that limited drop came back, would you buy it again at $89.99?"
+    );
+  });
+
+  it("reward-driven-spender should use the reward utility question", () => {
+    expect(getCostComparisonModeAdaptedQuestion("#reward-driven-spender", 120)).toBe(
+      "is this reward something you'll get a lot of use out of?"
+    );
+  });
+
+  it("other modes should not force a mode-specific question", () => {
+    expect(getCostComparisonModeAdaptedQuestion("#scroll-triggered", 30)).toBeUndefined();
   });
 });
 

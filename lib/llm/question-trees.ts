@@ -8,6 +8,12 @@
 import { QuickReplyOption } from "@/lib/types";
 import type { ShoppingPath } from "@/lib/types";
 
+// NOTE: This repo has both `lib/llm/question-trees.ts` (legacy monolith) and
+// `lib/llm/question-trees/` (modular). Some modules import from "@/lib/llm/question-trees",
+// which resolves to this file; re-export selected helpers from the modular implementation
+// to avoid drift.
+export { getCostComparisonModeAdaptedQuestion } from "./question-trees/reflection";
+
 // =============================================================================
 // Shopping Check-In Fixed Questions
 // =============================================================================

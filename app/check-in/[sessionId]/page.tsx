@@ -5,8 +5,18 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
 import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount } from "@/lib/data/synthetic-transactions";
-import { getFoodAwarenessCalibration, getCoffeeFrequencyCalibration } from "@/lib/llm/question-trees";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode, CheckInMode } from "@/lib/types";
+import { 
+  getFoodAwarenessCalibration, 
+  getCoffeeFrequencyCalibration,
+  getFoodCalibrationResult,
+  getFoodFeelingQuestion,
+  getFoodMotivationQuestion,
+  getFoodModeFromMotivation,
+  getFoodEconomicEvaluation,
+  foodModeExplorations,
+  type FoodMode,
+} from "@/lib/llm/question-trees";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING
@@ -52,6 +62,11 @@ const MODE_LABELS: Record<string, string> = {
   "#loyal-repurchaser": "Loyal Repurchaser",
   "#brand-switcher": "Brand Switcher",
   "#upgrader": "Upgrader",
+  // Food modes
+  "#autopilot-from-stress": "Stress-Driven Orderer",
+  "#convenience-driven": "Convenience Orderer",
+  "#lack-of-pre-planning": "Last-Minute Planner",
+  "#intentional-treat": "Intentional Treat",
 };
 
 function getModeLabel(mode: string): string | null {
@@ -214,10 +229,6 @@ const LAYER_3_REFLECTION_OPTIONS: QuickReplyOption[] = [
   { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
 ];
 
-// Min/max probing exchanges before mode assignment
-const MIN_PROBING_DEPTH = 2;
-const MAX_PROBING_DEPTH = 4;
-
 function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
   const {
     messages,
@@ -236,6 +247,11 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setLayer,
     setLoading,
     setError,
+    setUserGuess,
+    setActualAmount,
+    setUserGuessCount,
+    setActualCount,
+    addTag,
     incrementProbingDepth,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
@@ -333,10 +349,6 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
             break;
         }
         
-        // Store guess and actual in session metadata
-        setUserGuess(userGuessAmount);
-        setActualAmount(actualMonthlySpend);
-        
         // Calculate the difference
         const difference = actualMonthlySpend - userGuessAmount;
         const percentDiff = Math.round((difference / userGuessAmount) * 100);
@@ -346,7 +358,6 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         
         setTimeout(() => {
           let revealMessage: string;
-          let modeOptions: QuickReplyOption[];
           
           if (difference <= 0 || percentDiff < 10) {
             // User guessed accurately or overestimated
@@ -360,7 +371,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           }
           
           // Food mode assignment options
-          modeOptions = [
+          const modeOptions: QuickReplyOption[] = [
             { id: "stress", label: "Tired or stressed, don't want to cook", emoji: "😓", value: "stress", color: "yellow" as const },
             { id: "convenience", label: "Short on time, need something fast", emoji: "⏰", value: "convenience", color: "white" as const },
             { id: "planning", label: "Didn't plan meals, nothing in the fridge", emoji: "🤷", value: "planning", color: "white" as const },
@@ -370,16 +381,91 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           
           addAssistantMessage(revealMessage, modeOptions, true);
         }, 800);
+      } else if (currentLayer === 2) {
+        // User selected their food mode - assign it and transition to Layer 3
+        const foodMode = value as FoodMode;
+        setMode(`#food-${foodMode}`);
+        setLayer(3);
+        
+        // Generate mode-specific acknowledgment
+        let acknowledgment: string;
+        switch (foodMode) {
+          case "stress":
+            acknowledgment = "That makes sense — cooking when you're drained can feel like one thing too many. It sounds like food delivery has become a way to take care of yourself on tough days. 💆";
+            break;
+          case "convenience":
+            acknowledgment = "Time is precious! When life gets busy, delivery can be a lifesaver. It's totally understandable to prioritize convenience.";
+            break;
+          case "planning":
+            acknowledgment = "Meal planning is one of those things that sounds simple but isn't always easy to keep up with. You're definitely not alone in that!";
+            break;
+          default:
+            acknowledgment = "Got it! That's helpful context for understanding your food delivery patterns.";
+        }
+        
+        setTimeout(() => {
+          addAssistantMessage(
+            `${acknowledgment}\n\nWould you like to explore this further?`,
+            LAYER_3_REFLECTION_OPTIONS,
+            false
+          );
+        }, 500);
       }
-    } else {
-      // Coffee - placeholder for now (Phase 6)
-      setTimeout(() => {
-        addAssistantMessage(
-          "Thanks! Coffee check-in will be fully implemented in a future phase.",
-          [{ id: "done", label: "Got it, thanks!", emoji: "👍", value: "done", color: "white" }],
-          false
-        );
-      }, 500);
+    } else if (transaction.category === "coffee") {
+      // Coffee Check-In: Frequency Calibration
+      if (currentLayer === 1) {
+        // User just made their guess - calculate and reveal actual
+        const actualMonthlyCount = getMonthlyCoffeeCount();
+        
+        // Parse the guess from the value
+        let userGuessCount: number;
+        switch (value) {
+          case "few":
+            userGuessCount = Math.max(1, Math.round(actualMonthlyCount * 0.3));
+            break;
+          case "some":
+            userGuessCount = Math.round(actualMonthlyCount * 0.7);
+            break;
+          case "many":
+          default:
+            userGuessCount = Math.round(actualMonthlyCount);
+            break;
+        }
+        
+        // Store guess and actual in session metadata
+        setUserGuessCount(userGuessCount);
+        setActualCount(actualMonthlyCount);
+        
+        // Calculate the difference
+        const difference = actualMonthlyCount - userGuessCount;
+        
+        // Transition to Layer 2 with reveal message and motivation question
+        setLayer(2);
+        
+        setTimeout(() => {
+          let revealMessage: string;
+          const modeOptions: QuickReplyOption[] = [
+            { id: "routine", label: "It's just part of my routine", emoji: "🔄", value: "routine", color: "yellow" as const },
+            { id: "pick_me_up", label: "I need the energy boost", emoji: "⚡", value: "pick_me_up", color: "yellow" as const },
+            { id: "treat", label: "Treating myself, a little reward", emoji: "🎁", value: "treat", color: "yellow" as const },
+            { id: "social", label: "Meeting someone or working there", emoji: "👥", value: "social", color: "white" as const },
+            { id: "nearby", label: "Just happened to be nearby", emoji: "📍", value: "nearby", color: "white" as const },
+          ];
+          
+          if (difference <= 0 || difference < 3) {
+            // User guessed accurately
+            revealMessage = `Good eye! You've grabbed coffee or treats ${actualMonthlyCount} times this month. You know your habits! ☕\n\nWhen you go for coffee or a treat, what's usually driving it?`;
+          } else if (difference < 6) {
+            // Slightly underestimated
+            revealMessage = `Pretty close! You've actually grabbed coffee or treats ${actualMonthlyCount} times this month — about ${difference} more than you thought. Not a huge gap!\n\nWhen you go for coffee or a treat, what's usually driving it?`;
+          } else {
+            // Significantly underestimated
+            revealMessage = `Interesting! You've grabbed coffee or treats ${actualMonthlyCount} times this month — that's ${difference} more visits than you thought. 📊\n\nNo judgment here — let's explore what's going on. What usually drives these visits?`;
+          }
+          
+          addAssistantMessage(revealMessage, modeOptions, true);
+        }, 800);
+      }
     }
   }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading]);
 

@@ -51,23 +51,93 @@ interface BuildSystemPromptParams {
   transaction: Transaction;
   session: CheckInSession;
   questionTreeSection?: string;
-  probingDepth?: number;
-  requestModeAssignment?: boolean;
-  forceModeAssignment?: boolean;
+  probingTurn?: number;
+  maxProbingTurns?: number;
 }
 
 export function buildSystemPrompt({ 
   transaction, 
   session, 
-  questionTreeSection, 
-  probingDepth = 0,
-  requestModeAssignment = false,
-  forceModeAssignment = false,
+  questionTreeSection,
+  probingTurn = 0,
+  maxProbingTurns = 3,
 }: BuildSystemPromptParams): string {
-  const maxProbingDepth = 4;
-  // Determine if we should request mode assignment based on flags or probing depth
-  const shouldTransitionSoon = requestModeAssignment || forceModeAssignment || probingDepth >= 2;
-  
+  // Get sub-path probing details if available
+  const subPathProbing = session.path && session.subPath 
+    ? getSubPathProbing(session.path, session.subPath)
+    : undefined;
+    
+  const isLightProbing = subPathProbing?.lightProbing ?? false;
+  const effectiveMaxTurns = isLightProbing ? 1 : maxProbingTurns;
+  const shouldTransitionNow = probingTurn >= effectiveMaxTurns;
+
+  // Build sub-path specific probing context
+  let probingContext = "";
+  if (subPathProbing && session.currentLayer === 2) {
+    probingContext = `
+## Sub-Path Probing Context
+- Sub-path: ${subPathProbing.subPath}
+- Exploration Goal: ${subPathProbing.explorationGoal}
+- Light Probing: ${isLightProbing ? "Yes (1 question max)" : "No (2-3 questions)"}
+- Probing Turn: ${probingTurn + 1} of ${effectiveMaxTurns}
+${shouldTransitionNow ? "- READY TO TRANSITION: Assign mode and move to Layer 3" : ""}
+
+### Probing Question Hints:
+${subPathProbing.probingHints.map((h) => `- "${h}"`).join("\n")}
+
+### Target Modes:
+${subPathProbing.targetModes.map((m) => `- ${m}`).join("\n")}
+
+### Mode Signals (look for these patterns):
+${Object.entries(subPathProbing.modeSignals).map(([mode, signals]) => 
+  `${mode}:\n${signals.map((s) => `  - "${s}"`).join("\n")}`
+).join("\n")}
+
+${subPathProbing.counterProfileExit ? `### Counter-Profile Exit:\n${subPathProbing.counterProfileExit}` : ""}
+`;
+  }
+
+  // Build response format based on layer and probing state
+  let responseFormat = "";
+  if (session.currentLayer === 2) {
+    if (shouldTransitionNow) {
+      responseFormat = `
+You have completed probing. Now you MUST:
+1. Acknowledge and validate what the user shared (1 sentence)
+2. Summarize what you learned about their spending pattern (1 sentence)
+3. Assign a mode based on the signals you detected
+4. Respond with JSON:
+{
+  "message": "Your acknowledgment and summary, ending with: Would you like to explore any of these?",
+  "shouldTransition": true,
+  "assignedMode": "#mode-id-from-target-modes",
+  "options": [
+    { "id": "problem", "label": "Is this a problem?", "emoji": "🤔", "value": "problem" },
+    { "id": "feel", "label": "How do I feel about this?", "emoji": "💭", "value": "feel" },
+    { "id": "worth", "label": "Is this a good use of money?", "emoji": "💰", "value": "worth" },
+    { "id": "done", "label": "I'm good for now", "emoji": "✅", "value": "done" }
+  ]
+}`;
+    } else {
+      responseFormat = `
+Continue probing with ONE follow-up question based on the probing hints above.
+Listen for mode signals but don't label the user yet.
+Respond with ONLY your conversational message - no JSON.
+
+**Counter-Profile Detection**: If the user's responses suggest intentional behavior (not matching the path), 
+acknowledge gracefully and respond with JSON:
+{
+  "message": "It sounds like this was actually more planned/intentional - that's great!",
+  "exitGracefully": true
+}`;
+    }
+  } else if (session.currentLayer === 3) {
+    responseFormat = `
+For Layer 3 reflection: Help the user explore their chosen question (problem, feelings, or worth).
+Be warm and non-judgmental. Guide self-discovery, don't lecture.
+When the reflection feels complete, respond with JSON: { "message": "...", "exitGracefully": true }`;
+  }
+
   const basePrompt = `You are a friendly, empathetic financial coach helping users understand their spending patterns.
 Your tone is warm but not judgmental - like a supportive friend who happens to be good with money.
 Keep responses concise (2-3 sentences max).
@@ -79,68 +149,15 @@ If the user seems defensive, validate their feelings first.
 - Category: ${transaction.category}
 - Check-in Layer: ${session.currentLayer}
 - Path: ${session.path || "not yet determined"}
+- Sub-path: ${session.subPath || "not yet determined"}
 ${session.mode ? `- Assigned Mode: ${session.mode}` : ""}
-${session.currentLayer === 2 ? `- Probing Depth: ${probingDepth}/${maxProbingDepth}` : ""}
 
-${questionTreeSection ? `## Question Tree Context\n${questionTreeSection}` : ""}
+${probingContext}
+
+${questionTreeSection ? `## Additional Question Tree Context\n${questionTreeSection}` : ""}
 
 ## Response Format
-${session.currentLayer === 2 ? `
-### Layer 2 Probing Instructions
-You are in Layer 2 (probing phase). Your goal is to understand the user's spending pattern through empathetic exploration.
-
-${probingDepth === 0 ? `
-**First Probing Question**: Start by exploring what was going on when they made this purchase. Use the probing hints from the question tree context.
-Ask ONE open-ended question about their emotional state, context, or motivation.
-` : ""}
-
-${probingDepth === 1 ? `
-**Second Probing Question**: Based on their response, dig a little deeper. Look for mode indicators from the question tree context.
-If you notice patterns (comfort-seeking, novelty, social influence, deal-hunting, etc.), note them mentally.
-Ask ONE follow-up that helps you understand if this is a pattern.
-` : ""}
-
-${shouldTransitionSoon ? `
-**${forceModeAssignment ? "MUST ASSIGN MODE NOW" : "Ready to Transition"}**: You've gathered enough insight. After acknowledging their response:
-1. Look at the mode indicators you've detected from the conversation
-2. IMPORTANT: You MUST respond with valid JSON to transition to Layer 3:
-\`\`\`json
-{
-  "message": "Your warm, validating summary that transitions to reflection",
-  "shouldTransition": true,
-  "assignedMode": "#mode-id"
-}
-\`\`\`
-
-Choose from these modes based on what you learned (pick the BEST match):
-- #comfort-driven-spender: Uses shopping for emotional regulation, mentions stress/treating self
-- #novelty-seeker: Drawn to new/trending items, FOMO, excited by newness
-- #social-spender: Influenced by friends/social media, shopping as social activity
-- #deal-hunter: Motivated by discounts and savings, feels validated by deals
-- #scarcity-susceptible: Responds to limited time/quantity, urgency drives decisions
-- #intentional-planner: Researches and plans purchases, compares options
-- #quality-seeker: Focused on value and durability, willing to pay more for better
-- #generous-giver: Enjoys gift-giving, thoughtful about gifts
-- #obligation-driven: Feels pressure in gift-giving, gifts as social currency
-- #organized-restocker: Systematic about restocking, buys before running out
-- #just-in-case-buyer: Buys extras out of anxiety, might have unused duplicates
-
-If no clear mode is evident, use "assignedMode": null but STILL set "shouldTransition": true.
-` : `
-For now, respond with ONLY your conversational message - no JSON, no options.
-Continue probing with empathy. Ask ONE follow-up question.
-`}
-
-**Counter-Profile Detection**: If the user's responses don't match the path (e.g., they said "impulse" but describe planned behavior), acknowledge this gracefully and respond with:
-{
-  "message": "It sounds like this was actually more planned than spontaneous - that's great! Being intentional about purchases is a wonderful habit.",
-  "shouldTransition": true,
-  "exitGracefully": true
-}
-` : `
-For Layer 3 reflection: Respond with a conversational message that helps the user explore their question.
-When done: Include { "exitGracefully": true } in your JSON response.
-`}`;
+${responseFormat}`;
 
   return basePrompt;
 }
@@ -247,13 +264,29 @@ The user is restocking or replacing something.
 // Layer 2 Probing Prompts
 // =============================================================================
 
-export function getLayer2ProbingPrompt(path: string, userResponse: string): string {
-  return `Based on the user's response: "${userResponse}"
+export function getLayer2ProbingPrompt(path: string, subPath: string, userResponse: string): string {
+  const subPathProbing = getSubPathProbing(path, subPath);
+  
+  if (subPathProbing) {
+    return `Based on the user's response: "${userResponse}"
+
+**Exploration Goal**: ${subPathProbing.explorationGoal}
+
+**Probing Hints** (choose one that fits):
+${subPathProbing.probingHints.map((h) => `- "${h}"`).join("\n")}
 
 Continue exploring with empathy. Ask ONE follow-up question that helps understand their spending pattern.
 If you notice mode indicators, remember them but don't label the user yet.
 If the user seems to be counter-profiling (their behavior doesn't match the path), 
 gracefully acknowledge and adjust.
+
+Respond with ONLY your message - no JSON, no options.`;
+  }
+  
+  return `Based on the user's response: "${userResponse}"
+
+Continue exploring with empathy. Ask ONE follow-up question that helps understand their spending pattern.
+If you notice mode indicators, remember them but don't label the user yet.
 
 Respond with ONLY your message - no JSON, no options.`;
 }
@@ -264,18 +297,31 @@ Respond with ONLY your message - no JSON, no options.`;
 
 export function getModeAssignmentPrompt(
   conversationHistory: string[],
-  path: string
+  path: string,
+  subPath?: string
 ): string {
-  // Get the exploration goal for context
+  const subPathProbing = subPath ? getSubPathProbing(path, subPath) : undefined;
+  const targetModes = subPathProbing?.targetModes || [];
+  const modeSignals = subPathProbing?.modeSignals || {};
+  
   const goalContext = explorationGoals[path] 
     ? `Path context: ${explorationGoals[path].goal}` 
     : "";
     
-  return `Based on this conversation (path: ${path}):
+  return `Based on this conversation (path: ${path}, sub-path: ${subPath || "unknown"}):
 ${conversationHistory.join("\n")}
 
 ${goalContext}
 
+${targetModes.length > 0 ? `
+**Target Modes for this path**:
+${targetModes.map((m) => `- ${m}`).join("\n")}
+
+**Mode Signals** (look for matches in conversation):
+${Object.entries(modeSignals).map(([mode, signals]) => 
+  `${mode}: ${signals.join(", ")}`
+).join("\n")}
+` : `
 Determine if the user matches one of these spending modes:
 - #comfort-driven-spender
 - #novelty-seeker
@@ -288,12 +334,19 @@ Determine if the user matches one of these spending modes:
 - #obligation-driven
 - #organized-restocker
 - #just-in-case-buyer
+`}
 
 Respond with JSON:
 {
-  "message": "Your transitional message to Layer 3",
+  "message": "Your transitional message to Layer 3, ending with: Would you like to explore any of these?",
   "assignedMode": "#mode-id or null if unclear",
-  "shouldTransition": true
+  "shouldTransition": true,
+  "options": [
+    { "id": "problem", "label": "Is this a problem?", "emoji": "🤔", "value": "problem" },
+    { "id": "feel", "label": "How do I feel about this?", "emoji": "💭", "value": "feel" },
+    { "id": "worth", "label": "Is this a good use of money?", "emoji": "💰", "value": "worth" },
+    { "id": "done", "label": "I'm good for now", "emoji": "✅", "value": "done" }
+  ]
 }`;
 }
 

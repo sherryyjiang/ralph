@@ -45,9 +45,9 @@ Build a mock-up chat application that helps users understand their spending beha
 20. [x] Implement economic evaluation reflection
 
 ### Phase 6: Coffee/Treats Check-In
-21. [ ] Implement frequency calibration (guess vs actual count)
-22. [ ] Implement fixed question flows for all motivation paths
-23. [ ] Implement mode-specific reflection questions
+21. [x] Implement frequency calibration (guess vs actual count)
+22. [x] Implement fixed question flows for all motivation paths
+23. [x] Implement mode-specific reflection questions
 
 ### Phase 7: Reflection Paths
 24. [ ] Implement "Is this a problem?" behavioral excavation

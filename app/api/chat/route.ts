@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
-import type { Transaction, CheckInSession, Message, LLMResponse, ShoppingSubPath } from "@/lib/types";
+import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
 
 // =============================================================================
 // Configuration
@@ -347,7 +347,7 @@ function parseResponse(text: string): LLMResponse {
 // Question Tree Section Builder
 // =============================================================================
 
-function getQuestionTreeSection(path: string, subPath?: ShoppingSubPath): string {
+function getQuestionTreeSection(path: string, subPath?: string): string {
   const goal = explorationGoals[path];
   if (!goal) return "";
 

@@ -542,6 +542,10 @@ export function getSubPathProbing(path: string, subPath: string): SubPathProbing
 // Food Check-In Questions
 // =============================================================================
 
+/**
+ * Food awareness calibration - Layer 1
+ * User guesses their spending, we compare to actual
+ */
 export function getFoodAwarenessCalibration(
   transaction: { merchant: string; amount: number },
   actualMonthlySpend: number
@@ -550,25 +554,274 @@ export function getFoodAwarenessCalibration(
     content: `I see you ordered from ${transaction.merchant}. Before we dig in, how much do you think you've spent on food delivery this month?`,
     options: [
       {
-        id: "low",
+        id: "guess_low",
         label: `Around $${Math.round(actualMonthlySpend * 0.4)}`,
         emoji: "💵",
-        value: "low",
+        value: String(Math.round(actualMonthlySpend * 0.4)),
         color: "white",
       },
       {
-        id: "medium",
+        id: "guess_medium",
         label: `Around $${Math.round(actualMonthlySpend * 0.7)}`,
         emoji: "💵",
-        value: "medium",
+        value: String(Math.round(actualMonthlySpend * 0.7)),
         color: "white",
       },
       {
-        id: "high",
-        label: `Around $${Math.round(actualMonthlySpend)}+`,
+        id: "guess_high",
+        label: `Around $${Math.round(actualMonthlySpend)}`,
         emoji: "💵",
-        value: "high",
+        value: String(Math.round(actualMonthlySpend)),
         color: "white",
+      },
+      {
+        id: "guess_higher",
+        label: `$${Math.round(actualMonthlySpend * 1.2)}+`,
+        emoji: "💵",
+        value: String(Math.round(actualMonthlySpend * 1.2)),
+        color: "white",
+      },
+    ],
+  };
+}
+
+/**
+ * Get the calibration result message based on guess vs actual
+ */
+export interface CalibrationResult {
+  isClose: boolean;
+  percentDiff: number;
+  absoluteDiff: number;
+  message: string;
+  showBreakdown: boolean;
+}
+
+export function getFoodCalibrationResult(
+  guessedAmount: number,
+  actualAmount: number
+): CalibrationResult {
+  const diff = actualAmount - guessedAmount;
+  const percentDiff = Math.abs(diff / actualAmount) * 100;
+  const absoluteDiff = Math.abs(diff);
+  const isClose = percentDiff <= 20 || absoluteDiff < 75;
+
+  if (isClose) {
+    return {
+      isClose: true,
+      percentDiff,
+      absoluteDiff,
+      message: `Nice awareness! You've spent $${actualAmount.toFixed(0)} on food delivery this month. You were pretty close! 🎯`,
+      showBreakdown: false,
+    };
+  } else {
+    const direction = diff > 0 ? "more" : "less";
+    return {
+      isClose: false,
+      percentDiff,
+      absoluteDiff,
+      message: `Actually, you've spent $${actualAmount.toFixed(0)} this month — about $${absoluteDiff.toFixed(0)} ${direction} than you guessed. Would you like to see what's behind this amount?`,
+      showBreakdown: true,
+    };
+  }
+}
+
+/**
+ * "How do you feel about this number?" - after calibration reveal
+ */
+export function getFoodFeelingQuestion(): FixedQuestionResponse {
+  return {
+    content: "How do you feel about this number?",
+    options: [
+      {
+        id: "ok_with_it",
+        label: "I'm ok with it",
+        emoji: "👍",
+        value: "ok_with_it",
+        color: "white",
+      },
+      {
+        id: "not_great",
+        label: "Not great, honestly",
+        emoji: "😕",
+        value: "not_great",
+        color: "yellow",
+      },
+    ],
+  };
+}
+
+/**
+ * Food motivation question - Layer 2 (direct mode assignment)
+ */
+export type FoodMode = 
+  | "#autopilot-from-stress"
+  | "#convenience-driven"
+  | "#lack-of-pre-planning"
+  | "#intentional-treat";
+
+export function getFoodMotivationQuestion(): FixedQuestionResponse {
+  return {
+    content: "When you think about why you order food, what feels most true?",
+    options: [
+      {
+        id: "drained",
+        label: "I'm usually too drained to cook",
+        emoji: "😩",
+        value: "drained",
+        color: "yellow",
+      },
+      {
+        id: "easier",
+        label: "It's just easier to order",
+        emoji: "📱",
+        value: "easier",
+        color: "white",
+      },
+      {
+        id: "no_plan",
+        label: "I keep meaning to cook but never plan",
+        emoji: "📋",
+        value: "no_plan",
+        color: "yellow",
+      },
+      {
+        id: "wanted_meal",
+        label: "I actually wanted that specific meal",
+        emoji: "🍜",
+        value: "wanted_meal",
+        color: "white",
+      },
+      {
+        id: "too_busy",
+        label: "I'm too busy to plan",
+        emoji: "⏰",
+        value: "too_busy",
+        color: "yellow",
+      },
+    ],
+  };
+}
+
+/**
+ * Map food motivation response to mode
+ */
+export function getFoodModeFromMotivation(motivation: string): FoodMode | null {
+  const modeMap: Record<string, FoodMode> = {
+    drained: "#autopilot-from-stress",
+    easier: "#convenience-driven",
+    no_plan: "#lack-of-pre-planning",
+    wanted_meal: "#intentional-treat", // Counter-profile
+    too_busy: "#lack-of-pre-planning",
+  };
+  return modeMap[motivation] || null;
+}
+
+/**
+ * Food mode exploration goals - for Layer 2 probing
+ */
+export interface FoodModeExploration {
+  mode: FoodMode;
+  explorationGoal: string;
+  probingHints: string[];
+  keySignals: string[];
+  isCounterProfile?: boolean;
+  exitResponses?: string[];
+}
+
+export const foodModeExplorations: Record<string, FoodModeExploration> = {
+  "#autopilot-from-stress": {
+    mode: "#autopilot-from-stress",
+    explorationGoal: "Understand what's driving the stress/drain. Is it work, life circumstances, or something more chronic?",
+    probingHints: [
+      "What's usually going on when you feel that way?",
+      "Is it more of a work thing or just life in general?",
+      "Does it tend to happen on certain days?",
+    ],
+    keySignals: [
+      "when I'm stressed I just order",
+      "busy week so I didn't cook",
+      "I don't have the energy",
+    ],
+  },
+  "#convenience-driven": {
+    mode: "#convenience-driven",
+    explorationGoal: "Understand if this is a lifestyle choice or friction avoidance. Do they enjoy cooking but find ordering easier?",
+    probingHints: [
+      "Do you cook at all, or is ordering kind of the default?",
+      "Is it more about not wanting to deal with cleanup, or the whole thing?",
+      "Do you have go-to orders or do you mix it up?",
+    ],
+    keySignals: [
+      "it's just easier",
+      "it shows up at my door",
+      "I don't have to do anything",
+    ],
+  },
+  "#lack-of-pre-planning": {
+    mode: "#lack-of-pre-planning",
+    explorationGoal: "Understand where the planning breaks down. Is it grocery shopping? Meal prep? Time management?",
+    probingHints: [
+      "What usually gets in the way of planning?",
+      "Do you end up ordering because there's nothing in the fridge, or because you ran out of time?",
+      "Have you tried meal prepping or is that not your thing?",
+    ],
+    keySignals: [
+      "got home late",
+      "forgot to bring lunch",
+      "didn't have time to prep",
+      "there was nothing in the fridge",
+    ],
+  },
+  "#intentional-treat": {
+    mode: "#intentional-treat",
+    explorationGoal: "Validate that this was intentional. Light probing only — if confirmed, exit gracefully.",
+    probingHints: [
+      "Nice — what did you get?",
+      "Was it a planned treat or more of a craving?",
+    ],
+    keySignals: [
+      "I was craving it",
+      "planned treat",
+      "wanted that specific thing",
+    ],
+    isCounterProfile: true,
+    exitResponses: [
+      "Sounds like you knew what you wanted — enjoy!",
+      "Nothing wrong with treating yourself intentionally.",
+    ],
+  },
+};
+
+/**
+ * Food economic evaluation - Layer 3
+ * Mode-specific benefit framing
+ */
+export function getFoodEconomicEvaluation(mode: FoodMode, monthlySpend: number): FixedQuestionResponse {
+  const benefitMap: Record<FoodMode, string> = {
+    "#autopilot-from-stress": "relief from cooking when you're drained",
+    "#convenience-driven": "the ease and convenience",
+    "#lack-of-pre-planning": "not having to plan",
+    "#intentional-treat": "enjoying the meals you really wanted",
+  };
+
+  const benefit = benefitMap[mode] || "convenience";
+
+  return {
+    content: `Is ${benefit} worth the $${monthlySpend.toFixed(0)} you're spending?`,
+    options: [
+      {
+        id: "worth_it",
+        label: "Yeah, it's worth it to me",
+        emoji: "✅",
+        value: "worth_it",
+        color: "white",
+      },
+      {
+        id: "not_worth",
+        label: "Honestly, probably not",
+        emoji: "🤔",
+        value: "not_worth",
+        color: "yellow",
       },
     ],
   };

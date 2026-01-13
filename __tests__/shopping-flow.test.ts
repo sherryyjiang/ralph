@@ -680,8 +680,15 @@ describe("Mode Definitions", () => {
     expect(modeDefinitions["#reward-driven-spender"]).toBeDefined();
     expect(modeDefinitions["#comfort-driven-spender"]).toBeDefined();
     expect(modeDefinitions["#routine-treat-spender"]).toBeDefined();
+    // Exploration tags (NOT modes)
     expect(modeDefinitions["#visual-impulse-driven"]).toBeUndefined();
     expect(modeDefinitions["#trend-susceptibility-driven"]).toBeUndefined();
+    // Flat modes used after probing
+    expect(modeDefinitions["#scroll-triggered"]).toBeDefined();
+    expect(modeDefinitions["#in-store-wanderer"]).toBeDefined();
+    expect(modeDefinitions["#aesthetic-driven"]).toBeDefined();
+    expect(modeDefinitions["#duplicate-collector"]).toBeDefined();
+    expect(modeDefinitions["#exploration-hobbyist"]).toBeDefined();
     expect(modeDefinitions["#social-media-influenced"]).toBeDefined();
     expect(modeDefinitions["#friend-peer-influenced"]).toBeDefined();
   });

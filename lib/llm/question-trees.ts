@@ -455,42 +455,6 @@ export const deliberateSubPathProbing: Record<string, SubPathProbing> = {
     modeSignals: {},
     lightProbing: true,
   },
-  other: {
-    subPath: "other",
-    explorationGoal: "Open-ended: understand what they were waiting on when none of the fixed reasons fit",
-    probingHints: [
-      "What was the main thing you were waiting on?",
-      "What changed that made it feel like the right time to buy?",
-      "Was it more about budget, finding the right option, or just having the bandwidth?",
-    ],
-    targetModes: [
-      "#deliberate-budget-saver",
-      "#deliberate-deal-hunter",
-      "#deliberate-researcher",
-      "#deliberate-pause-tester",
-      "#deliberate-low-priority",
-    ],
-    modeSignals: {},
-    lightProbing: true,
-  },
-  other: {
-    subPath: "other",
-    explorationGoal: "Open-ended: understand what they were waiting on when none of the fixed reasons fit",
-    probingHints: [
-      "What was the main thing you were waiting on?",
-      "What changed that made it feel like the right time to buy?",
-      "Was it more about budget, finding the right option, or just having the bandwidth?",
-    ],
-    targetModes: [
-      "#deliberate-budget-saver",
-      "#deliberate-deal-hunter",
-      "#deliberate-researcher",
-      "#deliberate-pause-tester",
-      "#deliberate-low-priority",
-    ],
-    modeSignals: {},
-    lightProbing: true,
-  },
 };
 
 /**
@@ -1807,27 +1771,83 @@ export const modeDefinitions: Record<string, ModeDefinition> = {
     ],
     reflectionGuidance: "Consider if this routine is serving you well or if it's running on autopilot.",
   },
-  "#visual-impulse-driven": {
-    id: "#visual-impulse-driven",
-    name: "Visual Impulse Driven",
-    description: "Gets caught by things visually - either online or in physical stores",
+  // Impulse path modes (flat — exploration tags like #visual-impulse-driven are NOT modes)
+  "#scroll-triggered": {
+    id: "#scroll-triggered",
+    name: "Scroll Triggered",
+    description: "Impulse buys triggered by scrolling feeds and online browsing",
     indicators: [
       "I was scrolling and saw it",
+      "it came up in my feed",
+      "saw it on Instagram/TikTok",
+    ],
+    reflectionGuidance: "Consider what situations (time, mood, apps) make scrolling purchases more likely, and what guardrails would help.",
+  },
+  "#in-store-wanderer": {
+    id: "#in-store-wanderer",
+    name: "In-Store Wanderer",
+    description: "Impulse buys that happen while browsing in-store",
+    indicators: [
+      "I was just walking by",
+      "it was right there",
+      "browsing in store",
+    ],
+    reflectionGuidance: "Notice which stores or contexts turn browsing into buying, and whether a pause/checklist helps when wandering.",
+  },
+  "#aesthetic-driven": {
+    id: "#aesthetic-driven",
+    name: "Aesthetic Driven",
+    description: "Purchases driven by visual appeal (color, packaging, vibe)",
+    indicators: [
       "it was so pretty",
       "I loved the packaging",
+      "the color got me",
     ],
-    reflectionGuidance: "You have a good eye! Consider adding a cooling-off period for visual finds.",
+    reflectionGuidance: "A good eye is a strength—try a small cooling-off window to see if the aesthetic pull still feels worth it later.",
   },
-  "#trend-susceptibility-driven": {
-    id: "#trend-susceptibility-driven",
-    name: "Trend Susceptibility Driven",
-    description: "Buys things because they're popular or trending",
+  "#duplicate-collector": {
+    id: "#duplicate-collector",
+    name: "Duplicate Collector",
+    description: "Keeps buying variations of items they already own",
     indicators: [
-      "saw it on TikTok",
+      "I have like 5 of these already",
+      "adding to my collection",
+      "I keep buying similar ones",
+    ],
+    reflectionGuidance: "Consider what the duplicates represent (identity, comfort, completion) and whether you actually use the collection.",
+  },
+  "#exploration-hobbyist": {
+    id: "#exploration-hobbyist",
+    name: "Exploration Hobbyist",
+    description: "Buying is part of a hobby of trying new things",
+    indicators: [
+      "I like trying new things",
+      "wanted to see what the hype was about",
+      "I just like exploring",
+    ],
+    reflectionGuidance: "If exploration is the point, decide what 'worth it' means (budget, frequency, use) so the hobby stays intentional.",
+  },
+  "#social-media-influenced": {
+    id: "#social-media-influenced",
+    name: "Social Media Influenced",
+    description: "Impulse buys influenced by creators, ads, and social media feeds",
+    indicators: [
+      "I saw it on TikTok",
       "everyone's posting about it",
       "a creator I follow had it",
     ],
-    reflectionGuidance: "Consider if the item fits YOUR style and life, not just the trend.",
+    reflectionGuidance: "Consider whether the item fits you (not just the feed), and what cues make you most likely to buy from social media.",
+  },
+  "#friend-peer-influenced": {
+    id: "#friend-peer-influenced",
+    name: "Friend/Peer Influenced",
+    description: "Impulse buys influenced by friends, coworkers, or peers",
+    indicators: [
+      "my friend got one",
+      "everyone at work has it",
+      "someone recommended it",
+    ],
+    reflectionGuidance: "Consider whether the influence is about belonging, trust, or convenience—and whether you'd still want it without the social proof.",
   },
   "#scarcity-driven": {
     id: "#scarcity-driven",

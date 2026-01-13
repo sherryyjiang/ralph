@@ -115,6 +115,17 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Peek Check-In Custom Theme */
+.peek-theme {
+  --peek-bg-primary: #1a0a2e;
+  --peek-bg-card: #2d1b4e;
+  --peek-accent-orange: #ff7b00;
+  --peek-accent-yellow: #ffd700;
+  --peek-text-primary: #ffffff;
+  --peek-text-muted: #a89cc0;
+  --peek-text-secondary: #7a6b8a;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

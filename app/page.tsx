@@ -140,10 +140,10 @@ function CategoryCheckInCard({
     }
   };
 
-  // Show up to 5 sample transactions, sorted by date (most recent first)
+  // Show up to 3 sample transactions, sorted by date (most recent first)
   const displayTransactions = [...sampleTransactions]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 5);
+    .slice(0, 3);
 
   return (
     <div className="rounded-xl border border-white/10 bg-[#2d1b4e]/80 p-4">

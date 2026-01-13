@@ -531,18 +531,23 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           // Ask "How do you feel about this number?" per spec
           revealMessage += "\n\nHow do you feel about that number?";
           
-          // Feeling response options
+          // Feeling response options (consistent with URL flow)
           const feelingOptions: QuickReplyOption[] = [
             { id: "ok_with_it", label: "I'm okay with it", emoji: "👍", value: "ok_with_it", color: "white" as const },
-            { id: "not_great", label: "Not great, honestly", emoji: "😬", value: "not_great", color: "yellow" as const },
+            { id: "could_be_better", label: "Feel like it could be better", emoji: "🤔", value: "could_be_better", color: "yellow" as const },
           ];
+          
+          // Set calibration phase - moving to Layer 2 for feeling response
+          setCalibrationPhase("feeling_asked");
+          setLayer(2);
           
           addAssistantMessage(revealMessage, feelingOptions, true);
         }, 800);
       } else if (currentLayer === 2) {
-        // Check which phase of Layer 2 we're in
+        // Handle calibration feeling response and Layer 2 flow
         if (value === "ok_with_it") {
           // User is fine with their spending - light reflection and exit
+          setCalibrationPhase("complete");
           setTimeout(() => {
             addAssistantMessage(
               "Got it — sounds like it's working for you! We can always revisit if anything changes. 🙌",
@@ -550,8 +555,55 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
               false
             );
           }, 500);
-        } else if (value === "not_great") {
-          // User wants to explore - show mode assignment question
+        } else if (value === "could_be_better") {
+          // User wants to explore - check if they were "way off" to offer breakdown
+          // Recalculate from session metadata (approximation based on fact we're in this flow)
+          // If we have an awareness-gap tag, they were way off
+          // For now, go to breakdown offer if difference was significant, else straight to Layer 2
+          
+          // We'll offer breakdown since this is the main exploration path
+          setCalibrationPhase("breakdown_offered");
+          setTimeout(() => {
+            const breakdownOptions: QuickReplyOption[] = [
+              { id: "show_breakdown", label: "Yes, show me", emoji: "📊", value: "show_breakdown", color: "white" as const },
+              { id: "skip_breakdown", label: "No, I'd rather move on", emoji: "➡️", value: "skip_breakdown", color: "white" as const },
+            ];
+            
+            addAssistantMessage(
+              "Would you like to see what's behind this amount?",
+              breakdownOptions,
+              true
+            );
+          }, 500);
+        } else if (value === "show_breakdown") {
+          // User wants to see breakdown
+          setCalibrationPhase("breakdown_shown");
+          const foodStats = getFoodCategoryStats();
+          
+          // Build breakdown message
+          let breakdownMessage = "Here's the breakdown:\n\n📊 By Merchant:\n";
+          foodStats.topMerchants.forEach(m => {
+            breakdownMessage += `• ${m.name}: ${m.count} orders ($${m.spend.toFixed(0)})\n`;
+          });
+          
+          breakdownMessage += "\n📅 By Day:\n";
+          foodStats.topDays.slice(0, 3).forEach(d => {
+            breakdownMessage += `• ${d.day}: ${d.count} orders\n`;
+          });
+          
+          breakdownMessage += "\nDoes that land how you expected?";
+          
+          const breakdownReactionOptions: QuickReplyOption[] = [
+            { id: "breakdown_expected", label: "Yeah, that tracks", emoji: "👍", value: "breakdown_expected", color: "white" as const },
+            { id: "breakdown_surprised", label: "Some of that surprises me", emoji: "😮", value: "breakdown_surprised", color: "yellow" as const },
+          ];
+          
+          setTimeout(() => {
+            addAssistantMessage(breakdownMessage, breakdownReactionOptions, true);
+          }, 500);
+        } else if (value === "skip_breakdown" || value === "breakdown_expected" || value === "breakdown_surprised") {
+          // After breakdown (or skipped) - transition to Layer 2 motivation question
+          setCalibrationPhase("layer_2_ready");
           setTimeout(() => {
             const modeOptions: QuickReplyOption[] = [
               { id: "autopilot_stress", label: "I'm usually too drained to cook", emoji: "😓", value: "autopilot_stress", color: "yellow" as const },
@@ -731,10 +783,19 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         // Parse the guess from the value (value is now the numeric guess)
         const userGuessCount = parseInt(value, 10) || Math.round(actualMonthlyCount * 0.5);
         
+        // Store guess and actual in session metadata
+        setUserGuessCount(userGuessCount);
+        setActualCount(actualMonthlyCount);
+        setActualAmount(actualMonthlySpend);
+        
         // Get calibration result
         const calibration = getCoffeeCalibrationResult(userGuessCount, actualMonthlyCount, actualMonthlySpend);
         
-        // Transition to Layer 1.5 (feeling question)
+        // Set calibration phase and transition to Layer 2
+        setCalibrationPhase("feeling_asked");
+        setLayer(2);
+        
+        // Transition to feeling question
         setTimeout(() => {
           const feelingQ = getCoffeeFeelingQuestion();
           addAssistantMessage(
@@ -756,6 +817,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         
         if (value === "ok_with_it") {
           // User is fine with their spending - light reflection and exit
+          setCalibrationPhase("complete");
           setTimeout(() => {
             addAssistantMessage(
               "Got it — sounds like it's working for you! We can always revisit if anything changes. ☕✨",
@@ -766,6 +828,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           
         } else if (value === "could_be_better") {
           // User wants to explore - show motivation question
+          setCalibrationPhase("layer_2_ready");
           setTimeout(() => {
             const motivationQ = getCoffeeMotivationQuestion();
             addAssistantMessage(motivationQ.content, motivationQ.options, true);
@@ -912,7 +975,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           );
         });
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, addTag]);
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, calibrationPhase, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, setCalibrationPhase, addTag]);
 
   // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {

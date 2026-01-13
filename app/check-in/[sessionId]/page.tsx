@@ -4,7 +4,7 @@ import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel, type CalibrationPhase } from "@/lib/hooks/use-check-in-session";
-import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount, getMonthlyCoffeeSpend, foodTransactions, coffeeTransactions } from "@/lib/data/synthetic-transactions";
+import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount, getMonthlyCoffeeSpend, getFoodCategoryStats, getCoffeeCategoryStats } from "@/lib/data/synthetic-transactions";
 import { 
   getFoodAwarenessCalibration, 
   getCoffeeFrequencyCalibration,

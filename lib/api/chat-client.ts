@@ -25,6 +25,7 @@ interface ChatResponse {
   assignedMode?: string;
   shouldTransition?: boolean;
   exitGracefully?: boolean;
+  rerouteToSubPath?: string;
 }
 
 /**

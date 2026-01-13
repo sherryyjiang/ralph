@@ -253,7 +253,16 @@ If unsure which to use, start with question #1.
 - Start with warmth (validate what they shared)
 - Then ask ONE question from the required list
 - Keep to 1-2 sentences max
-- No JSON, no options - just your conversational message
+- Default: No JSON, no options - just your conversational message
+
+### Counter-Profile Response (ONLY if detected):
+If the user matches a **Sub-path Counter-Profile Pattern** from the Question Tree Context:
+- If **Behavior = EXIT**: respond with JSON:
+{ "message": "<use the Sub-path Counter-Profile Exit Message>", "exitGracefully": true }
+- If **Behavior = REROUTE**: respond with JSON:
+{ "message": "<use the Sub-path Counter-Profile Exit Message>", "rerouteToSubPath": "<use the Sub-path Counter-Profile Reroute Target>" }
+
+In either case, do NOT ask another probing question in the same response.
 
 ### Questions You MUST NOT Ask (too generic):
 ❌ "What made you decide to buy this?"
@@ -468,6 +477,7 @@ function parseResponse(text: string): LLMResponse {
         assignedMode: parsed.assignedMode,
         shouldTransition: parsed.shouldTransition ?? false,
         exitGracefully: parsed.exitGracefully ?? false,
+          rerouteToSubPath: parsed.rerouteToSubPath,
       };
     }
   } catch {
@@ -545,7 +555,10 @@ ${subPathProbing.probingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
 **Target Modes**: ${subPathProbing.targetModes.join(", ")}
 
 ${subPathProbing.lightProbing ? "**Note**: This is a deliberate/intentional path - use LIGHT probing (1 exchange max, then exit gracefully)" : ""}
-${subPathProbing.counterProfileExit ? `**Counter-profile Exit**: ${subPathProbing.counterProfileExit}` : ""}`;
+${subPathProbing.counterProfilePatterns?.length ? `\n**Sub-path Counter-Profile Patterns** (if detected, follow the behavior below):\n${subPathProbing.counterProfilePatterns.map((p) => `- ${p}`).join("\n")}` : ""}
+${subPathProbing.counterProfileBehavior ? `\n**Sub-path Counter-Profile Behavior**: ${subPathProbing.counterProfileBehavior.toUpperCase()}` : ""}
+${subPathProbing.counterProfileRerouteToSubPath ? `\n**Sub-path Counter-Profile Reroute Target**: ${subPathProbing.counterProfileRerouteToSubPath}` : ""}
+${subPathProbing.counterProfileExit ? `\n**Sub-path Counter-Profile Exit Message**: ${subPathProbing.counterProfileExit}` : ""}`;
   }
 
   return section;

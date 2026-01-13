@@ -18,6 +18,7 @@ export interface ChatAPIResponse {
   assignedMode?: string;
   shouldTransition?: boolean;
   exitGracefully?: boolean;
+  rerouteToSubPath?: string;
 }
 
 export interface UseChatAPIOptions {

@@ -19,7 +19,7 @@ import {
   getShoppingFixedQuestion2Text,
   type CoffeeMotivation,
 } from "@/lib/llm/question-trees";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ShoppingSubPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING
@@ -369,6 +369,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
     setActualCount,
     addTag,
     incrementProbingDepth,
+    resetProbingDepth,
     setCalibrationPhase,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
@@ -1200,8 +1201,22 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
 
       // Handle counter-profile reroute (e.g. no-clear-threshold)
       if (data.rerouteToSubPath && currentLayer === 2) {
-        setSubPath(data.rerouteToSubPath);
-        addAssistantMessage(data.message, data.options, false);
+        const rerouteToSubPath = data.rerouteToSubPath as ShoppingSubPath;
+        resetProbingDepth();
+        setSubPath(rerouteToSubPath);
+
+        // Tell them we're switching frames, then immediately ask the new sub-path's first probing question
+        addAssistantMessage(data.message, undefined, false);
+
+        const rerouteProbing = currentPath
+          ? getSubPathProbing(currentPath, rerouteToSubPath)
+          : undefined;
+
+        if (rerouteProbing?.probingHints?.length) {
+          setTimeout(() => {
+            addAssistantMessage(`Got it! ${rerouteProbing.probingHints[0]}`, undefined, false);
+          }, 500);
+        }
         return;
       }
 

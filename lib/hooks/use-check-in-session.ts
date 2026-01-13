@@ -63,6 +63,7 @@ export type CheckInAction =
   | { type: "SET_COFFEE_MOTIVATION"; payload: string }
   | { type: "ADD_TAG"; payload: string }
   | { type: "INCREMENT_PROBING_DEPTH" }
+  | { type: "RESET_PROBING_DEPTH" }
   | { type: "SET_CALIBRATION_PHASE"; payload: CalibrationPhase }
   | { type: "COMPLETE_SESSION" }
   | { type: "DISMISS_SESSION" };
@@ -392,6 +393,18 @@ function checkInReducer(state: CheckInState, action: CheckInAction): CheckInStat
         },
       };
 
+    case "RESET_PROBING_DEPTH":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            probingDepth: 0,
+          },
+        },
+      };
+
     case "SET_CALIBRATION_PHASE":
       return {
         ...state,
@@ -555,6 +568,10 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     dispatch({ type: "INCREMENT_PROBING_DEPTH" });
   }, []);
 
+  const resetProbingDepth = useCallback(() => {
+    dispatch({ type: "RESET_PROBING_DEPTH" });
+  }, []);
+
   const setCalibrationPhase = useCallback((phase: CalibrationPhase) => {
     dispatch({ type: "SET_CALIBRATION_PHASE", payload: phase });
   }, []);
@@ -603,6 +620,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     setCalibrationPhase,
     addTag,
     incrementProbingDepth,
+    resetProbingDepth,
     completeSession,
     dismissSession,
   };

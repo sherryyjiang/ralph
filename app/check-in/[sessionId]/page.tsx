@@ -268,6 +268,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setActualAmount,
     setUserGuessCount,
     setActualCount,
+    setCoffeeMotivation,
     addTag,
     incrementProbingDepth,
     completeSession,
@@ -640,7 +641,8 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         } else if (coffeeMotivations.includes(value)) {
           // User selected a motivation - show Fixed Q2 for that path
           const motivation = value as CoffeeMotivation;
-          setCoffeeMotivation(motivation);
+          // Store motivation as path for tracking
+          setPath(motivation as unknown as ShoppingPath);
           
           // Calculate weekly average for routine path
           const actualMonthlyCount = getMonthlyCoffeeCount();
@@ -653,7 +655,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           
         } else if (coffeeQ2Responses.includes(value)) {
           // User answered Fixed Q2 - assign mode
-          const motivation = coffeeMotivation || "routine";
+          const motivation = (currentPath as unknown as CoffeeMotivation) || "routine";
           const modeAssignment = getCoffeeModeFromQ2Response(motivation as CoffeeMotivation, value);
           
           setMode(modeAssignment.mode);
@@ -738,10 +740,10 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
             currentLayer: 3,
             path: currentPath,
             mode: currentMode,
+            reflectionPath: value, // Store reflection path choice
             messages,
-            metadata: { tags: [], reflectionPath: value },
+            metadata: { tags: [] },
           },
-          reflectionPath: value,
         }),
       })
         .then(res => res.json())

@@ -135,6 +135,7 @@ export interface CheckInSession {
     userGuessCount?: number;
     actualCount?: number;
     probingDepth?: number; // Tracks number of Layer 2 probing exchanges (0-3)
+    coffeeMotivation?: string; // Tracks coffee motivation path (routine, nearby, pick_me_up, focus)
   };
 }
 

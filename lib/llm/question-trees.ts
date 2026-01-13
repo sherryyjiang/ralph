@@ -657,7 +657,8 @@ export type FoodMode =
   | "#autopilot-from-stress"
   | "#convenience-driven"
   | "#lack-of-pre-planning"
-  | "#intentional-treat";
+  | "#intentional-treat"
+  | "#social-eating";
 
 export function getFoodMotivationQuestion(): FixedQuestionResponse {
   return {
@@ -707,11 +708,18 @@ export function getFoodMotivationQuestion(): FixedQuestionResponse {
  */
 export function getFoodModeFromMotivation(motivation: string): FoodMode | null {
   const modeMap: Record<string, FoodMode> = {
+    // Original keys from question tree
     drained: "#autopilot-from-stress",
     easier: "#convenience-driven",
     no_plan: "#lack-of-pre-planning",
     wanted_meal: "#intentional-treat", // Counter-profile
     too_busy: "#lack-of-pre-planning",
+    // Alternative keys used in check-in UI
+    stress: "#autopilot-from-stress",
+    convenience: "#convenience-driven",
+    planning: "#lack-of-pre-planning",
+    craving: "#intentional-treat",
+    social: "#social-eating",
   };
   return modeMap[motivation] || null;
 }

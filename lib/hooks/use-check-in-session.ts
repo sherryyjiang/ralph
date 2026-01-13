@@ -344,6 +344,18 @@ function checkInReducer(state: CheckInState, action: CheckInAction): CheckInStat
         },
       };
 
+    case "SET_COFFEE_MOTIVATION":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            coffeeMotivation: action.payload,
+          },
+        },
+      };
+
     case "ADD_TAG":
       return {
         ...state,
@@ -512,6 +524,10 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     dispatch({ type: "SET_ACTUAL_COUNT", payload: count });
   }, []);
 
+  const setCoffeeMotivation = useCallback((motivation: string) => {
+    dispatch({ type: "SET_COFFEE_MOTIVATION", payload: motivation });
+  }, []);
+
   const addTag = useCallback((tag: string) => {
     dispatch({ type: "ADD_TAG", payload: tag });
   }, []);
@@ -540,6 +556,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     currentMode: state.session.mode,
     status: state.session.status,
     probingDepth: state.session.metadata.probingDepth || 0,
+    coffeeMotivation: state.session.metadata.coffeeMotivation,
 
     // Actions
     startSession,
@@ -558,6 +575,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     setActualAmount,
     setUserGuessCount,
     setActualCount,
+    setCoffeeMotivation,
     addTag,
     incrementProbingDepth,
     completeSession,

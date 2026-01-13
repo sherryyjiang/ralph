@@ -23,6 +23,7 @@ import {
   getCoffeeEconomicEvaluation,
   type FoodMode,
   type CoffeeMotivation,
+  type CoffeeMode,
 } from "@/lib/llm/question-trees";
 
 // ═══════════════════════════════════════════════════════════════

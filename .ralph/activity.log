@@ -621,3 +621,24 @@ EOF
 [14:43:48] 🔴 SHELL cd /Users/sherryyjiang/Documents/GitHub/ralph && npx tsc --noEmit 2>&1 | head -30 → exit 0
 [14:43:48] 🔴 SHELL cd /Users/sherryyjiang/Documents/GitHub/ralph && npm test 2>&1 | head -20 → exit 0
 [14:43:55] 🔴 TOKENS: 71412 / 80000 (89%) - approaching limit [read:274KB write:0KB assist:1KB shell:0KB]
+[14:44:20] 🔴 SHELL cd /Users/sherryyjiang/Documents/GitHub/ralph && git add -A && git commit -m "$(cat <<'EOF'
+ralph: complete Phase B home page redesign
+
+- Remove WeeklySummary component (no longer showing weekly totals)
+- Add ShoppingTransactionCard with inline Fixed Q1 path options
+  (impulse, deliberate, deal, gift, maintenance)
+- Add CategoryCheckInCard with freeform guess input for Food/Coffee
+- Update navigation to pass path via URL params for shopping
+- Update navigation to pass guess/guessCount via URL params for categories
+- Home page now shows exactly 4 cards (2 shopping + food + coffee)
+- All 73 tests passing
+EOF
+)" → exit 0
+[14:44:26] 🔴 TOKENS: 71441 / 80000 (89%) - approaching limit [read:274KB write:0KB assist:1KB shell:0KB]
+[14:44:39] 🔴 READ /Users/sherryyjiang/Documents/GitHub/ralph/docs/AWARENESS_CALIBRATION_FLOW.md (283 lines, ~27.6KB)
+[14:44:40] 🔴 READ /Users/sherryyjiang/Documents/GitHub/ralph/app/check-in/[sessionId]/page.tsx (942 lines, ~91.9KB)
+[14:44:40] 🔴 ROTATE: Token threshold reached (102093 >= 80000)
+
+═══════════════════════════════════════════════════════════════
+Ralph Session Started: Tue Jan 13 14:44:42 +08 2026
+═══════════════════════════════════════════════════════════════

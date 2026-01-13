@@ -16,6 +16,7 @@ import {
   coffeeModeExplorations,
   getCoffeeEconomicEvaluation,
   getSubPathProbing,
+  getShoppingFixedQuestion2Text,
   type CoffeeMotivation,
 } from "@/lib/llm/question-trees";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
@@ -115,6 +116,7 @@ const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: Quick
       { id: "right_one", label: "Waiting for the right one", emoji: "✨", value: "right_one", color: "white" },
       { id: "still_wanted", label: "Letting it sit to see if I still wanted it", emoji: "⏳", value: "still_wanted", color: "white" },
       { id: "got_around", label: "Finally got around to it", emoji: "✅", value: "got_around", color: "white" },
+      { id: "other", label: "Other/Custom", emoji: "📝", value: "other", color: "white" },
     ],
   },
   deal: {
@@ -385,9 +387,10 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
       if (transaction.category === "shopping" && initialPath) {
         setPath(initialPath);
         const q2 = SHOPPING_FIXED_Q2[initialPath];
-        if (q2) {
+        const q2Question = getShoppingFixedQuestion2Text(initialPath);
+        if (q2 && q2Question) {
           addAssistantMessage(
-            `Let's reflect on your ${transaction.merchant} purchase! ${q2.question}`,
+            `Let's reflect on your ${transaction.merchant} purchase! ${q2Question}`,
             q2.options,
             true
           );
@@ -490,9 +493,10 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         const path = value as ShoppingPath;
         setPath(path);
         const q2 = SHOPPING_FIXED_Q2[path];
-        if (q2) {
+        const q2Question = getShoppingFixedQuestion2Text(path);
+        if (q2 && q2Question) {
           setTimeout(() => {
-            addAssistantMessage(q2.question, q2.options, true);
+            addAssistantMessage(q2Question, q2.options, true);
           }, 500);
         }
       } else if (currentLayer === 1 && currentPath) {

@@ -44,3 +44,9 @@
 - Transactions show "Tap to reflect" on hover
 
 **Starting Phase 2**: Chat Infrastructure
+
+### 2026-01-13 12:34:03
+**Session 3 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 12:34:05
+**Session 4 started** (model: opus-4.5-thinking)

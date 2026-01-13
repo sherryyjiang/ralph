@@ -21,8 +21,8 @@ Build a mock-up chat application that helps users understand their spending beha
 4. [x] Build basic dashboard page with weekly spend summary and transaction list
 
 ### Phase 2: Chat Infrastructure
-5. [ ] Create chat components: `chat-container.tsx`, `message-bubble.tsx`, `quick-reply.tsx`
-6. [ ] Create check-in session state management with useReducer
+5. [x] Create chat components: `chat-container.tsx`, `message-bubble.tsx`, `quick-reply.tsx`
+6. [x] Create check-in session state management with useReducer
 7. [ ] Create `/check-in/[sessionId]/page.tsx` for chat interface
 8. [ ] Connect transaction tap to check-in flow
 

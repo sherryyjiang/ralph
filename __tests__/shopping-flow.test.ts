@@ -5,6 +5,13 @@
  */
 
 import { getFixedQuestion1Options, explorationGoals } from "@/lib/llm/prompts";
+import { 
+  getSubPathExplorationGoal, 
+  impulseSubPathGoals, 
+  dealSubPathGoals,
+  deliberateSubPathGoals,
+  modeDefinitions 
+} from "@/lib/llm/question-trees";
 
 // ═══════════════════════════════════════════════════════════════
 // Fixed Question 1 Tests

@@ -658,8 +658,21 @@ describe("Question Tree Routing - Shopping Paths", () => {
   describe("Mode Assignment Routing", () => {
     it("should assign correct mode for each impulse sub-path", () => {
       expect(impulseSubPathGoals.price_felt_right.mode).toBe("#intuitive-threshold-spender");
-      expect(impulseSubPathGoals.caught_eye.mode).toBe("#visual-impulse-driven");
-      expect(impulseSubPathGoals.trending.mode).toBe("#trend-susceptibility-driven");
+      // caught_eye / trending are "probe to determine" branches; base tags are NOT modes.
+      expect(impulseSubPathGoals.caught_eye.mode).toBe("");
+      expect(impulseSubPathGoals.caught_eye.possibleModes).toEqual(
+        expect.arrayContaining([
+          "#scroll-triggered",
+          "#in-store-wanderer",
+          "#aesthetic-driven",
+          "#duplicate-collector",
+          "#exploration-hobbyist",
+        ]),
+      );
+      expect(impulseSubPathGoals.trending.mode).toBe("");
+      expect(impulseSubPathGoals.trending.possibleModes).toEqual(
+        expect.arrayContaining(["#social-media-influenced", "#friend-peer-influenced"]),
+      );
     });
 
     it("should assign correct mode for each deal sub-path", () => {
@@ -708,6 +721,29 @@ describe("Question Tree Routing - Shopping Paths", () => {
       Object.values(deliberateSubPathGoals).forEach(goal => {
         expect(goal.probingHints.length).toBeGreaterThan(0);
       });
+    });
+  });
+
+  describe("Modes Are Flat (No Base Mode Hierarchy)", () => {
+    it("caught_eye probing should NOT include #visual-impulse-driven as a mode", () => {
+      const probing = getSubPathProbing("impulse", "caught_eye");
+      expect(probing?.targetModes).not.toContain("#visual-impulse-driven");
+      expect(probing?.targetModes).toEqual(
+        expect.arrayContaining([
+          "#scroll-triggered",
+          "#in-store-wanderer",
+          "#aesthetic-driven",
+          "#duplicate-collector",
+        ]),
+      );
+    });
+
+    it("trending probing should NOT include #trend-susceptibility-driven as a mode", () => {
+      const probing = getSubPathProbing("impulse", "trending");
+      expect(probing?.targetModes).not.toContain("#trend-susceptibility-driven");
+      expect(probing?.targetModes).toEqual(
+        expect.arrayContaining(["#social-media-influenced", "#friend-peer-influenced"]),
+      );
     });
   });
 });

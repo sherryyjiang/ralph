@@ -1430,7 +1430,8 @@ export const impulseSubPathGoals: Record<string, SubPathExplorationGoal> = {
   },
   caught_eye: {
     subPath: "caught_eye",
-    mode: "#visual-impulse-driven",
+    // Mode is determined by probing; #visual-impulse-driven is an exploration tag, not a mode.
+    mode: "",
     explorationGoal: "Where/how did they encounter it? Is this a pattern (scroll, in-store, etc)?",
     probingHints: [
       "Where did you see it?",
@@ -1446,10 +1447,18 @@ export const impulseSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "it was so pretty",
       "I loved the packaging",
     ],
+    possibleModes: [
+      "#scroll-triggered",
+      "#in-store-wanderer",
+      "#aesthetic-driven",
+      "#duplicate-collector",
+      "#exploration-hobbyist",
+    ],
   },
   trending: {
     subPath: "trending",
-    mode: "#trend-susceptibility-driven",
+    // Mode is determined by probing; #trend-susceptibility-driven is an exploration tag, not a mode.
+    mode: "",
     explorationGoal: "How susceptible are they to trends, especially trend-following that leads to purchases that don't fit them",
     probingHints: [
       "Where have you been seeing it?",
@@ -1462,6 +1471,7 @@ export const impulseSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "my friend got one",
       "everyone at work has it",
     ],
+    possibleModes: ["#social-media-influenced", "#friend-peer-influenced"],
   },
 };
 

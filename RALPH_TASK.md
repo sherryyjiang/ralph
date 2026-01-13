@@ -40,7 +40,7 @@ Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LL
 8. [x] Verify only 4 cards show on home page
 
 ### Phase C: Fix Awareness Calibration Loop
-9. [ ] Add `calibrationPhase` state to session management
+9. [x] Add `calibrationPhase` state to session management
 10. [ ] Update check-in page to read guess from URL params (not re-ask)
 11. [ ] Fix option handler to properly track calibration phases
 12. [ ] Implement full flow: guess → result → feeling → (breakdown) → Layer 2

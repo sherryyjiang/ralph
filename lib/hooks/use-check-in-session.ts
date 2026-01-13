@@ -555,6 +555,10 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     dispatch({ type: "INCREMENT_PROBING_DEPTH" });
   }, []);
 
+  const setCalibrationPhase = useCallback((phase: CalibrationPhase) => {
+    dispatch({ type: "SET_CALIBRATION_PHASE", payload: phase });
+  }, []);
+
   const completeSession = useCallback(() => {
     dispatch({ type: "COMPLETE_SESSION" });
   }, []);
@@ -576,6 +580,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     status: state.session.status,
     probingDepth: state.session.metadata.probingDepth || 0,
     coffeeMotivation: state.session.metadata.coffeeMotivation,
+    calibrationPhase: state.calibrationPhase,
 
     // Actions
     startSession,
@@ -595,6 +600,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     setUserGuessCount,
     setActualCount,
     setCoffeeMotivation,
+    setCalibrationPhase,
     addTag,
     incrementProbingDepth,
     completeSession,

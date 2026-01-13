@@ -678,3 +678,15 @@ Summary of verification:
 
 ### 2026-01-13 16:21:22
 **Session 3 started** (model: gpt-5.2-high)
+
+### 2026-01-13 16:22:30
+**Iteration 3 (Shopping Question Tree Logic) - Progress**
+- Completed criterion #1: added `other` option to Shopping Fixed Q1 (`getShoppingFixedQuestion1`)
+- Updated `__tests__/shopping-flow.test.ts` to expect 6 Q1 options (includes `other`)
+- Verified with `pnpm test shopping-flow` (107 tests passing)
+
+### 2026-01-13 16:22:11
+**Session 3 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 16:22:13
+**Session 4 started** (model: gpt-5.2-high)

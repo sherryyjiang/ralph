@@ -60,6 +60,13 @@ export function getShoppingFixedQuestion1(
         value: "maintenance",
         color: "white",
       },
+      {
+        id: "other",
+        label: "Other / custom",
+        emoji: "📝",
+        value: "other",
+        color: "white",
+      },
     ],
   };
 }

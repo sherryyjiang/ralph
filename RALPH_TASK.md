@@ -23,7 +23,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 ## Success Criteria
 
 ### Phase A: Fix Core Data Structures
-1. [ ] Add `other` option to `getShoppingFixedQuestion1` options array
+1. [x] Add `other` option to `getShoppingFixedQuestion1` options array
 2. [ ] Remove "base mode" concept - all modes are flat (no `#visual-impulse-driven` as parent)
 3. [ ] Update `shoppingExplorationGoals` to use exploration TAGS (not modes)
 4. [ ] Fix `getFixedQuestion2Options` to use correct variable names (`*SubPathProbing`)

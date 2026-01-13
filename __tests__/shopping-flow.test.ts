@@ -21,8 +21,8 @@ import {
 describe("Shopping Fixed Question 1", () => {
   const options = getFixedQuestion1Options("shopping");
 
-  it("should have exactly 5 path options", () => {
-    expect(options).toHaveLength(5);
+  it("should have exactly 6 path options", () => {
+    expect(options).toHaveLength(6);
   });
 
   it("should include all required paths", () => {
@@ -32,6 +32,7 @@ describe("Shopping Fixed Question 1", () => {
     expect(values).toContain("deal");
     expect(values).toContain("gift");
     expect(values).toContain("maintenance");
+    expect(values).toContain("other");
   });
 
   it("should mark impulse and deal as yellow (less intentional)", () => {
@@ -604,9 +605,9 @@ describe("Probing Adherence for 'right_one' Path", () => {
 
 describe("Question Tree Routing - Shopping Paths", () => {
   describe("Path Selection (Fixed Q1)", () => {
-    it("should offer exactly 5 shopping path options", () => {
+    it("should offer exactly 6 shopping path options", () => {
       const options = getFixedQuestion1Options("shopping");
-      expect(options.length).toBe(5);
+      expect(options.length).toBe(6);
     });
 
     it("should have impulse path marked as less intentional (yellow)", () => {

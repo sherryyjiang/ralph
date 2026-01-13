@@ -140,7 +140,7 @@ export function useChatAPI(options: UseChatAPIOptions): UseChatAPIReturn {
                   if (parsed.error) {
                     throw new Error(parsed.error);
                   }
-                } catch (parseError) {
+                } catch {
                   // Ignore JSON parse errors for partial data
                 }
               }

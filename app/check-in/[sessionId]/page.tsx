@@ -165,19 +165,60 @@ interface CheckInChatProps {
 
 function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
   const {
+    session,
     messages,
     isLoading,
+    error,
     currentLayer,
     currentPath,
     startSession,
     addAssistantMessage,
     addUserMessage,
+    startStreamingMessage,
+    appendStreamingContent,
+    finishStreamingMessage,
     setPath,
     setSubPath,
     setLayer,
     setLoading,
+    setError,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
+
+  // Track if we're currently streaming to prevent multiple calls
+  const isStreamingRef = useRef(false);
+
+  // Initialize chat API with streaming callbacks
+  const { sendMessage, abortStream } = useChatAPI({
+    transaction,
+    session,
+    onStreamChunk: useCallback((chunk: string) => {
+      appendStreamingContent(chunk);
+    }, [appendStreamingContent]),
+    onStreamComplete: useCallback((fullMessage: string) => {
+      // Parse the response to see if it contains options or mode
+      isStreamingRef.current = false;
+      try {
+        // Try to parse JSON from the response
+        const jsonMatch = fullMessage.match(/```json\s*([\s\S]*?)\s*```/) ||
+                          fullMessage.match(/\{[\s\S]*"message"[\s\S]*\}/);
+        if (jsonMatch) {
+          const jsonStr = jsonMatch[1] || jsonMatch[0];
+          const parsed = JSON.parse(jsonStr);
+          finishStreamingMessage(parsed.options);
+          return;
+        }
+      } catch {
+        // Not JSON, that's okay
+      }
+      finishStreamingMessage();
+    }, [finishStreamingMessage]),
+    onError: useCallback((errorMsg: string) => {
+      isStreamingRef.current = false;
+      setError(errorMsg);
+      setLoading(false);
+    }, [setError, setLoading]),
+  });
 
   // Initialize session with first message
   useEffect(() => {

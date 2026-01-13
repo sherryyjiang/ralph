@@ -34,7 +34,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 7. [x] Deliberate Q2: question = "What were you waiting for?", options = afford_it, right_price, right_one, still_wanted, got_around, other
 8. [x] Deal Q2: question = "Tell me more about the deal, discount or limited event?", options = limited_edition, sale_discount, free_shipping
 9. [x] Gift Q2: question = "Who was it for?", options = family, friend, partner, coworker, other
-10. [ ] Maintenance Q2: question = "Did you get the same thing or switched it up?", options = same_thing, switched_up, upgraded
+10. [x] Maintenance Q2: question = "Did you get the same thing or switched it up?", options = same_thing, switched_up, upgraded
 
 ### Phase C: Fix Mode Definitions (Flat, No Hierarchy)
 11. [ ] Remove `#visual-impulse-driven` as a mode - it's only an exploration TAG

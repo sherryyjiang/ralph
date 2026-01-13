@@ -3,9 +3,9 @@
 ## Task: Fix Shopping Question Tree Logic - Iteration 3
 
 ### Current Status
-- **Phase**: Phase A (Fix Core Data Structures)
-- **Last Criterion Completed**: 5 (Added Q1 → Q2 question text mapping)
-- **Verification**: `pnpm test shopping-flow` passing
+- **Phase**: Phase B (Fix Fixed Q2 Options and Labels)
+- **Last Criterion Completed**: 6 (Impulse Q2 includes correct options incl. `other`)
+- **Verification**: `pnpm test shopping-flow` passing (121 tests)
 
 ---
 

@@ -152,48 +152,6 @@ const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: Quick
 };
 
 // ═══════════════════════════════════════════════════════════════
-// GRACEFUL EXIT MESSAGES FOR COUNTER-PROFILE PATHS
-// ═══════════════════════════════════════════════════════════════
-
-const DELIBERATE_EXIT_MESSAGES: Record<string, { message: string; mode: string }> = {
-  afford_it: {
-    message: "That's really thoughtful — waiting until the timing was right financially shows solid awareness of your budget.\n\nI'm saving this as one of your spending patterns in Magnets. 🧲\n\nIs there anything else about this purchase you'd like to explore?",
-    mode: "#deliberate-budget-saver",
-  },
-  right_price: {
-    message: "Nice! Being patient for the right deal takes discipline. That kind of intentional waiting usually pays off.\n\nI'm noting this pattern in your Magnets. 🧲\n\nAnything else on your mind about this purchase?",
-    mode: "#deliberate-deal-hunter",
-  },
-  right_one: {
-    message: "It sounds like you really put thought into this — doing your research and finding exactly what works for you. That's a great way to shop!\n\nSaving this to your Magnets. 🧲\n\nIs there anything else you'd like to explore about this purchase?",
-    mode: "#deliberate-researcher",
-  },
-  still_wanted: {
-    message: "That's a smart approach — giving yourself time to make sure it wasn't just a passing want. The fact that you still wanted it says something!\n\nI'm adding this to your Magnets. 🧲\n\nAnything else you're curious about?",
-    mode: "#deliberate-pause-tester",
-  },
-  got_around: {
-    message: "Got it — sometimes things just take a while to bubble up the priority list. At least it's done now!\n\nNoting this in your Magnets. 🧲\n\nAnything else about this purchase?",
-    mode: "#deliberate-low-priority",
-  },
-};
-
-const GIFT_EXIT_MESSAGE = {
-  message: "That's thoughtful! Gift-giving is one of those spending categories that's hard to evaluate on dollars alone.\n\nI'm saving this as a gift purchase in your Magnets. 🧲\n\nIs there anything about your gift-giving patterns you'd like to explore?",
-  mode: "#gift-giver",
-};
-
-const MAINTENANCE_EXIT_MESSAGE = {
-  message: "Makes sense — we all need to replace things eventually! This is the kind of spending that's easy to overlook but adds up.\n\nLogging this in your Magnets. 🧲\n\nAnything else about this purchase?",
-  mode: "#organized-restocker",
-};
-
-// Graceful exit follow-up options
-const GRACEFUL_EXIT_OPTIONS: QuickReplyOption[] = [
-  { id: "done_graceful", label: "I'm good for now", emoji: "✓", value: "done_graceful", color: "white" },
-];
-
-// ═══════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
@@ -324,13 +282,8 @@ const LAYER_3_REFLECTION_OPTIONS: QuickReplyOption[] = [
   { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
 ];
 
-// Graceful exit options with freeform follow-up
-const GRACEFUL_EXIT_OPTIONS: QuickReplyOption[] = [
-  { id: "done", label: "I'm good for now", emoji: "✓", value: "done", color: "white" },
-];
-
-// Deliberate path graceful exit messages (per GRACEFUL_EXIT_PATTERNS.md)
-const DELIBERATE_EXIT_MESSAGES: Record<string, { message: string; mode: string }> = {
+// Graceful exit messages for deliberate paths (per GRACEFUL_EXIT_PATTERNS.md)
+const DELIBERATE_EXIT_MESSAGES: Record<string, { message: string; mode: CheckInMode }> = {
   afford_it: {
     message: "That's really thoughtful — waiting until the timing was right financially shows solid awareness of your budget.\n\nI'm saving this as one of your spending patterns in Magnets. 🧲\n\nIs there anything else about this purchase you'd like to explore?",
     mode: "#deliberate-budget-saver",
@@ -353,33 +306,39 @@ const DELIBERATE_EXIT_MESSAGES: Record<string, { message: string; mode: string }
   },
 };
 
-// Gift path graceful exit
-const GIFT_EXIT_MESSAGE = "That's thoughtful! Gift-giving is one of those spending categories that's hard to evaluate on dollars alone.\n\nI'm saving this as a gift purchase in your Magnets. 🧲\n\nIs there anything about your gift-giving patterns you'd like to explore?";
+// Graceful exit messages for gift path
+const GIFT_EXIT_MESSAGES: Record<string, { message: string; mode: CheckInMode }> = {
+  family: {
+    message: "That's thoughtful! Gift-giving for family is one of those spending categories that's hard to evaluate on dollars alone.\n\nI'm saving this as a gift purchase in your Magnets. 🧲\n\nIs there anything about your gift-giving patterns you'd like to explore?",
+    mode: "#gift-giver",
+  },
+  friend: {
+    message: "That's thoughtful! Gift-giving for friends is one of those spending categories that's hard to evaluate on dollars alone.\n\nI'm saving this as a gift purchase in your Magnets. 🧲\n\nIs there anything about your gift-giving patterns you'd like to explore?",
+    mode: "#gift-giver",
+  },
+  partner: {
+    message: "That's thoughtful! Gift-giving for your partner is one of those spending categories that's hard to evaluate on dollars alone.\n\nI'm saving this as a gift purchase in your Magnets. 🧲\n\nIs there anything about your gift-giving patterns you'd like to explore?",
+    mode: "#gift-giver",
+  },
+  coworker: {
+    message: "That's thoughtful! Gift-giving for coworkers is one of those spending categories that's hard to evaluate on dollars alone.\n\nI'm saving this as a gift purchase in your Magnets. 🧲\n\nIs there anything about your gift-giving patterns you'd like to explore?",
+    mode: "#gift-giver",
+  },
+};
 
-// Maintenance path graceful exit
-const MAINTENANCE_EXIT_MESSAGE = "Makes sense — we all need to replace things eventually! This is the kind of spending that's easy to overlook but adds up.\n\nLogging this in your Magnets. 🧲\n\nAnything else about this purchase?";
-
-// Graceful exit messages for deliberate paths
-const DELIBERATE_EXIT_MESSAGES: Record<string, { message: string; mode: CheckInMode }> = {
-  afford_it: {
-    message: "That's really thoughtful — waiting until the timing was right financially shows solid awareness of your budget.\n\nI'm saving this as one of your spending patterns in Magnets. 🧲\n\nIs there anything else about this purchase you'd like to explore?",
-    mode: "#deliberate-budget-saver",
+// Graceful exit messages for maintenance path
+const MAINTENANCE_EXIT_MESSAGES: Record<string, { message: string; mode: CheckInMode }> = {
+  same_thing: {
+    message: "Makes sense — we all need to replace things eventually! This is the kind of spending that's easy to overlook but adds up.\n\nLogging this in your Magnets. 🧲\n\nAnything else about this purchase?",
+    mode: "#loyal-repurchaser",
   },
-  right_price: {
-    message: "Nice! Being patient for the right deal takes discipline. That kind of intentional waiting usually pays off.\n\nI'm noting this pattern in your Magnets. 🧲\n\nAnything else on your mind about this purchase?",
-    mode: "#deliberate-deal-hunter",
+  switched_up: {
+    message: "Gotcha — trying something new when restocking! Sounds like you're open to alternatives.\n\nLogging this in your Magnets. 🧲\n\nAnything else about this purchase?",
+    mode: "#brand-switcher",
   },
-  right_one: {
-    message: "It sounds like you really put thought into this — doing your research and finding exactly what works for you. That's a great way to shop!\n\nSaving this to your Magnets. 🧲\n\nIs there anything else you'd like to explore about this purchase?",
-    mode: "#deliberate-researcher",
-  },
-  still_wanted: {
-    message: "That's a smart approach — giving yourself time to make sure it wasn't just a passing want. The fact that you still wanted it says something!\n\nI'm adding this to your Magnets. 🧲\n\nAnything else you're curious about?",
-    mode: "#deliberate-pause-tester",
-  },
-  got_around: {
-    message: "Got it — sometimes things just take a while to bubble up the priority list. At least it's done now!\n\nNoting this in your Magnets. 🧲\n\nAnything else about this purchase?",
-    mode: "#deliberate-low-priority",
+  upgraded: {
+    message: "Nice — upgrading when it's time to replace! Sounds like you see value in getting something better.\n\nLogging this in your Magnets. 🧲\n\nAnything else about this purchase?",
+    mode: "#upgrader",
   },
 };
 
@@ -550,82 +509,43 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         const subPath = value as ImpulseSubPath | DealSubPath;
         setSubPath(subPath);
         
-        // Graceful exit messages for deliberate paths (per GRACEFUL_EXIT_PATTERNS.md)
-        const DELIBERATE_EXITS: Record<string, { message: string; mode: CheckInMode }> = {
-          afford_it: {
-            message: "That's really thoughtful — waiting until the timing was right financially shows solid awareness of your budget.\n\nI'm saving this as a pattern in your Magnets. 🧲\n\nIs there anything else about this purchase you'd like to explore?",
-            mode: "#deliberate-budget-saver",
-          },
-          right_price: {
-            message: "Nice! Being patient for the right deal takes discipline. That kind of intentional waiting usually pays off.\n\nI'm noting this pattern in your Magnets. 🧲\n\nAnything else on your mind about this purchase?",
-            mode: "#deliberate-deal-hunter",
-          },
-          right_one: {
-            message: "It sounds like you really put thought into this — doing your research and finding exactly what works for you. That's a great way to shop!\n\nSaving this to your Magnets. 🧲\n\nIs there anything else you'd like to explore about this purchase?",
-            mode: "#deliberate-researcher",
-          },
-          still_wanted: {
-            message: "That's a smart approach — giving yourself time to make sure it wasn't just a passing want. The fact that you still wanted it says something!\n\nI'm adding this to your Magnets. 🧲\n\nAnything else you're curious about?",
-            mode: "#deliberate-pause-tester",
-          },
-          got_around: {
-            message: "Got it — sometimes things just take a while to bubble up the priority list. At least it's done now!\n\nNoting this in your Magnets. 🧲\n\nAnything else about this purchase?",
-            mode: "#deliberate-low-priority",
-          },
-        };
-        
-        // Graceful exit for gift path
-        const GIFT_EXIT = {
-          message: "That's thoughtful! Gift-giving is one of those spending categories that's hard to evaluate on dollars alone.\n\nI'm saving this as a gift purchase in your Magnets. 🧲\n\nIs there anything about your gift-giving patterns you'd like to explore?",
-          mode: "#gift-giver" as CheckInMode,
-        };
-        
-        // Graceful exit for maintenance path
-        const MAINTENANCE_EXIT = {
-          message: "Makes sense — we all need to replace things eventually! This is the kind of spending that's easy to overlook but adds up.\n\nLogging this in your Magnets. 🧲\n\nAnything else about this purchase?",
-          mode: "#organized-restocker" as CheckInMode,
-        };
-        
-        // Check for graceful exit paths
-        if (currentPath === "deliberate" && DELIBERATE_EXITS[value]) {
-          const exit = DELIBERATE_EXITS[value];
+        // Check for graceful exit paths (using module-level constants)
+        if (currentPath === "deliberate" && DELIBERATE_EXIT_MESSAGES[value]) {
+          const exit = DELIBERATE_EXIT_MESSAGES[value];
           setMode(exit.mode);
           addTag(exit.mode);
           setTimeout(() => {
             addAssistantMessage(
               exit.message,
-              [{ id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" as const }],
+              GRACEFUL_EXIT_OPTIONS,
               false
             );
           }, 500);
           return;
         }
         
-        if (currentPath === "gift") {
-          setMode(GIFT_EXIT.mode);
-          addTag(GIFT_EXIT.mode);
+        if (currentPath === "gift" && GIFT_EXIT_MESSAGES[value]) {
+          const exit = GIFT_EXIT_MESSAGES[value];
+          setMode(exit.mode);
+          addTag(exit.mode);
           setTimeout(() => {
             addAssistantMessage(
-              GIFT_EXIT.message,
-              [{ id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" as const }],
+              exit.message,
+              GRACEFUL_EXIT_OPTIONS,
               false
             );
           }, 500);
           return;
         }
         
-        if (currentPath === "maintenance") {
-          // For maintenance, assign mode based on response
-          let maintenanceMode: CheckInMode = "#organized-restocker";
-          if (value === "switched_up") maintenanceMode = "#brand-switcher";
-          if (value === "upgraded") maintenanceMode = "#upgrader";
-          
-          setMode(maintenanceMode);
-          addTag(maintenanceMode);
+        if (currentPath === "maintenance" && MAINTENANCE_EXIT_MESSAGES[value]) {
+          const exit = MAINTENANCE_EXIT_MESSAGES[value];
+          setMode(exit.mode);
+          addTag(exit.mode);
           setTimeout(() => {
             addAssistantMessage(
-              MAINTENANCE_EXIT.message,
-              [{ id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" as const }],
+              exit.message,
+              GRACEFUL_EXIT_OPTIONS,
               false
             );
           }, 500);

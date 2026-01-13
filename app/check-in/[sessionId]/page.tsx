@@ -282,7 +282,7 @@ const LAYER_3_REFLECTION_OPTIONS: QuickReplyOption[] = [
   { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
 ];
 
-function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
+function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGuess, initialGuessCount }: CheckInChatProps) {
   const {
     messages,
     isLoading,
@@ -292,6 +292,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     currentMode,
     probingDepth,
     coffeeMotivation,
+    calibrationPhase,
     startSession,
     addAssistantMessage,
     addUserMessage,
@@ -308,8 +309,12 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setCoffeeMotivation,
     addTag,
     incrementProbingDepth,
+    setCalibrationPhase,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
+  
+  // Track if we've initialized with URL params
+  const hasInitialized = useRef(false);
 
   // Initialize session with first message
   useEffect(() => {

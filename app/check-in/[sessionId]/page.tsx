@@ -297,9 +297,8 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
               probingDepth: newProbingDepth,
             },
           },
-          // Signal to API that we want mode assignment
-          requestModeAssignment: shouldRequestModeAssignment,
-          forceModeAssignment,
+          // Pass probing depth at top level for API route
+          probingDepth: newProbingDepth,
         }),
       });
 

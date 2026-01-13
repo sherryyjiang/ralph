@@ -37,7 +37,7 @@ Build a mock-up chat application that helps users understand their spending beha
 14. [x] Implement Layer 1 Fixed Question 2 for all paths (impulse, deliberate, deal, gift, maintenance)
 15. [x] Implement Layer 2 LLM probing with mode-specific exploration goals
 16. [x] Implement mode assignment after probing
-17. [ ] Write tests for shopping flow in `__tests__/shopping-flow.test.ts`
+17. [x] Write tests for shopping flow in `__tests__/shopping-flow.test.ts`
 
 ### Phase 5: Food Check-In
 18. [ ] Implement awareness calibration (guess vs actual spending)

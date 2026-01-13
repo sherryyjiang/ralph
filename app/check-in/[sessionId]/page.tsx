@@ -8,13 +8,6 @@ import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount } from "
 import { 
   getFoodAwarenessCalibration, 
   getCoffeeFrequencyCalibration,
-  getFoodCalibrationResult,
-  getFoodFeelingQuestion,
-  getFoodMotivationQuestion,
-  getFoodModeFromMotivation,
-  getFoodEconomicEvaluation,
-  foodModeExplorations,
-  type FoodMode,
 } from "@/lib/llm/question-trees";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
 
@@ -467,7 +460,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         }, 800);
       }
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading]);
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount]);
 
   // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {

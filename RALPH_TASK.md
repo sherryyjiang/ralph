@@ -50,10 +50,10 @@ Build a mock-up chat application that helps users understand their spending beha
 23. [x] Implement mode-specific reflection questions
 
 ### Phase 7: Reflection Paths
-24. [ ] Implement "Is this a problem?" behavioral excavation
-25. [ ] Implement "How do I feel?" emotional reflection
-26. [ ] Implement "Is this a good use?" cost comparison
-27. [ ] Implement graceful exits and counter-profile handling
+24. [x] Implement "Is this a problem?" behavioral excavation
+25. [x] Implement "How do I feel?" emotional reflection
+26. [x] Implement "Is this a good use?" cost comparison
+27. [x] Implement graceful exits and counter-profile handling
 
 ### Phase 8: Testing & Polish
 28. [ ] Write integration tests for complete check-in flows

@@ -1,5 +1,14 @@
 # Progress Log
 
+## Task: Fix Shopping Question Tree Logic - Iteration 3
+
+### Current Status
+- **Phase**: Phase A (Fix Core Data Structures)
+- **Last Criterion Completed**: 1 (Shopping Fixed Q1 includes `other` / "Other/Custom")
+- **Verification**: `pnpm test shopping-flow` passing
+
+---
+
 ## Task: Peek Check-In Chat App
 
 ### Current Status
@@ -697,6 +706,13 @@ Summary of verification:
 ### 2026-01-13 16:22:43
 **Session 5 started** (model: gpt-5.2-high)
 
+### 2026-01-13 16:26:00
+**Iteration 3 (Shopping Question Tree Logic) - Progress**
+- Completed criterion #2: removed “base mode” concept from `SubPathProbing` by removing exploration tags from `targetModes`
+  - `caught_eye` no longer includes `#visual-impulse-driven` in `targetModes` (flat modes only)
+  - `trending` no longer includes `#trend-susceptibility-driven` in `targetModes` (flat modes only)
+- Verified with `pnpm test shopping-flow` (107 tests passing)
+
 ### 2026-01-13 16:23:08
 **Session 5 ended** - 🔄 Context rotation (token limit reached)
 
@@ -708,3 +724,9 @@ Summary of verification:
 
 ### 2026-01-13 16:23:56
 **Session 7 started** (model: gpt-5.2-high)
+
+### 2026-01-13 16:24:18
+**Session 7 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 16:24:20
+**Session 8 started** (model: gpt-5.2-high)

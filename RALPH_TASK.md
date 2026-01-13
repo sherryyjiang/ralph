@@ -27,10 +27,10 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 2. [x] Remove "base mode" concept - all modes are flat (no `#visual-impulse-driven` as parent)
 3. [x] Update `shoppingExplorationGoals` to use exploration TAGS (not modes)
 4. [x] Fix `getFixedQuestion2Options` to use correct variable names (`*SubPathProbing`)
-5. [ ] Add Q2 question text mapping (Q1 response → specific Q2 question)
+5. [x] Add Q2 question text mapping (Q1 response → specific Q2 question)
 
 ### Phase B: Fix Fixed Q2 Options and Labels
-6. [ ] Impulse Q2: question = "What made you go for it?", options = price_felt_right, treating_myself, caught_eye, trending, other
+6. [x] Impulse Q2: question = "What made you go for it?", options = price_felt_right, treating_myself, caught_eye, trending, other
 7. [ ] Deliberate Q2: question = "What were you waiting for?", options = afford_it, right_price, right_one, still_wanted, got_around, other
 8. [ ] Deal Q2: question = "Tell me more about the deal, discount or limited event?", options = limited_edition, sale_discount, free_shipping
 9. [ ] Gift Q2: question = "Who was it for?", options = family, friend, partner, coworker, other

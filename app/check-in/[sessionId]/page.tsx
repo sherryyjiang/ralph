@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
-import { useCheckInSession, getCheckInTypeLabel, type CalibrationPhase } from "@/lib/hooks/use-check-in-session";
+import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
 import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount, getMonthlyCoffeeSpend, getFoodCategoryStats, getCoffeeCategoryStats } from "@/lib/data/synthetic-transactions";
 import { 
   getFoodAwarenessCalibration, 
@@ -15,17 +15,9 @@ import {
   getCoffeeModeFromQ2Response,
   coffeeModeExplorations,
   getCoffeeEconomicEvaluation,
-  getFoodCalibrationResult,
-  getFoodFeelingQuestion,
-  getFoodMotivationQuestion,
-  getFoodModeFromMotivation,
-  getFoodEconomicEvaluation,
-  foodModeExplorations,
   type CoffeeMotivation,
-  type CoffeeMode,
-  type FoodMode,
 } from "@/lib/llm/question-trees";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode, Transaction } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING

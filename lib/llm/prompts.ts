@@ -353,21 +353,29 @@ export function getLayer2ProbingPrompt(path: string, subPath: string, userRespon
 
 **Exploration Goal**: ${subPathProbing.explorationGoal}
 
-**Probing Hints** (choose one that fits):
+**REQUIRED Probing Questions** (YOU MUST USE ONE - DO NOT MAKE UP YOUR OWN):
 ${subPathProbing.probingHints.map((h) => `- "${h}"`).join("\n")}
 
-Continue exploring with empathy. Ask ONE follow-up question that helps understand their spending pattern.
-If you notice mode indicators, remember them but don't label the user yet.
-If the user seems to be counter-profiling (their behavior doesn't match the path), 
-gracefully acknowledge and adjust.
+**Acceptable**: You may slightly adapt wording for natural flow, but KEEP the core question.
+
+**PROHIBITED - These are too generic**:
+- "Can you tell me more?" ❌
+- "What factors did you consider?" ❌  
+- "Can you elaborate on that?" ❌
+- "What was going through your mind?" ❌
+
+**Response Format**:
+1. Start with warmth: "That makes sense...", "I hear you...", "Got it..."
+2. Mirror their language back briefly (1 sentence)
+3. Ask ONE question from the required list above
 
 Respond with ONLY your message - no JSON, no options.`;
   }
   
   return `Based on the user's response: "${userResponse}"
 
-Continue exploring with empathy. Ask ONE follow-up question that helps understand their spending pattern.
-If you notice mode indicators, remember them but don't label the user yet.
+Continue exploring with warmth. Start with acknowledgment, then ask ONE curious follow-up question.
+Keep it to 2 sentences max.
 
 Respond with ONLY your message - no JSON, no options.`;
 }

@@ -55,9 +55,9 @@ Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LL
 19. [x] Add freeform follow-up option after graceful exit
 
 ### Phase E: AI Quality
-20. [ ] Update system prompt with tone guidelines (warmth, validation, mirroring)
-21. [ ] Make probing hints REQUIRED in prompt (not suggestions)
-22. [ ] Add negative examples to prevent generic questions
+20. [x] Update system prompt with tone guidelines (warmth, validation, mirroring)
+21. [x] Make probing hints REQUIRED in prompt (not suggestions)
+22. [x] Add negative examples to prevent generic questions
 23. [ ] Test probing adherence for "right_one" path specifically
 
 ### Phase F: Testing

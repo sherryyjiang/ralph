@@ -1,24 +1,22 @@
-import { getThisWeeksTransactions, getWeeklySummary } from "@/lib/data/synthetic-transactions";
+"use client";
+
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { syntheticTransactions } from "@/lib/data/synthetic-transactions";
 import type { Transaction, TransactionCategory } from "@/lib/types";
 
-// Category icons and labels
-const categoryConfig: Record<TransactionCategory, { emoji: string; label: string }> = {
-  shopping: { emoji: "🛍️", label: "Shopping" },
-  food: { emoji: "🍔", label: "Food" },
-  coffee: { emoji: "☕", label: "Coffee & Treats" },
-};
+// ═══════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
 
-// Format currency
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
   }).format(amount);
 }
 
-// Format date for display
 function formatDate(date: Date): string {
   const now = new Date();
   const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
@@ -29,160 +27,219 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-// Group transactions by date
-function groupByDate(transactions: Transaction[]): Map<string, Transaction[]> {
-  const groups = new Map<string, Transaction[]>();
-  
-  transactions.forEach((txn) => {
-    const dateKey = formatDate(txn.date);
-    const existing = groups.get(dateKey) || [];
-    groups.set(dateKey, [...existing, txn]);
-  });
-  
-  return groups;
+function getCategoryIcon(category: TransactionCategory): string {
+  switch (category) {
+    case "shopping": return "🛍️";
+    case "food": return "🍕";
+    case "coffee": return "☕";
+  }
 }
 
-// Weekly Summary Component
-function WeeklySummary() {
-  const summary = getWeeklySummary();
-  const isUp = summary.percentageChange > 0;
-  
+function getCategoryColor(category: TransactionCategory): string {
+  switch (category) {
+    case "shopping": return "bg-purple-500/20 text-purple-300";
+    case "food": return "bg-green-500/20 text-green-300";
+    case "coffee": return "bg-amber-500/20 text-amber-300";
+  }
+}
+
+function getThisWeekTransactions(): Transaction[] {
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  return syntheticTransactions.filter((t) => t.date >= weekAgo);
+}
+
+function calculateWeeklySpend(): number {
+  return getThisWeekTransactions().reduce((sum, t) => sum + t.amount, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════════
+
+function WeeklySummary({ totalSpent, previousWeek }: { totalSpent: number; previousWeek: number }) {
+  const percentChange = previousWeek > 0 
+    ? ((totalSpent - previousWeek) / previousWeek) * 100 
+    : 0;
+  const isUp = percentChange > 0;
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-[#2d1b4e] to-[#1a0a2e] p-6 shadow-xl">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-medium uppercase tracking-wider text-[#a89cc0]">
-          This Week
-        </h2>
-        <div className="flex items-center gap-2 rounded-full bg-[#ff7b00] px-3 py-1">
-          <span className="text-xs font-bold text-white">
-            {summary.pendingCheckIns} Check-ins
-          </span>
-        </div>
-      </div>
-      
-      <div className="mb-2">
+      <p className="text-sm font-medium text-[#a89cc0]">This Week</p>
+      <div className="mt-2 flex items-baseline gap-3">
         <span className="text-4xl font-bold text-[#ffd700]">
-          {formatCurrency(summary.totalSpent)}
+          {formatCurrency(totalSpent)}
         </span>
-      </div>
-      
-      <div className="flex items-center gap-2 text-sm">
-        <span className={isUp ? "text-red-400" : "text-green-400"}>
-          {isUp ? "↑" : "↓"} {Math.abs(summary.percentageChange)}%
+        <span className={`flex items-center text-sm ${isUp ? "text-red-400" : "text-green-400"}`}>
+          {isUp ? "↑" : "↓"} {Math.abs(percentChange).toFixed(0)}%
+          <span className="ml-1 text-[#7a6b8a]">vs last week</span>
         </span>
-        <span className="text-[#7a6b8a]">
-          vs last week ({formatCurrency(summary.previousWeekSpent)})
-        </span>
-      </div>
-      
-      <div className="mt-4 flex gap-4 border-t border-white/10 pt-4">
-        <div className="flex-1">
-          <p className="text-2xl font-semibold text-white">{summary.transactionCount}</p>
-          <p className="text-xs text-[#7a6b8a]">Transactions</p>
-        </div>
-        <div className="flex-1">
-          <p className="flex items-center gap-1 text-2xl font-semibold text-white">
-            {categoryConfig[summary.topCategory].emoji}
-          </p>
-          <p className="text-xs text-[#7a6b8a]">Top Category</p>
-        </div>
       </div>
     </div>
   );
 }
 
-// Transaction Card Component
-function TransactionCard({ transaction }: { transaction: Transaction }) {
-  const config = categoryConfig[transaction.category];
+function PeekBadge({ count }: { count: number }) {
+  if (count === 0) return null;
   
   return (
-    <div className="group flex items-center gap-4 rounded-xl bg-[#2d1b4e]/60 p-4 transition-all duration-200 hover:bg-[#2d1b4e] hover:shadow-lg cursor-pointer">
-      {/* Category Icon */}
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1a0a2e] text-2xl">
-        {config.emoji}
-      </div>
-      
-      {/* Transaction Details */}
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-white truncate">{transaction.merchant}</p>
-        <p className="text-sm text-[#a89cc0]">{config.label}</p>
-      </div>
-      
-      {/* Amount & Check-in indicator */}
-      <div className="text-right">
-        <p className="font-semibold text-[#ffd700]">
-          {formatCurrency(transaction.amount)}
-        </p>
-        <p className="text-xs text-[#ff7b00] opacity-0 transition-opacity group-hover:opacity-100">
-          Tap to reflect →
-        </p>
-      </div>
+    <div className="flex items-center gap-2 rounded-full bg-[#ff7b00] px-4 py-2 shadow-lg shadow-orange-500/20">
+      <span className="text-lg">👀</span>
+      <span className="font-semibold text-white">
+        {count} peek{count !== 1 ? "s" : ""} waiting
+      </span>
     </div>
   );
 }
 
-// Transaction List Component
-function TransactionList() {
-  const transactions = getThisWeeksTransactions();
-  const grouped = groupByDate(transactions);
+function TransactionCard({ 
+  transaction, 
+  onCheckIn 
+}: { 
+  transaction: Transaction; 
+  onCheckIn: (id: string) => void;
+}) {
+  const hasHighFrequency = (transaction.frequencyThisMonth ?? 0) > 3;
   
   return (
-    <div className="space-y-6">
-      {Array.from(grouped.entries()).map(([dateLabel, txns]) => (
-        <div key={dateLabel}>
-          <h3 className="mb-3 text-sm font-medium uppercase tracking-wider text-[#7a6b8a]">
-            {dateLabel}
-          </h3>
-          <div className="space-y-2">
-            {txns.map((txn) => (
-              <TransactionCard key={txn.id} transaction={txn} />
-            ))}
+    <div 
+      className="group relative overflow-hidden rounded-xl border border-white/10 bg-[#2d1b4e]/80 p-4 transition-all duration-200 hover:border-[#ff7b00]/50 hover:shadow-lg hover:shadow-[#ff7b00]/10"
+    >
+      <div className="flex items-start justify-between gap-4">
+        {/* Left: Icon + Details */}
+        <div className="flex items-start gap-3">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl ${getCategoryColor(transaction.category)}`}>
+            {getCategoryIcon(transaction.category)}
+          </div>
+          <div>
+            <p className="font-medium text-white">{transaction.merchant}</p>
+            <div className="mt-1 flex items-center gap-2 text-sm text-[#a89cc0]">
+              <span>{formatDate(transaction.date)}</span>
+              {hasHighFrequency && (
+                <>
+                  <span className="text-[#7a6b8a]">•</span>
+                  <span className="text-[#ff7b00]">
+                    {transaction.frequencyThisMonth}x this month
+                  </span>
+                </>
+              )}
+              {transaction.isFirstTime && (
+                <>
+                  <span className="text-[#7a6b8a]">•</span>
+                  <span className="text-purple-400">First time</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      ))}
+
+        {/* Right: Amount */}
+        <div className="text-right">
+          <p className="text-lg font-semibold text-[#ffd700]">
+            {formatCurrency(transaction.amount)}
+          </p>
+        </div>
+      </div>
+
+      {/* Check-in CTA */}
+      <button
+        onClick={() => onCheckIn(transaction.id)}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#ff7b00]/10 py-2.5 text-sm font-medium text-[#ff7b00] transition-all duration-200 hover:bg-[#ff7b00]/20 active:scale-[0.98]"
+      >
+        <span className="text-base">💬</span>
+        Quick check-in
+      </button>
     </div>
   );
 }
 
-// Main Dashboard Page
+// ═══════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════════
+
 export default function DashboardPage() {
-  return (
-    <div className="min-h-screen bg-[#1a0a2e]">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-[#1a0a2e]/95 backdrop-blur-md border-b border-white/5">
-        <div className="mx-auto max-w-lg px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-white">
-              <span className="text-[#ff7b00]">Peek</span> Check-In
-            </h1>
-            <button className="rounded-full bg-[#2d1b4e] p-2 text-[#a89cc0] transition-colors hover:bg-[#3d2b5e] hover:text-white">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
+  const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<TransactionCategory | "all">("all");
 
-      {/* Main Content */}
-      <main className="mx-auto max-w-lg px-4 py-6 space-y-6">
-        {/* Weekly Summary */}
-        <WeeklySummary />
-        
-        {/* Intro text */}
-        <div className="text-center">
-          <p className="text-sm text-[#a89cc0]">
-            Tap any transaction to start a check-in 💬
-          </p>
+  const weeklySpend = useMemo(() => calculateWeeklySpend(), []);
+  const previousWeekSpend = weeklySpend * 0.85; // Mock previous week (15% less)
+  
+  const thisWeekTransactions = useMemo(() => getThisWeekTransactions(), []);
+  const pendingCheckIns = thisWeekTransactions.length;
+
+  const filteredTransactions = useMemo(() => {
+    if (selectedCategory === "all") {
+      return syntheticTransactions.sort((a, b) => b.date.getTime() - a.date.getTime());
+    }
+    return syntheticTransactions
+      .filter((t) => t.category === selectedCategory)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [selectedCategory]);
+
+  const handleCheckIn = (transactionId: string) => {
+    // Generate a session ID and navigate to check-in
+    const sessionId = `session_${Date.now()}_${transactionId}`;
+    router.push(`/check-in/${sessionId}?txn=${transactionId}`);
+  };
+
+  const categories: { value: TransactionCategory | "all"; label: string; icon: string }[] = [
+    { value: "all", label: "All", icon: "📊" },
+    { value: "shopping", label: "Shopping", icon: "🛍️" },
+    { value: "food", label: "Food", icon: "🍕" },
+    { value: "coffee", label: "Coffee", icon: "☕" },
+  ];
+
+  return (
+    <div className="peek-theme min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#2d1b4e] to-[#1a0a2e]">
+      <div className="mx-auto max-w-md px-4 py-6">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">Spending</h1>
+          <PeekBadge count={pendingCheckIns} />
         </div>
-        
+
+        {/* Weekly Summary */}
+        <WeeklySummary totalSpent={weeklySpend} previousWeek={previousWeekSpend} />
+
+        {/* Category Filter */}
+        <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+          {categories.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => setSelectedCategory(cat.value)}
+              className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                selectedCategory === cat.value
+                  ? "bg-[#ff7b00] text-white shadow-lg shadow-orange-500/20"
+                  : "bg-white/10 text-[#a89cc0] hover:bg-white/20"
+              }`}
+            >
+              <span>{cat.icon}</span>
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
         {/* Transaction List */}
-        <TransactionList />
-      </main>
-      
-      {/* Bottom padding for mobile */}
-      <div className="h-20" />
+        <div className="mt-6 space-y-3">
+          <h2 className="text-sm font-medium uppercase tracking-wider text-[#7a6b8a]">
+            Recent Transactions
+          </h2>
+          {filteredTransactions.map((transaction) => (
+            <TransactionCard
+              key={transaction.id}
+              transaction={transaction}
+              onCheckIn={handleCheckIn}
+            />
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredTransactions.length === 0 && (
+          <div className="mt-8 text-center">
+            <p className="text-[#a89cc0]">No transactions in this category</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

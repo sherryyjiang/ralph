@@ -35,3 +35,12 @@
 
 ### 2026-01-13 12:30:30
 **Session 3 started** (model: opus-4.5-thinking)
+
+**Phase 1 Complete** ✅
+- Created spending dashboard in `app/page.tsx`
+- Weekly summary component with total spent, percentage change, pending check-ins
+- Transaction list grouped by date with category icons
+- Peek theme colors applied (deep purple, orange accent, yellow amounts)
+- Transactions show "Tap to reflect" on hover
+
+**Starting Phase 2**: Chat Infrastructure

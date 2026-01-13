@@ -5,11 +5,8 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
 import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount } from "@/lib/data/synthetic-transactions";
-<<<<<<< Updated upstream
 import { getFoodAwarenessCalibration, getCoffeeFrequencyCalibration } from "@/lib/llm/question-trees";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode } from "@/lib/types";
-=======
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode, CheckInMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING
@@ -60,7 +57,6 @@ const MODE_LABELS: Record<string, string> = {
 function getModeLabel(mode: string): string | null {
   return MODE_LABELS[mode] || null;
 }
->>>>>>> Stashed changes
 
 // ═══════════════════════════════════════════════════════════════
 // FIXED QUESTIONS - Shopping Check-In (Layer 1)
@@ -316,11 +312,70 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
             );
           });
       }
+    } else if (transaction.category === "food") {
+      // Food Check-In: Awareness Calibration
+      if (currentLayer === 1) {
+        // User just made their guess - calculate and reveal actual
+        const actualMonthlySpend = getMonthlyFoodSpend();
+        
+        // Parse the guess from the value (low = 40%, medium = 70%, high = 100%+)
+        let userGuessAmount: number;
+        switch (value) {
+          case "low":
+            userGuessAmount = Math.round(actualMonthlySpend * 0.4);
+            break;
+          case "medium":
+            userGuessAmount = Math.round(actualMonthlySpend * 0.7);
+            break;
+          case "high":
+          default:
+            userGuessAmount = Math.round(actualMonthlySpend);
+            break;
+        }
+        
+        // Store guess and actual in session metadata
+        setUserGuess(userGuessAmount);
+        setActualAmount(actualMonthlySpend);
+        
+        // Calculate the difference
+        const difference = actualMonthlySpend - userGuessAmount;
+        const percentDiff = Math.round((difference / userGuessAmount) * 100);
+        
+        // Transition to Layer 2 with reveal message and mode question
+        setLayer(2);
+        
+        setTimeout(() => {
+          let revealMessage: string;
+          let modeOptions: QuickReplyOption[];
+          
+          if (difference <= 0 || percentDiff < 10) {
+            // User guessed accurately or overestimated
+            revealMessage = `Nice awareness! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month. You know your spending pretty well! 🎯\n\nWhen you think about ordering food, what usually drives the decision?`;
+          } else if (percentDiff < 30) {
+            // Slightly underestimated
+            revealMessage = `Pretty close! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — about $${difference.toFixed(0)} more than you guessed. Not a huge gap!\n\nWhen you think about ordering food, what usually drives the decision?`;
+          } else {
+            // Significantly underestimated
+            revealMessage = `Interesting! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — that's $${difference.toFixed(0)} more than you thought (${percentDiff}% higher). 📊\n\nNo judgment here — let's explore what's driving this. When you order food, what's usually going on?`;
+          }
+          
+          // Food mode assignment options
+          modeOptions = [
+            { id: "stress", label: "Tired or stressed, don't want to cook", emoji: "😓", value: "stress", color: "yellow" as const },
+            { id: "convenience", label: "Short on time, need something fast", emoji: "⏰", value: "convenience", color: "white" as const },
+            { id: "planning", label: "Didn't plan meals, nothing in the fridge", emoji: "🤷", value: "planning", color: "white" as const },
+            { id: "craving", label: "Craving something specific", emoji: "🍕", value: "craving", color: "white" as const },
+            { id: "social", label: "Eating with others, easier to order", emoji: "👥", value: "social", color: "white" as const },
+          ];
+          
+          addAssistantMessage(revealMessage, modeOptions, true);
+        }, 800);
+      }
     } else {
-      // Food and Coffee - placeholder for now
+      // Coffee - placeholder for now (Phase 6)
       setTimeout(() => {
         addAssistantMessage(
-          "Thanks! This check-in type will be fully implemented in a future phase.",
+          "Thanks! Coffee check-in will be fully implemented in a future phase.",
           [{ id: "done", label: "Got it, thanks!", emoji: "👍", value: "done", color: "white" }],
           false
         );

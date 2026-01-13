@@ -111,6 +111,17 @@ describe("Shopping Fixed Question 2 options (prompt helpers)", () => {
     const options = getFixedQuestion2Options("shopping", "impulse");
     expect(options).toHaveLength(5);
   });
+
+  it("deliberate should include the 'other' option", () => {
+    const options = getFixedQuestion2Options("shopping", "deliberate") ?? [];
+    const values = options.map((o) => o.value);
+    expect(values).toContain("other");
+  });
+
+  it("deliberate should have exactly 6 options", () => {
+    const options = getFixedQuestion2Options("shopping", "deliberate");
+    expect(options).toHaveLength(6);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════

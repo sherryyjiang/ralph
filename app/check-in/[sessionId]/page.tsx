@@ -558,24 +558,47 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           }, 500);
         } else if (value === "could_be_better") {
           // User wants to explore - check if they were "way off" to offer breakdown
-          // Recalculate from session metadata (approximation based on fact we're in this flow)
-          // If we have an awareness-gap tag, they were way off
-          // For now, go to breakdown offer if difference was significant, else straight to Layer 2
+          // Per AWARENESS_CALIBRATION_FLOW.md: only offer breakdown if WAY OFF (>20% AND $75+ difference)
+          const userGuess = session.metadata.userGuess || 0;
+          const actualAmount = session.metadata.actualAmount || actualMonthlySpend;
+          const difference = actualAmount - userGuess;
+          const percentDiff = userGuess > 0 ? Math.round((difference / userGuess) * 100) : 0;
+          const isWayOff = percentDiff > 20 && difference > 75;
           
-          // We'll offer breakdown since this is the main exploration path
-          setCalibrationPhase("breakdown_offered");
-          setTimeout(() => {
-            const breakdownOptions: QuickReplyOption[] = [
-              { id: "show_breakdown", label: "Yes, show me", emoji: "📊", value: "show_breakdown", color: "white" as const },
-              { id: "skip_breakdown", label: "No, I'd rather move on", emoji: "➡️", value: "skip_breakdown", color: "white" as const },
-            ];
-            
-            addAssistantMessage(
-              "Would you like to see what's behind this amount?",
-              breakdownOptions,
-              true
-            );
-          }, 500);
+          if (isWayOff) {
+            // Guess was way off - offer breakdown first
+            setCalibrationPhase("breakdown_offered");
+            setTimeout(() => {
+              const breakdownOptions: QuickReplyOption[] = [
+                { id: "show_breakdown", label: "Yes, show me", emoji: "📊", value: "show_breakdown", color: "white" as const },
+                { id: "skip_breakdown", label: "No, I'd rather move on", emoji: "➡️", value: "skip_breakdown", color: "white" as const },
+              ];
+              
+              addAssistantMessage(
+                "Would you like to see what's behind this amount?",
+                breakdownOptions,
+                true
+              );
+            }, 500);
+          } else {
+            // Not way off - go straight to Layer 2 motivation question
+            setCalibrationPhase("layer_2_ready");
+            setTimeout(() => {
+              const modeOptions: QuickReplyOption[] = [
+                { id: "autopilot_stress", label: "I'm usually too drained to cook", emoji: "😓", value: "autopilot_stress", color: "yellow" as const },
+                { id: "convenience", label: "It's just easier to order", emoji: "📱", value: "convenience", color: "white" as const },
+                { id: "no_planning", label: "I keep meaning to cook but never plan", emoji: "🤷", value: "no_planning", color: "white" as const },
+                { id: "too_busy", label: "I'm too busy to plan", emoji: "⏰", value: "too_busy", color: "white" as const },
+                { id: "intentional_treat", label: "I actually wanted that specific meal", emoji: "🍕", value: "intentional_treat", color: "white" as const },
+              ];
+              
+              addAssistantMessage(
+                "When you think about why you order food, what feels most true?",
+                modeOptions,
+                true
+              );
+            }, 500);
+          }
         } else if (value === "show_breakdown") {
           // User wants to see breakdown
           setCalibrationPhase("breakdown_shown");

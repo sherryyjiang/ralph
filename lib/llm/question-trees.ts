@@ -1782,26 +1782,26 @@ export function getFixedQuestion2Options(
   if (category === "shopping") {
     switch (path) {
       case "impulse":
-        return impulseSubPathGoals ? Object.keys(impulseSubPathGoals).map((key) => ({
+        return Object.keys(impulseSubPathProbing).map((key) => ({
           id: key,
           label: key.replace(/_/g, " "),
           value: key,
           color: "yellow" as const,
-        })) : null;
+        }));
       case "deliberate":
-        return deliberateSubPathGoals ? Object.keys(deliberateSubPathGoals).map((key) => ({
+        return Object.keys(deliberateSubPathProbing).map((key) => ({
           id: key,
           label: key.replace(/_/g, " "),
           value: key,
           color: "white" as const,
-        })) : null;
+        }));
       case "deal":
-        return dealSubPathGoals ? Object.keys(dealSubPathGoals).map((key) => ({
+        return Object.keys(dealSubPathProbing).map((key) => ({
           id: key,
           label: key.replace(/_/g, " "),
           value: key,
           color: "yellow" as const,
-        })) : null;
+        }));
       case "gift":
         return [
           { id: "family", label: "Family member", value: "family", color: "white" as const },

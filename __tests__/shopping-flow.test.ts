@@ -255,6 +255,15 @@ describe("Impulse Sub-Path Exploration Goals", () => {
   });
 });
 
+describe("Impulse Sub-Path Probing Tags", () => {
+  it("should include explorationTag for each impulse sub-path probing definition", () => {
+    expect(getSubPathProbing("impulse", "price_felt_right")?.explorationTag).toBe("#price-sensitivity-driven");
+    expect(getSubPathProbing("impulse", "treating_myself")?.explorationTag).toBe("#self-reward-driven");
+    expect(getSubPathProbing("impulse", "caught_eye")?.explorationTag).toBe("#visual-impulse-driven");
+    expect(getSubPathProbing("impulse", "trending")?.explorationTag).toBe("#trend-susceptibility-driven");
+  });
+});
+
 describe("Deal Sub-Path Exploration Goals", () => {
   it("should have exploration goals for all deal sub-paths", () => {
     expect(dealSubPathGoals.limited_edition).toBeDefined();

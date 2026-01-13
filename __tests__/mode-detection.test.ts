@@ -20,16 +20,12 @@ describe("Mode Detection Coverage", () => {
       expect(indicators.some(i => i.includes("#trend-susceptibility-driven"))).toBe(true);
     });
 
-    it("should include deal exploration tags in indicators", () => {
-      const indicators = explorationGoals.deal.modeIndicators;
-      expect(indicators.some(i => i.includes("#deal-driven"))).toBe(true);
-      expect(indicators.some(i => i.includes("#scarcity-driven"))).toBe(true);
-      expect(indicators.some(i => i.includes("#threshold-spending-driven"))).toBe(true);
+    it("should not expose mode indicators for deal path at path level", () => {
+      expect(explorationGoals.deal.modeIndicators).toHaveLength(0);
     });
 
-    it("should include deliberate exploration tags in indicators", () => {
-      const indicators = explorationGoals.deliberate.modeIndicators;
-      expect(indicators.some(i => i.includes("#deliberate-purchase"))).toBe(true);
+    it("should not expose mode indicators for deliberate path at path level", () => {
+      expect(explorationGoals.deliberate.modeIndicators).toHaveLength(0);
     });
   });
 

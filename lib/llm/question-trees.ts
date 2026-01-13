@@ -62,7 +62,7 @@ export function getShoppingFixedQuestion1(
       },
       {
         id: "other",
-        label: "Other / custom",
+        label: "Other/Custom",
         emoji: "📝",
         value: "other",
         color: "white",
@@ -286,7 +286,8 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
       "How many similar items do you have?",
       "Is trying new stuff kind of the fun part for you?",
     ],
-    targetModes: ["#visual-impulse-driven", "#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector"],
+    // Modes are flat: do NOT include exploration tags like #visual-impulse-driven
+    targetModes: ["#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector", "#exploration-hobbyist"],
     modeSignals: {
       "#scroll-triggered": [
         "I was scrolling and saw it",
@@ -307,6 +308,11 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
         "I have like 5 of these already",
         "adding to my collection",
       ],
+      "#exploration-hobbyist": [
+        "I like trying new things",
+        "wanted to see what the hype was about",
+        "I just like exploring",
+      ],
     },
   },
   trending: {
@@ -316,7 +322,8 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
       "Where have you been seeing it?",
       "Do you feel like it's you or more of a trend buy?",
     ],
-    targetModes: ["#trend-susceptibility-driven", "#social-media-influenced", "#friend-peer-influenced"],
+    // Modes are flat: do NOT include exploration tags like #trend-susceptibility-driven
+    targetModes: ["#social-media-influenced", "#friend-peer-influenced"],
     modeSignals: {
       "#social-media-influenced": [
         "I saw it on TikTok",

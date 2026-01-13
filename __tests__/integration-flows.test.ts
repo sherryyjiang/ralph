@@ -43,7 +43,7 @@ describe("Shopping Check-In Flow Integration", () => {
     it("should start with Fixed Question 1", () => {
       const q1 = getShoppingFixedQuestion1(transaction);
       expect(q1.content).toContain("When you bought");
-      expect(q1.options.length).toBe(5);
+      expect(q1.options.length).toBe(6);
     });
 
     it("should have exploration goals for impulse path", () => {

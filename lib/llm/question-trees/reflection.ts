@@ -58,6 +58,26 @@ export const COST_COMPARISON_CONTEXT: Record<string, string> = {
   "#reward-driven-spender": "rewarding yourself",
 };
 
+/**
+ * Mode-aware question adaptation for Cost Comparison ("Is this a good use of money?")
+ *
+ * Spec source: docs/question-trees/shopping-check-in.md
+ *
+ * Note: V1 only has the transaction total (no cart breakdown), so for threshold spending we
+ * use the full transaction amount as the best available stand-in for "${X}".
+ */
+export function getCostComparisonModeAdaptedQuestion(mode: string, amount: number): string | undefined {
+  if (mode === "#threshold-spending-driven")
+    return `was adding those extra items to hit free shipping worth the $${amount.toFixed(2)} you spent?`;
+
+  if (mode === "#scarcity-driven")
+    return `if that limited drop came back, would you buy it again at $${amount.toFixed(2)}?`;
+
+  if (mode === "#reward-driven-spender") return "is this reward something you'll get a lot of use out of?";
+
+  return undefined;
+}
+
 export const GRACEFUL_EXIT_MESSAGES = [
   "got it - thanks for walking through this with me.",
   "cool, we can always pick this up later if something comes up.",

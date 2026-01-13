@@ -7,11 +7,28 @@ test_command: "pnpm test shopping-flow"
 
 Complete the remaining phases to align shopping check-in flow with spec.
 
-## Code Files (Read ONLY what you need)
-- `lib/llm/question-trees/shopping.ts` - Shopping Q1/Q2 logic
-- `lib/llm/question-trees/reflection.ts` - Layer 3 reflection paths
-- `lib/llm/question-trees/modes.ts` - Mode definitions
-- `lib/llm/prompts.ts` - LLM prompt construction
+## Code Files
+
+### ✅ SAFE TO READ (Small Files)
+- `lib/llm/question-trees/shopping.ts` (~233 lines) - Shopping Q1/Q2 logic
+- `lib/llm/question-trees/reflection.ts` (~138 lines) - Layer 3 reflection
+- `lib/llm/question-trees/modes.ts` (~55 lines) - Mode definitions
+- `lib/llm/question-trees/types.ts` (~68 lines) - Shared types
+- `lib/llm/prompts.ts` - LLM prompt construction (check size with `wc -l`)
+
+### ⛔ NEVER READ (Will Cause Context Rotation)
+- `lib/llm/question-trees.ts` (2071 lines) - Use split modules above instead
+- `app/check-in/[sessionId]/page.tsx` (1363 lines) - Use grep to find specific sections
+- `RALPH_ITERATION_3.md` (904 lines) - All info is in this file
+- `docs/question-trees/*.md` - All info is in this file
+
+### 📍 FOR LARGE FILES: Use Targeted Reading
+```bash
+# Find function location
+grep -n "functionName" path/to/file.tsx
+# Read just that section (e.g., lines 150-200)
+# Use read_file with offset=150, limit=50
+```
 
 ## Success Criteria
 
@@ -148,10 +165,17 @@ All modes are equal-level. NO "base modes" or "submodes".
 
 ## Ralph Instructions
 
-1. Read `lib/llm/question-trees/shopping.ts` first
-2. Read `lib/llm/prompts.ts` to understand current prompt structure
-3. Work through phases F → G → H in order
-4. Run `pnpm test shopping-flow` after each criterion
-5. Commit after completing each numbered criterion
-6. When ALL criteria are `[x]`, output: `<ralph>COMPLETE</ralph>`
-7. If stuck on same issue 3+ times, output: `<ralph>GUTTER</ralph>`
+1. Read `.ralph/guardrails.md` FIRST for file size warnings
+2. Read `lib/llm/question-trees/shopping.ts` (small, safe)
+3. Read `lib/llm/prompts.ts` (check size with `wc -l` first)
+4. Work through phases F → G → H in order
+5. Run `pnpm test shopping-flow` after each criterion
+6. Commit after completing each numbered criterion
+7. When ALL criteria are `[x]`, output: `<ralph>COMPLETE</ralph>`
+8. If stuck on same issue 3+ times, output: `<ralph>GUTTER</ralph>`
+
+### ⚠️ Context Management Rules
+- ALWAYS run `wc -l <file>` before reading any file
+- If file > 300 lines, use `grep -n` to find the section you need
+- NEVER read `lib/llm/question-trees.ts` (use split modules)
+- NEVER read `app/check-in/[sessionId]/page.tsx` entirely (use grep)

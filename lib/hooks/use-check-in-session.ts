@@ -174,6 +174,69 @@ function checkInReducer(state: CheckInState, action: CheckInAction): CheckInStat
         },
       };
 
+    case "START_STREAMING_MESSAGE":
+      return {
+        ...state,
+        isLoading: true,
+        session: {
+          ...state.session,
+          messages: [
+            ...state.session.messages,
+            {
+              id: generateMessageId(),
+              role: "assistant",
+              content: "",
+              timestamp: new Date(),
+              isStreaming: true,
+            },
+          ],
+        },
+      };
+
+    case "APPEND_STREAMING_CONTENT": {
+      const messages = state.session.messages;
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage || lastMessage.role !== "assistant") {
+        return state;
+      }
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          messages: [
+            ...messages.slice(0, -1),
+            {
+              ...lastMessage,
+              content: lastMessage.content + action.payload.content,
+            },
+          ],
+        },
+      };
+    }
+
+    case "FINISH_STREAMING_MESSAGE": {
+      const messages = state.session.messages;
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage || lastMessage.role !== "assistant") {
+        return state;
+      }
+      return {
+        ...state,
+        isLoading: false,
+        session: {
+          ...state.session,
+          messages: [
+            ...messages.slice(0, -1),
+            {
+              ...lastMessage,
+              isStreaming: false,
+              options: action.payload.options,
+            },
+          ],
+        },
+      };
+    }
+
     case "SET_PATH":
       return {
         ...state,
@@ -380,6 +443,18 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
 
   const addUserMessage = useCallback((content: string) => {
     dispatch({ type: "ADD_USER_MESSAGE", payload: { content } });
+  }, []);
+
+  const startStreamingMessage = useCallback(() => {
+    dispatch({ type: "START_STREAMING_MESSAGE" });
+  }, []);
+
+  const appendStreamingContent = useCallback((content: string) => {
+    dispatch({ type: "APPEND_STREAMING_CONTENT", payload: { content } });
+  }, []);
+
+  const finishStreamingMessage = useCallback((options?: QuickReplyOption[]) => {
+    dispatch({ type: "FINISH_STREAMING_MESSAGE", payload: { options } });
   }, []);
 
   const setPath = useCallback((path: ShoppingPath) => {

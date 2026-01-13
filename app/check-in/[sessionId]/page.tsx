@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
-import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
-import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount } from "@/lib/data/synthetic-transactions";
+import { useCheckInSession, getCheckInTypeLabel, type CalibrationPhase } from "@/lib/hooks/use-check-in-session";
+import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount, getMonthlyCoffeeSpend, foodTransactions, coffeeTransactions } from "@/lib/data/synthetic-transactions";
 import { 
   getFoodAwarenessCalibration, 
   getCoffeeFrequencyCalibration,
@@ -25,8 +25,7 @@ import {
   type CoffeeMode,
   type FoodMode,
 } from "@/lib/llm/question-trees";
-import { getMonthlyCoffeeSpend } from "@/lib/data/synthetic-transactions";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode, Transaction } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING
@@ -197,11 +196,42 @@ export default function CheckInPage() {
   
   const sessionId = params.sessionId as string;
   const transactionId = searchParams.get("txn");
+  const category = searchParams.get("category") as "food" | "coffee" | null;
+  const path = searchParams.get("path") as ShoppingPath | null;
+  const guess = searchParams.get("guess"); // Food: dollar amount
+  const guessCount = searchParams.get("guessCount"); // Coffee: count
 
+  // For shopping, get transaction by ID
+  // For food/coffee categories, create a synthetic transaction for the session
   const transaction = useMemo(() => {
-    if (!transactionId) return null;
-    return getTransactionById(transactionId);
-  }, [transactionId]);
+    if (transactionId) {
+      return getTransactionById(transactionId);
+    }
+    // For category check-ins (food/coffee), create a category transaction
+    if (category === "food") {
+      const actualSpend = getMonthlyFoodSpend();
+      return {
+        id: `category_food_${sessionId}`,
+        merchant: "Food Delivery",
+        amount: actualSpend,
+        category: "food" as const,
+        date: new Date(),
+        isFirstTime: false,
+      };
+    }
+    if (category === "coffee") {
+      const actualSpend = getMonthlyCoffeeSpend();
+      return {
+        id: `category_coffee_${sessionId}`,
+        merchant: "Coffee & Treats",
+        amount: actualSpend,
+        category: "coffee" as const,
+        date: new Date(),
+        isFirstTime: false,
+      };
+    }
+    return null;
+  }, [transactionId, category, sessionId]);
 
   if (!transaction) {
     return (
@@ -224,6 +254,9 @@ export default function CheckInPage() {
       sessionId={sessionId}
       transaction={transaction}
       onClose={() => router.push("/")}
+      initialPath={path}
+      initialGuess={guess ? parseInt(guess, 10) : undefined}
+      initialGuessCount={guessCount ? parseInt(guessCount, 10) : undefined}
     />
   );
 }
@@ -236,6 +269,9 @@ interface CheckInChatProps {
   sessionId: string;
   transaction: NonNullable<ReturnType<typeof getTransactionById>>;
   onClose: () => void;
+  initialPath?: ShoppingPath | null;
+  initialGuess?: number; // Food: dollar amount from URL
+  initialGuessCount?: number; // Coffee: count from URL
 }
 
 // Layer 3 reflection options

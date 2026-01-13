@@ -17,6 +17,7 @@ import {
   getCoffeeEconomicEvaluation,
   getSubPathProbing,
   getShoppingFixedQuestion2Text,
+  getGracefulExitMessage,
   type CoffeeMotivation,
 } from "@/lib/llm/question-trees";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ShoppingSubPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
@@ -1296,13 +1297,30 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
 
   // Handle special actions
   const handleOptionSelectWrapper = useCallback((value: string) => {
-    if (value === "close" || value === "done") {
+    if (value === "close") {
+      completeSession();
+      onClose();
+      return;
+    }
+
+    if (value === "done") {
+      // Shopping Layer 3 "I'm good for now" should show a graceful exit message per spec
+      if (transaction.category === "shopping" && currentLayer === 3) {
+        completeSession();
+        addAssistantMessage(
+          getGracefulExitMessage(Boolean(currentMode)),
+          [{ id: "close", label: "Close", emoji: "✕", value: "close", color: "white" }],
+          false
+        );
+        return;
+      }
+
       completeSession();
       onClose();
       return;
     }
     handleOptionSelect(value);
-  }, [handleOptionSelect, completeSession, onClose]);
+  }, [handleOptionSelect, completeSession, onClose, transaction.category, currentLayer, addAssistantMessage, currentMode]);
 
   return (
     <div className="h-screen bg-[var(--peek-bg-primary)]">

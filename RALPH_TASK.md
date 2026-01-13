@@ -5,71 +5,41 @@ test_command: "pnpm test shopping-flow"
 
 # Task: Fix Shopping Question Tree Logic - Iteration 3
 
-Align shopping check-in flow precisely with `docs/question-trees/shopping-check-in.md` specification. The current implementation has drifted from the spec with incorrect Q1→Q2 mappings, "base mode" concepts that shouldn't exist, probing turn limit gaps, and missing Layer 3 reflection logic.
+Complete the remaining phases to align shopping check-in flow with spec.
 
-## Reference Documents
-
-### Core Specs
-- **RALPH_ITERATION_3.md** - Detailed implementation guide and success criteria
-- **docs/question-trees/shopping-check-in.md** - Authoritative spec for shopping flow
-- **.cursorrules/question-tree-design-and-testing.md** - Testing skill guide
-
-### Code Structure (Split for Context Management)
-- **lib/llm/question-trees/** - Modular code (read individual files as needed)
-  - `types.ts` - Shared type definitions (~2KB)
-  - `shopping.ts` - Shopping check-in logic (~15KB)
-  - `food.ts` - Food check-in logic (~5KB)
-  - `coffee.ts` - Coffee check-in logic (~8KB)
-  - `reflection.ts` - Layer 3 reflection (~3KB)
-  - `modes.ts` - Mode definitions (~5KB)
-  - `index.ts` - Re-exports all modules (~2KB)
-- **lib/llm/question-trees.ts** - Original monolithic file (still exists, can be deprecated)
-
-### Context Window Management
-Large files have been split into smaller modules to avoid context rotation loops. 
-Read individual subfiles as needed rather than entire large files.
-
-### Previous Iterations
-- **RALPH_ITERATION_2.md** - Previous iteration (inline entry questions, calibration fixes)
-- **PEEK_CHECKIN_SPEC.md** - Original technical specification
-
----
+## Code Files (Read ONLY what you need)
+- `lib/llm/question-trees/shopping.ts` - Shopping Q1/Q2 logic
+- `lib/llm/question-trees/reflection.ts` - Layer 3 reflection paths
+- `lib/llm/question-trees/modes.ts` - Mode definitions
+- `lib/llm/prompts.ts` - LLM prompt construction
 
 ## Success Criteria
 
-### Phase A: Fix Core Data Structures
+### Phase A-E: COMPLETE ✅
 1. [x] Add `other` option to `getShoppingFixedQuestion1` options array
-2. [x] Remove "base mode" concept - all modes are flat (no `#visual-impulse-driven` as parent)
-3. [x] Update `shoppingExplorationGoals` to use exploration TAGS (not modes)
-4. [x] Fix `getFixedQuestion2Options` to use correct variable names (`*SubPathProbing`)
-5. [x] Add Q2 question text mapping (Q1 response → specific Q2 question)
-
-### Phase B: Fix Fixed Q2 Options and Labels
-6. [x] Impulse Q2: question = "What made you go for it?", options = price_felt_right, treating_myself, caught_eye, trending, other
-7. [x] Deliberate Q2: question = "What were you waiting for?", options = afford_it, right_price, right_one, still_wanted, got_around, other
-8. [x] Deal Q2: question = "Tell me more about the deal, discount or limited event?", options = limited_edition, sale_discount, free_shipping
-9. [x] Gift Q2: question = "Who was it for?", options = family, friend, partner, coworker, other
-10. [x] Maintenance Q2: question = "Did you get the same thing or switched it up?", options = same_thing, switched_up, upgraded
-
-### Phase C: Fix Mode Definitions (Flat, No Hierarchy)
-11. [x] Remove `#visual-impulse-driven` as a mode - it's only an exploration TAG
-12. [x] Remove `#trend-susceptibility-driven` as a mode - it's only an exploration TAG
-13. [x] Ensure all modes are flat: `#scroll-triggered`, `#in-store-wanderer`, `#aesthetic-driven`, etc.
-14. [x] Update `targetModes` in all SubPathProbing to list only actual modes
-
-### Phase D: Add Counter-Profiles
-15. [x] Add `intentional-collector` counter-profile with patterns and exit message
-16. [x] Add `trend-but-fits-me` counter-profile with patterns and exit message
-17. [x] Add `deal-assisted-intentional` counter-profile with patterns and exit message
-18. [x] Add `no-clear-threshold` counter-profile with reroute logic
-
-### Phase E: Add Layer 3 Reflection Logic
+2. [x] Remove "base mode" concept - all modes are flat
+3. [x] Update `shoppingExplorationGoals` to use exploration TAGS
+4. [x] Fix `getFixedQuestion2Options` to use correct variable names
+5. [x] Add Q2 question text mapping
+6. [x] Impulse Q2: question = "What made you go for it?"
+7. [x] Deliberate Q2: question = "What were you waiting for?"
+8. [x] Deal Q2: question = "Tell me more about the deal?"
+9. [x] Gift Q2: question = "Who was it for?"
+10. [x] Maintenance Q2: question = "Did you get the same thing or switched it up?"
+11. [x] Remove `#visual-impulse-driven` as a mode (it's only a TAG)
+12. [x] Remove `#trend-susceptibility-driven` as a mode (it's only a TAG)
+13. [x] Ensure all modes are flat
+14. [x] Update `targetModes` to list only actual modes
+15. [x] Add `intentional-collector` counter-profile
+16. [x] Add `trend-but-fits-me` counter-profile
+17. [x] Add `deal-assisted-intentional` counter-profile
+18. [x] Add `no-clear-threshold` counter-profile
 19. [x] Implement reflection option routing (problem, feel, worth, different, done)
 20. [x] Add mode-based entry questions for Behavioral Excavation
 21. [x] Add mode-aware question adaptation for Emotional Reflection
 22. [x] Add mode-aware question adaptation for Cost Comparison
 23. [x] Add probing hints for each reflection path
-24. [ ] Implement graceful exit messages
+24. [x] Implement graceful exit messages
 
 ### Phase F: Update prompts.ts to Align
 25. [ ] Update `getFixedQuestion2Options` to return both question text AND options
@@ -97,43 +67,91 @@ Read individual subfiles as needed rather than entire large files.
 
 ---
 
-## Key Concepts
+## Reference Data (Inline - DO NOT read external docs)
 
-### Q1 → Q2 Mapping (Fixed Questions)
+### Q1 → Q2 Mapping
 | Q1 Response | Q2 Question |
 |-------------|-------------|
-| "Saw it and bought it in the moment" | "What made you go for it?" |
-| "Been thinking about this for a while" | "What were you waiting for?" |
-| "A good deal/discount or limited drop made me go for it" | "Tell me more about the deal, discount or limited event?" |
-| "Bought it for someone else" | "Who was it for?" |
-| "Restocking or replacing" | "Did you get the same thing or switched it up?" |
+| impulse | "What made you go for it?" |
+| deliberate | "What were you waiting for?" |
+| deal | "Tell me more about the deal, discount or limited event?" |
+| gift | "Who was it for?" |
+| maintenance | "Did you get the same thing or switched it up?" |
+
+### Q2 Options Per Path
+
+**Impulse Q2 Options:**
+- `price_felt_right` → "the price felt right"
+- `treating_myself` → "treating myself"
+- `caught_eye` → "just caught my eye"
+- `trending` → "it's been trending lately"
+- `other` → Other/Custom
+
+**Deliberate Q2 Options:**
+- `afford_it` → "waiting until I could afford it"
+- `right_price` → "waiting for the right price/deal"
+- `right_one` → "waiting for the right one"
+- `still_wanted` → "letting it sit to see if I still wanted it"
+- `got_around` → "finally got around to it"
+- `other` → Other/Custom
+
+**Deal Q2 Options:**
+- `limited_edition` → "limited edition or drop that is running out"
+- `sale_discount` → "it was a good sale, deal or discount"
+- `free_shipping` → "hit free shipping threshold or got a bonus"
+
+**Gift Q2 Options:**
+- `family`, `friend`, `partner`, `coworker`, `other`
+
+**Maintenance Q2 Options:**
+- `same_thing` → "Got the same thing"
+- `switched_up` → "Switched it up"
+- `upgraded` → "Upgraded"
+
+### Flat Modes (No Hierarchy)
+All modes are equal-level. NO "base modes" or "submodes".
+
+**From Impulse Path:**
+- `#intuitive-threshold-spender` (from price_felt_right)
+- `#reward-driven-spender`, `#comfort-driven-spender`, `#routine-treat-spender` (from treating_myself)
+- `#scroll-triggered`, `#in-store-wanderer`, `#aesthetic-driven`, `#duplicate-collector`, `#exploration-hobbyist` (from caught_eye)
+- `#social-media-influenced`, `#friend-peer-influenced` (from trending)
+
+**From Deal Path:**
+- `#scarcity-driven`, `#deal-driven`, `#threshold-spending-driven`
+
+**From Deliberate Path:**
+- `#deliberate-budget-saver`, `#deliberate-deal-hunter`, `#deliberate-researcher`, `#deliberate-pause-tester`, `#deliberate-low-priority`
+
+**From Gift/Maintenance:**
+- `#gift-giver`, `#loyal-repurchaser`, `#brand-switcher`, `#upgrader`
 
 ### Probing Turn Limits
-| Path Type | Probing Depth | Max Questions |
-|-----------|---------------|---------------|
-| Impulse (YELLOW) | Deep | 2-3 |
-| Deal (YELLOW) | Moderate | 2-3 |
-| Deliberate (WHITE) | Light | 1 |
-| Gift (WHITE) | Light | 1 |
-| Maintenance (WHITE) | Light | 1 |
+| Path Type | lightProbing | Max Questions |
+|-----------|--------------|---------------|
+| Impulse (YELLOW) | false | 2-3 |
+| Deal (YELLOW) | false | 2-3 |
+| Deliberate (WHITE) | true | 1 |
+| Gift (WHITE) | true | 1 |
+| Maintenance (WHITE) | true | 1 |
 
-### Modes Are FLAT (No Hierarchy)
-- ❌ WRONG: `#visual-impulse-driven` as base mode with `#scroll-triggered` as submode
-- ✅ CORRECT: `#scroll-triggered`, `#in-store-wanderer`, `#aesthetic-driven` are all equal-level modes
-
-### Exploration Tags vs Modes
-- **Tags** (used for categorization only): `#price-sensitivity-driven`, `#self-reward-driven`, `#visual-impulse-driven`, `#trend-susceptibility-driven`
-- **Modes** (assigned after probing): `#intuitive-threshold-spender`, `#scroll-triggered`, `#social-media-influenced`, etc.
+### Reflection Paths (Layer 3)
+| Option | Path | Entry Question |
+|--------|------|----------------|
+| `problem` | Behavioral Excavation | Mode-specific: "can you think of another time you {mode behavior}?" |
+| `feel` | Emotional Reflection | "you spent ${price} on {item} — how does that land for you?" |
+| `worth` | Cost Comparison | "you spent ${price} on {item} — that's the equivalent of {other item}. which feels like a better use?" |
+| `different` | Open-Ended | "what's on your mind?" |
+| `done` | Exit | "got it — thanks for walking through this with me." |
 
 ---
 
 ## Ralph Instructions
 
-1. Read `RALPH_ITERATION_3.md` for full implementation details
-2. Read `docs/question-trees/shopping-check-in.md` line by line
-3. Work through phases in order: A → B → C → D → E → F → G → H
-4. Run `pnpm test shopping-flow` after each phase
+1. Read `lib/llm/question-trees/shopping.ts` first
+2. Read `lib/llm/prompts.ts` to understand current prompt structure
+3. Work through phases F → G → H in order
+4. Run `pnpm test shopping-flow` after each criterion
 5. Commit after completing each numbered criterion
 6. When ALL criteria are `[x]`, output: `<ralph>COMPLETE</ralph>`
 7. If stuck on same issue 3+ times, output: `<ralph>GUTTER</ralph>`
-

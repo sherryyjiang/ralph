@@ -9,6 +9,7 @@ import {
   getShoppingFixedQuestion1, 
   shoppingExplorationGoals,
   getSubPathProbing,
+  getCostComparisonModeAdaptedQuestion,
   type SubPathProbing,
 } from "./question-trees";
 
@@ -676,18 +677,6 @@ export function getComparisonExample(amount: number): string {
   return "a month of savings towards a bigger goal";
 }
 
-function getModeAdaptedCostComparisonQuestion(mode: string, amount: number): string | undefined {
-  const dollars = amount.toFixed(2);
-
-  // Shopping spec-required adaptations
-  if (mode === "#threshold-spending-driven")
-    return `Was adding those extra items to hit free shipping worth the $${dollars} you spent?`;
-  if (mode === "#scarcity-driven") return `If that limited drop came back, would you buy it again at $${dollars}?`;
-  if (mode === "#reward-driven-spender") return "Is this reward something you'll get a lot of use out of?";
-
-  return undefined;
-}
-
 /**
  * Get behavioral excavation prompt (Is this a problem?)
  */
@@ -774,7 +763,7 @@ export function getCostComparisonPrompt(
 ): string {
   const comparison = getComparisonExample(transaction.amount);
   const modeAdaptedQuestion =
-    getModeAdaptedCostComparisonQuestion(mode, transaction.amount) ||
+    getCostComparisonModeAdaptedQuestion(mode, transaction.amount) ||
     `If you had to spend that $${transaction.amount.toFixed(2)} again, would you?`;
   
   return `## Reflection Path: "Is this a good use of money?" — Cost Comparison

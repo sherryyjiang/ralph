@@ -67,7 +67,7 @@ Read individual subfiles as needed rather than entire large files.
 19. [x] Implement reflection option routing (problem, feel, worth, different, done)
 20. [x] Add mode-based entry questions for Behavioral Excavation
 21. [x] Add mode-aware question adaptation for Emotional Reflection
-22. [ ] Add mode-aware question adaptation for Cost Comparison
+22. [x] Add mode-aware question adaptation for Cost Comparison
 23. [ ] Add probing hints for each reflection path
 24. [ ] Implement graceful exit messages
 

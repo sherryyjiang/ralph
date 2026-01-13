@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
+import { explorationGoals, getSubPathProbing, getComparisonExample } from "@/lib/llm/prompts";
+import { getCostComparisonModeAdaptedQuestion } from "@/lib/llm/question-trees";
 import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
 
 // =============================================================================
@@ -317,6 +318,11 @@ Use the SPECIFIC numbered questions instead.`
     const modeAdaptedSitWellQuestion = emotionalModePhrase
       ? `does ${emotionalModePhrase} sit well with you?`
       : "does this sit well with you?";
+
+    const costComparisonExample = getComparisonExample(transaction.amount);
+    const costComparisonModeQuestion = session.mode
+      ? getCostComparisonModeAdaptedQuestion(session.mode, transaction.amount)
+      : undefined;
     
     // Reflection path-specific instructions
     const reflectionInstructions: Record<string, string> = {
@@ -351,14 +357,22 @@ ${behavioralProbingHints}
 
       worth: `## COST COMPARISON PATH ("Is this a good use of money?")
 
-**Goal**: Help evaluate value in THEIR terms, not abstract comparisons.
+**Goal**: Compare to benchmarks, evaluate tradeoffs, surface opportunity cost.
 
-**Entry**: "What did you get out of this purchase?"
+**Entry** (use this structure):
+"you spent $${transaction.amount.toFixed(2)} at ${transaction.merchant} — that's roughly the equivalent of ${costComparisonExample}. which one feels like a better use of money?"
+
+${costComparisonModeQuestion ? `**Mode-aware adaptation** (use when helpful for this mode):
+"${costComparisonModeQuestion}"
+` : ""}**Probing question hints**:
+- UTILITY/VALUE CHECK: "is this something you'll get a lot of use out of?"
+- REGRET TEST: "if you had to spend that $${transaction.amount.toFixed(2)} again, would you?"
+- COST-PER-USE: "if you use this 10 times, that's about $${(transaction.amount / 10).toFixed(2)} per use — does that feel worth it?"
 
 **Guidelines**:
-- AVOID simple cost comparisons ("that's X cups of coffee") — patronizing
-- Ask about value in THEIR terms: joy, utility, alignment with goals
-- Explore opportunity cost gently: "is there something else you would have put this toward?"`,
+- Keep it neutral (no shame, no lecturing)
+- Ask about value in THEIR terms (joy, utility, alignment with goals)
+- Explore opportunity cost gently: "what else could that money have gone toward?"`,
     };
     
     return (

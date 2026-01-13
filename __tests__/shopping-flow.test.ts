@@ -4,11 +4,12 @@
  * Tests for Layer 1 fixed questions, path routing, and mode assignment logic.
  */
 
-import { getFixedQuestion1Options, getFixedQuestion2Options, explorationGoals } from "@/lib/llm/prompts";
+import { getCostComparisonPrompt, getFixedQuestion1Options, getFixedQuestion2Options, explorationGoals } from "@/lib/llm/prompts";
 import { 
   getFixedQuestion2Options as getTreeFixedQuestion2Options,
   SHOPPING_Q2_QUESTIONS,
   getShoppingFixedQuestion2Text,
+  getCostComparisonModeAdaptedQuestion,
   getSubPathExplorationGoal, 
   getSubPathProbing,
   impulseSubPathProbing,
@@ -725,6 +726,34 @@ describe("Mode Definitions", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// Layer 3 Reflection Mode Adaptation Tests (Criterion 22)
+// ═══════════════════════════════════════════════════════════════
+
+describe("Layer 3 Reflection: Cost Comparison mode adaptation", () => {
+  const transaction = { merchant: "Zara", amount: 47.12 };
+
+  it("threshold-spending-driven should ask about free shipping worth it", () => {
+    const prompt = getCostComparisonPrompt("#threshold-spending-driven", transaction);
+    expect(prompt).toContain("hit free shipping");
+    expect(prompt).toContain("$47.12");
+    expect(prompt).toContain("MODE-ADAPTED QUESTION");
+  });
+
+  it("scarcity-driven should ask if they'd buy the limited drop again at price", () => {
+    const prompt = getCostComparisonPrompt("#scarcity-driven", transaction);
+    expect(prompt).toContain("limited drop came back");
+    expect(prompt).toContain("$47.12");
+    expect(prompt).toContain("MODE-ADAPTED QUESTION");
+  });
+
+  it("reward-driven-spender should frame value as a reward they'll use", () => {
+    const prompt = getCostComparisonPrompt("#reward-driven-spender", transaction);
+    expect(prompt).toContain("Is this reward something you'll get a lot of use out of?");
+    expect(prompt).toContain("MODE-ADAPTED QUESTION");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
 // Probing Adherence Tests for "right_one" Path (Criterion 23)
 // ═══════════════════════════════════════════════════════════════
 
@@ -1198,5 +1227,36 @@ describe("LLM Probing Adherence - right_one path", () => {
     // Should have signals for the target mode
     expect(modeSignals["#deliberate-researcher"]).toBeDefined();
     expect(modeSignals["#deliberate-researcher"]?.length).toBeGreaterThan(0);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Layer 3 Reflection: Cost Comparison Mode Adaptation (Criterion #22)
+// ═══════════════════════════════════════════════════════════════
+
+describe("Cost Comparison mode-aware adaptation", () => {
+  it("should adapt question for threshold-spending-driven mode", () => {
+    const q = getCostComparisonModeAdaptedQuestion("#threshold-spending-driven", 42.5);
+    expect(q).toBeDefined();
+    expect(q?.toLowerCase()).toContain("free shipping");
+    expect(q).toContain("$42.50");
+  });
+
+  it("should adapt question for scarcity-driven mode", () => {
+    const q = getCostComparisonModeAdaptedQuestion("#scarcity-driven", 99);
+    expect(q).toBeDefined();
+    expect(q?.toLowerCase()).toContain("limited");
+    expect(q).toContain("$99.00");
+  });
+
+  it("should adapt question for reward-driven-spender mode", () => {
+    const q = getCostComparisonModeAdaptedQuestion("#reward-driven-spender", 30);
+    expect(q).toBeDefined();
+    expect(q?.toLowerCase()).toContain("reward");
+    expect(q?.toLowerCase()).toContain("use");
+  });
+
+  it("should return undefined for unrelated modes", () => {
+    expect(getCostComparisonModeAdaptedQuestion("#deal-driven", 30)).toBeUndefined();
   });
 });

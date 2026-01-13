@@ -9,7 +9,6 @@ import {
   getFixedQuestion2Options as getTreeFixedQuestion2Options,
   SHOPPING_Q2_QUESTIONS,
   getShoppingFixedQuestion2Text,
-  getCostComparisonModeAdaptedQuestion,
   getSubPathExplorationGoal, 
   getSubPathProbing,
   impulseSubPathProbing,
@@ -22,6 +21,10 @@ import {
   deliberateSubPathGoals,
   modeDefinitions,
   getCostComparisonModeAdaptedQuestion,
+  BEHAVIORAL_EXCAVATION_PROBING_HINTS,
+  EMOTIONAL_REFLECTION_PROBING_HINTS,
+  COST_COMPARISON_PROBING_HINTS,
+  OPEN_ENDED_REFLECTION_GUIDANCE,
 } from "@/lib/llm/question-trees";
 
 // ═══════════════════════════════════════════════════════════════

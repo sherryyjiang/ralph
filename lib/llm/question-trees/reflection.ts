@@ -107,12 +107,12 @@ export const OPEN_ENDED_REFLECTION_GUIDANCE = [
  */
 export function getCostComparisonModeAdaptedQuestion(mode: string, amount: number): string | undefined {
   if (mode === "#threshold-spending-driven")
-    return `Was adding those extra items to hit free shipping worth the $${amount.toFixed(2)} you spent?`;
+    return `was adding those extra items to hit free shipping worth the $${amount.toFixed(2)} you spent?`;
 
   if (mode === "#scarcity-driven")
-    return `If that limited drop came back, would you buy it again at $${amount.toFixed(2)}?`;
+    return `if that limited drop came back, would you buy it again at $${amount.toFixed(2)}?`;
 
-  if (mode === "#reward-driven-spender") return "Is this reward something you'll get a lot of use out of?";
+  if (mode === "#reward-driven-spender") return "is this reward something you'll get a lot of use out of?";
 
   return undefined;
 }

@@ -4,8 +4,8 @@
 
 ### Current Status
 - **Phase**: Phase D (Add Counter-Profiles)
-- **Last Criterion Completed**: 17 (Added counter-profile patterns + exit messages for trending and sale_discount)
-- **Verification**: `pnpm test shopping-flow` passing (132 tests)
+- **Last Criterion Completed**: 15 (Add `intentional-collector` counter-profile)
+- **Verification**: `pnpm test shopping-flow` passing (134 tests)
 
 ---
 

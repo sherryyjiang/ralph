@@ -43,7 +43,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 14. [x] Update `targetModes` in all SubPathProbing to list only actual modes
 
 ### Phase D: Add Counter-Profiles
-15. [ ] Add `intentional-collector` counter-profile with patterns and exit message
+15. [x] Add `intentional-collector` counter-profile with patterns and exit message
 16. [x] Add `trend-but-fits-me` counter-profile with patterns and exit message
 17. [x] Add `deal-assisted-intentional` counter-profile with patterns and exit message
 18. [ ] Add `no-clear-threshold` counter-profile with reroute logic

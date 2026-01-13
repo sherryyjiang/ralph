@@ -1004,10 +1004,26 @@ describe("Graceful Exit Detection", () => {
       expect(hints).toContain("full price");
     });
 
+    it("limited_edition should support intentional-collector counter-profile exit", () => {
+      const probing = getSubPathProbing("deal", "limited_edition");
+      expect(probing?.counterProfileId).toBe("intentional-collector");
+      expect(probing?.counterProfilePatterns?.join(" ").toLowerCase()).toContain("collect");
+      expect(probing?.counterProfileExit?.toLowerCase()).toContain("intentional");
+    });
+
     it("should detect when deal buyer was already planning purchase", () => {
       const counterPatterns = explorationGoals.deal.counterProfilePatterns;
       expect(counterPatterns.length).toBeGreaterThan(0);
       expect(counterPatterns.some(p => p.toLowerCase().includes("anyway"))).toBe(true);
+    });
+
+    it("limited_edition should support the intentional-collector counter-profile exit", () => {
+      const probing = getSubPathProbing("deal", "limited_edition");
+      expect(probing?.counterProfileId).toBe("intentional-collector");
+      expect(probing?.counterProfilePatterns).toEqual(
+        expect.arrayContaining(["I collect these", "adding to my collection"])
+      );
+      expect(probing?.counterProfileExit?.toLowerCase()).toContain("collection");
     });
   });
 

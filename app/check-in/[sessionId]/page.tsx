@@ -582,12 +582,12 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           
           // Build breakdown message
           let breakdownMessage = "Here's the breakdown:\n\n📊 By Merchant:\n";
-          foodStats.topMerchants.forEach(m => {
+          foodStats.topMerchants.forEach((m: { name: string; count: number; spend: number }) => {
             breakdownMessage += `• ${m.name}: ${m.count} orders ($${m.spend.toFixed(0)})\n`;
           });
           
           breakdownMessage += "\n📅 By Day:\n";
-          foodStats.topDays.slice(0, 3).forEach(d => {
+          foodStats.topDays.slice(0, 3).forEach((d: { day: string; count: number }) => {
             breakdownMessage += `• ${d.day}: ${d.count} orders\n`;
           });
           

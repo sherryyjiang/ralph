@@ -36,7 +36,7 @@ interface ChatRequest {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as ChatRequest;
-    const { messages, transaction, session, stream } = body;
+    const { messages, transaction, session, stream, probingDepth = 0 } = body;
 
     // Validate required fields
     if (!messages || !transaction || !session) {
@@ -51,11 +51,12 @@ export async function POST(request: NextRequest) {
       ? getQuestionTreeSection(session.path) 
       : undefined;
 
-    // Build system prompt
+    // Build system prompt with probing depth for Layer 2
     const systemPrompt = buildSystemPrompt({
       transaction,
       session,
       questionTreeSection,
+      probingDepth: session.currentLayer === 2 ? probingDepth : undefined,
     });
 
     // Handle streaming vs non-streaming

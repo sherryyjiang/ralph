@@ -144,19 +144,36 @@ interface CheckInChatProps {
   onClose: () => void;
 }
 
+// Layer 3 reflection options
+const LAYER_3_REFLECTION_OPTIONS: QuickReplyOption[] = [
+  { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
+  { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
+  { id: "worth", label: "Is this a good use of money?", emoji: "💰", value: "worth", color: "white" },
+  { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
+];
+
+// Min/max probing exchanges before mode assignment
+const MIN_PROBING_DEPTH = 2;
+const MAX_PROBING_DEPTH = 4;
+
 function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
   const {
+    session,
     messages,
     isLoading,
     currentLayer,
     currentPath,
+    currentMode,
+    probingDepth,
     startSession,
     addAssistantMessage,
     addUserMessage,
     setPath,
     setSubPath,
+    setMode,
     setLayer,
     setLoading,
+    incrementProbingDepth,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
 

@@ -11,6 +11,8 @@ import type {
   QuickReplyOption,
   ShoppingPath,
   ShoppingSubPath,
+  ImpulseSubPath,
+  DealSubPath,
   Transaction,
   TransactionCategory,
 } from "@/lib/types";

@@ -318,12 +318,103 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
 
   // Initialize session with first message
   useEffect(() => {
-    if (messages.length === 0) {
+    if (messages.length === 0 && !hasInitialized.current) {
+      hasInitialized.current = true;
       startSession();
+      
+      // Handle different entry points based on URL params
+      
+      // SHOPPING: If path provided from home card, skip Fixed Q1 and show Fixed Q2
+      if (transaction.category === "shopping" && initialPath) {
+        setPath(initialPath);
+        const q2 = SHOPPING_FIXED_Q2[initialPath];
+        if (q2) {
+          addAssistantMessage(
+            `Let's reflect on your ${transaction.merchant} purchase! ${q2.question}`,
+            q2.options,
+            true
+          );
+        }
+        return;
+      }
+      
+      // FOOD: If guess provided from home card, show calibration result + feeling question
+      if (transaction.category === "food" && initialGuess !== undefined) {
+        const actualMonthlySpend = getMonthlyFoodSpend();
+        
+        // Store guess and actual
+        setUserGuess(initialGuess);
+        setActualAmount(actualMonthlySpend);
+        
+        // Calculate difference
+        const difference = actualMonthlySpend - initialGuess;
+        const percentDiff = initialGuess > 0 ? Math.round((difference / initialGuess) * 100) : 0;
+        const isWayOff = percentDiff > 20 && difference > 75;
+        
+        // Store blindspot tag if way off
+        if (isWayOff) {
+          addTag("#awareness-gap");
+        }
+        
+        // Build calibration result message
+        let resultMessage: string;
+        if (difference <= 0 || percentDiff < 10) {
+          resultMessage = `Nice awareness! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month. You know your spending pretty well! 🎯`;
+        } else if (percentDiff < 20) {
+          resultMessage = `Pretty close! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — about $${difference.toFixed(0)} more than you guessed.`;
+        } else {
+          resultMessage = `Interesting! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — that's $${difference.toFixed(0)} more than you thought (${percentDiff}% higher). 📊`;
+        }
+        
+        // Feeling question options
+        const feelingOptions: QuickReplyOption[] = [
+          { id: "ok_with_it", label: "I'm okay with it", emoji: "👍", value: "ok_with_it", color: "white" as const },
+          { id: "could_be_better", label: "Feel like it could be better", emoji: "🤔", value: "could_be_better", color: "yellow" as const },
+        ];
+        
+        // Set calibration phase to awaiting_feeling (guess already done)
+        setCalibrationPhase("feeling_asked");
+        setLayer(2); // Move to Layer 2 since calibration question is done
+        
+        addAssistantMessage(
+          `${resultMessage}\n\nHow do you feel about that number?`,
+          feelingOptions,
+          true
+        );
+        return;
+      }
+      
+      // COFFEE: If guessCount provided from home card, show calibration result + feeling question
+      if (transaction.category === "coffee" && initialGuessCount !== undefined) {
+        const actualMonthlyCount = getMonthlyCoffeeCount();
+        const actualMonthlySpend = getMonthlyCoffeeSpend();
+        
+        // Store guess and actual
+        setUserGuessCount(initialGuessCount);
+        setActualCount(actualMonthlyCount);
+        setActualAmount(actualMonthlySpend);
+        
+        // Get calibration result message
+        const calibration = getCoffeeCalibrationResult(initialGuessCount, actualMonthlyCount, actualMonthlySpend);
+        const feelingQ = getCoffeeFeelingQuestion();
+        
+        // Set calibration phase to awaiting_feeling (guess already done)
+        setCalibrationPhase("feeling_asked");
+        setLayer(2); // Move to Layer 2 since calibration question is done
+        
+        addAssistantMessage(
+          `${calibration.message}\n\n${feelingQ.content}`,
+          feelingQ.options,
+          true
+        );
+        return;
+      }
+      
+      // Default: Show standard initial message (asks guess question)
       const initial = getInitialMessage(transaction.category, transaction.merchant, transaction);
       addAssistantMessage(initial.content, initial.options, true);
     }
-  }, [messages.length, startSession, addAssistantMessage, transaction]);
+  }, [messages.length, startSession, addAssistantMessage, transaction, initialPath, initialGuess, initialGuessCount, setPath, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, addTag, setCalibrationPhase, setLayer]);
 
   // Handle user option selection
   const handleOptionSelect = useCallback((value: string) => {

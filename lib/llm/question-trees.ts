@@ -353,7 +353,11 @@ export const deliberateSubPathProbing: Record<string, SubPathProbing> = {
   right_one: {
     subPath: "right_one",
     explorationGoal: "Understand their research/standards process—what made this the 'right' one?",
-    probingHints: ["Where did you go for your research?", "Where did you end up finding it?"],
+    probingHints: [
+      "Where did you go for your research?",
+      "Where did you end up finding it?",
+      "How long did you spend looking?",
+    ],
     targetModes: ["#deliberate-researcher"],
     modeSignals: {
       "#deliberate-researcher": ["did my research", "compared options", "read reviews"],
@@ -1531,6 +1535,7 @@ export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
     probingHints: [
       "Where did you go for your research?",
       "Where did you end up finding it?",
+      "How long did you spend looking?",
     ],
     keySignals: ["researched options", "read reviews", "compared features"],
   },

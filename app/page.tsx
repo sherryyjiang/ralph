@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   shoppingTransactions, 
-  getFoodCategoryStats, 
-  getCoffeeCategoryStats 
+  foodTransactions,
+  coffeeTransactions
 } from "@/lib/data/synthetic-transactions";
 import type { Transaction, TransactionCategory } from "@/lib/types";
 
@@ -30,6 +30,12 @@ function formatDate(date: Date): string {
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return date.toLocaleDateString("en-US", { weekday: "long" });
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatDateWithDay(date: Date): string {
+  const day = date.toLocaleDateString("en-US", { weekday: "short" });
+  const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${day}, ${dateStr}`;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -112,13 +118,11 @@ function ShoppingTransactionCard({
 
 function CategoryCheckInCard({ 
   category, 
-  totalSpend, 
-  count, 
+  sampleTransactions,
   onGuessSubmit 
 }: { 
   category: "food" | "coffee";
-  totalSpend: number;
-  count: number;
+  sampleTransactions: Transaction[];
   onGuessSubmit: (category: "food" | "coffee", guess: string) => void;
 }) {
   const [guess, setGuess] = useState("");
@@ -136,6 +140,11 @@ function CategoryCheckInCard({
     }
   };
 
+  // Show up to 5 sample transactions, sorted by date (most recent first)
+  const displayTransactions = [...sampleTransactions]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 5);
+
   return (
     <div className="rounded-xl border border-white/10 bg-[#2d1b4e]/80 p-4">
       {/* Header */}
@@ -147,14 +156,25 @@ function CategoryCheckInCard({
           </div>
           <div>
             <p className="font-medium text-white">{title}</p>
-            <p className="text-sm text-[#a89cc0]">
-              {count} {isFood ? "orders" : "purchases"} this month
-            </p>
           </div>
         </div>
-        <p className="text-lg font-semibold text-[#ffd700]">
-          {formatCurrency(totalSpend)}
-        </p>
+      </div>
+
+      {/* Sample Transactions */}
+      <div className="mt-4 space-y-2">
+        {displayTransactions.map((txn) => (
+          <div
+            key={txn.id}
+            className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2"
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-[#a89cc0]">
+                {formatDateWithDay(txn.date)}
+              </div>
+              <div className="text-sm text-white">{txn.merchant}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Entry Question */}
@@ -204,10 +224,6 @@ function CategoryCheckInCard({
 export default function DashboardPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory | "all">("all");
-
-  // Get category stats
-  const foodStats = useMemo(() => getFoodCategoryStats(), []);
-  const coffeeStats = useMemo(() => getCoffeeCategoryStats(), []);
   
   // Pending check-ins: 2 shopping + food + coffee = 4
   const pendingCheckIns = shoppingTransactions.length + 2;
@@ -278,8 +294,7 @@ export default function DashboardPage() {
           {(selectedCategory === "all" || selectedCategory === "food") && (
             <CategoryCheckInCard
               category="food"
-              totalSpend={foodStats.totalSpend}
-              count={foodStats.orderCount ?? 0}
+              sampleTransactions={foodTransactions}
               onGuessSubmit={handleGuessSubmit}
             />
           )}
@@ -288,8 +303,7 @@ export default function DashboardPage() {
           {(selectedCategory === "all" || selectedCategory === "coffee") && (
             <CategoryCheckInCard
               category="coffee"
-              totalSpend={coffeeStats.totalSpend}
-              count={coffeeStats.purchaseCount ?? 0}
+              sampleTransactions={coffeeTransactions}
               onGuessSubmit={handleGuessSubmit}
             />
           )}

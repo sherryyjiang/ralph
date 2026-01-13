@@ -1,121 +1,189 @@
 ---
-task: Build Peek Check-In Chat App - A therapy-like spending reflection tool
+task: Build Peek Check-In Chat App - Iteration 2
 test_command: "npm run dev"
 ---
 
-# Task: Peek Check-In Chat App
+# Task: Peek Check-In Chat App - Iteration 2
 
-Build a mock-up chat application that helps users understand their spending behavior through guided reflection, following the question trees defined in `PEEK_QUESTION_TREES.md`.
+Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LLM quality enhancements.
 
 ## Reference Documents
 
+### Core Specs
 - **PEEK_QUESTION_TREES.md** - Complete question tree logic (MUST follow exactly)
 - **PEEK_CHECKIN_SPEC.md** - Technical specification and data models
 
-## Success Criteria
+### Iteration 2 Documents (NEW)
+- **RALPH_ITERATION_2.md** - Main task list and implementation guide
+- **docs/HOME_PAGE_REDESIGN.md** - Transaction card redesign with inline entry questions
+- **docs/AWARENESS_CALIBRATION_FLOW.md** - Food/Coffee awareness flow specification
+- **docs/BUG_DIAGNOSIS_CALIBRATION_LOOP.md** - Bug analysis and fix
+- **docs/GRACEFUL_EXIT_PATTERNS.md** - Exit flows for deliberate/intentional behavior
+- **docs/AI_TONE_GUIDELINES.md** - Warmth and validation guidelines
+- **docs/LLM_PROBING_ADHERENCE.md** - Making LLM follow probing hints
+- **docs/SYNTHETIC_TRANSACTIONS_V2.md** - Reduced transaction set
 
-### Phase 1: Foundation
-1. [x] Create TypeScript interfaces in `lib/types/index.ts` (Transaction, CheckInSession, Message)
-2. [x] Create synthetic transaction data in `lib/data/synthetic-transactions.ts` covering all check-in paths
-3. [x] Create LLM wrapper in `lib/llm/client.ts` that reads model from `NEXT_PUBLIC_LLM_MODEL` env var
-4. [x] Build basic dashboard page with weekly spend summary and transaction list
+---
 
-### Phase 2: Chat Infrastructure
-5. [x] Create chat components: `chat-container.tsx`, `message-bubble.tsx`, `quick-reply.tsx`
-6. [x] Create check-in session state management with useReducer
-7. [x] Create `/check-in/[sessionId]/page.tsx` for chat interface
-8. [x] Connect transaction tap to check-in flow
+## Iteration 2 Success Criteria
 
-### Phase 3: Gemini Integration
-9. [x] Create API route at `/api/chat/route.ts` for Gemini calls
-10. [x] Build system prompt construction from question tree context
-11. [x] Handle streaming responses and display in chat
-12. [x] Add error handling and loading states
+### Phase A: Data Layer Updates
+1. [ ] Reduce synthetic transactions to 4 key items (Zara, H&M, Food category, Coffee category)
+2. [ ] Add category aggregate functions: `getFoodCategoryStats()`, `getCoffeeCategoryStats()`
+3. [ ] Verify aggregate totals match spec (~$251 food, ~$112 coffee)
 
-### Phase 4: Shopping Check-In (Most Complex)
-13. [x] Implement Layer 1 Fixed Question 1: "When you bought this, were you..."
-14. [x] Implement Layer 1 Fixed Question 2 for all paths (impulse, deliberate, deal, gift, maintenance)
-15. [x] Implement Layer 2 LLM probing with mode-specific exploration goals
-16. [x] Implement mode assignment after probing
-17. [x] Write tests for shopping flow in `__tests__/shopping-flow.test.ts`
+### Phase B: Home Page Redesign
+4. [ ] Remove `WeeklySummary` component from home page
+5. [ ] Create `ShoppingTransactionCard` with inline Fixed Q1 options
+6. [ ] Create `CategoryCheckInCard` with freeform text input for guess
+7. [ ] Update navigation to pass path/guess via URL params
+8. [ ] Verify only 4 cards show on home page
 
-### Phase 5: Food Check-In
-18. [x] Implement awareness calibration (guess vs actual spending)
-19. [x] Implement Layer 2 mode assignment (stress, convenience, planning)
-20. [x] Implement economic evaluation reflection
+### Phase C: Fix Awareness Calibration Loop
+9. [ ] Add `calibrationPhase` state to session management
+10. [ ] Update check-in page to read guess from URL params (not re-ask)
+11. [ ] Fix option handler to properly track calibration phases
+12. [ ] Implement full flow: guess → result → feeling → (breakdown) → Layer 2
+13. [ ] Test Food check-in flows completely
+14. [ ] Test Coffee check-in flows completely
 
-### Phase 6: Coffee/Treats Check-In
-21. [x] Implement frequency calibration (guess vs actual count)
-22. [x] Implement fixed question flows for all motivation paths
-23. [x] Implement mode-specific reflection questions
+### Phase D: Exit Experience
+15. [ ] Remove "Thanks for the reflection!" perpetual message
+16. [ ] Add X close button to chat header
+17. [ ] Implement graceful exit messages for deliberate paths
+18. [ ] Add "Magnets" mention to graceful exits
+19. [ ] Add freeform follow-up option after graceful exit
 
-### Phase 7: Reflection Paths
-24. [x] Implement "Is this a problem?" behavioral excavation
-25. [x] Implement "How do I feel?" emotional reflection
-26. [x] Implement "Is this a good use?" cost comparison
-27. [x] Implement graceful exits and counter-profile handling
+### Phase E: AI Quality
+20. [ ] Update system prompt with tone guidelines (warmth, validation, mirroring)
+21. [ ] Make probing hints REQUIRED in prompt (not suggestions)
+22. [ ] Add negative examples to prevent generic questions
+23. [ ] Test probing adherence for "right_one" path specifically
 
-### Phase 8: Testing & Polish
-28. [x] Write integration tests for complete check-in flows
-29. [x] Test mode detection accuracy
-30. [x] Ensure mobile responsiveness
-31. [x] Final UI polish and error states
+### Phase F: Testing
+24. [ ] Write tests for question tree routing (shopping paths)
+25. [ ] Write tests for awareness calibration phase transitions
+26. [ ] Write tests for graceful exit detection
+27. [ ] Manual verification of all 4 check-in cards
+
+---
+
+## Key Implementation Details
+
+### URL Parameters
+
+**Shopping Check-In:**
+```
+/check-in/[sessionId]?txn=[transactionId]&path=[selectedPath]
+```
+- `path` values: impulse, deliberate, deal, gift, maintenance
+- Chat starts with Fixed Q2 (NOT Fixed Q1)
+
+**Food Check-In:**
+```
+/check-in/[sessionId]?category=food&guess=[dollarAmount]
+```
+- `guess` is user's guess in dollars
+- Chat starts with calibration result + feeling question
+
+**Coffee Check-In:**
+```
+/check-in/[sessionId]?category=coffee&guessCount=[count]
+```
+- `guessCount` is user's guess in number of purchases
+- Chat starts with calibration result + feeling question
+
+### Calibration Phase State Machine
+
+```typescript
+type CalibrationPhase = 
+  | "awaiting_guess"        // Initial state (but guess comes from URL)
+  | "awaiting_feeling"      // After showing result, waiting for feeling response
+  | "awaiting_breakdown"    // Asked if they want breakdown (only if way off)
+  | "complete";             // Ready for Layer 2 or exit
+```
+
+### Actual Category Totals (for comparison)
+
+- **Food:** $251 total, 9 orders
+- **Coffee:** ~$112 total, 18 purchases
+
+### Feeling Options After Calibration
+
+```typescript
+const FEELING_OPTIONS = [
+  { id: "ok_with_it", label: "I'm ok with it", emoji: "👍" },
+  { id: "could_be_better", label: "Feel like it could be better", emoji: "🤔" },
+];
+```
+
+### When to Offer Breakdown
+
+Offer breakdown if BOTH:
+1. User's guess was "way off" (>20% difference AND $75+ difference)
+2. User selected "Feel like it could be better"
+
+---
 
 ## Technical Notes
 
-### Environment Setup
-```bash
-# Required env vars in .env.local
-GOOGLE_API_KEY=<your_gemini_api_key>
-NEXT_PUBLIC_LLM_MODEL=gemini-2.5-flash
-```
+### Files to Modify
 
-### Key Files to Create/Modify
-- `lib/types/index.ts` - All interfaces
-- `lib/llm/client.ts` - LLM wrapper with model switching
-- `lib/llm/prompts.ts` - System prompts from question trees
-- `lib/data/synthetic-transactions.ts` - Test data
-- `app/page.tsx` - Replace todo app with spending dashboard
-- `app/check-in/[sessionId]/page.tsx` - Chat interface
-- `app/api/chat/route.ts` - Gemini API endpoint
+| File | Changes |
+|------|---------|
+| `lib/data/synthetic-transactions.ts` | Reduce to 4 items, add aggregate functions |
+| `app/page.tsx` | Remove header, add new card components |
+| `app/check-in/[sessionId]/page.tsx` | Read URL params, fix calibration flow |
+| `lib/hooks/use-check-in-session.ts` | Add calibrationPhase state |
+| `lib/llm/prompts.ts` | Add tone guidelines, stricter probing |
+| `app/api/chat/route.ts` | Update system prompt construction |
 
-### LLM Wrapper Pattern (CRITICAL)
-All Gemini calls MUST go through a wrapper that allows model switching:
+### New Components to Create
 
-```typescript
-// lib/llm/client.ts
-const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "gemini-2.5-flash";
-export async function chat(messages: Message[], context: CheckInContext) {
-  // Use MODEL_ID for all calls
-}
-```
-
-### Question Tree Following Rules
-1. Layer 1 questions are FIXED - display exact options from spec
-2. Layer 2 probing is LLM-driven with exploration goals from spec
-3. Mode assignment happens AFTER probing, not before
-4. Counter-profiles allow graceful exit without deep probing
-5. Layer 3 reflection is user-directed (they pick the path)
-
-### UI Color Palette
-```css
---bg-primary: #1a0a2e;      /* Deep purple-black */
---bg-card: #2d1b4e;          /* Muted purple */
---accent-orange: #ff7b00;    /* Peek branding */
---accent-yellow: #ffd700;    /* Amounts */
---text-primary: #ffffff;
---text-muted: #a89cc0;
-```
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `ShoppingTransactionCard` | `components/transaction-card.tsx` | Shopping card with inline options |
+| `CategoryCheckInCard` | `components/category-card.tsx` | Food/Coffee card with guess input |
 
 ---
 
 ## Ralph Instructions
 
-1. Read `PEEK_QUESTION_TREES.md` and `PEEK_CHECKIN_SPEC.md` thoroughly before starting
-2. Work through criteria in order - they have dependencies
-3. After each phase, run `npm run dev` to verify the app works
-4. Create tests as specified - they help verify question tree logic
-5. Commit after completing each numbered criterion
-6. For any ambiguous spec interpretation, add a note to `.ralph/design-decisions.md`
+1. Read ALL docs in `docs/` folder before starting (especially the iteration 2 docs)
+2. Start with Phase A (data layer) - it unblocks everything else
+3. Work through phases in order: A → B → C → D → E → F
+4. Run `npm run dev` after each phase to verify
+5. For Phase C, carefully follow the state machine in `BUG_DIAGNOSIS_CALIBRATION_LOOP.md`
+6. Commit after completing each numbered criterion
 7. When ALL criteria are [x], output: `<ralph>COMPLETE</ralph>`
 8. If stuck on the same issue 3+ times, output: `<ralph>GUTTER</ralph>`
+
+---
+
+## Previous Iteration (v1) - COMPLETED
+
+<details>
+<summary>Click to expand v1 criteria</summary>
+
+### Phase 1: Foundation
+1. [x] Create TypeScript interfaces in `lib/types/index.ts`
+2. [x] Create synthetic transaction data in `lib/data/synthetic-transactions.ts`
+3. [x] Create LLM wrapper in `lib/llm/client.ts`
+4. [x] Build basic dashboard page with weekly spend summary
+
+### Phase 2: Chat Infrastructure
+5. [x] Create chat components
+6. [x] Create check-in session state management
+7. [x] Create `/check-in/[sessionId]/page.tsx`
+8. [x] Connect transaction tap to check-in flow
+
+### Phase 3: Gemini Integration
+9. [x] Create API route at `/api/chat/route.ts`
+10. [x] Build system prompt construction
+11. [x] Handle streaming responses
+12. [x] Add error handling
+
+### Phase 4-8: All Complete
+[All 31 criteria completed in v1]
+
+</details>

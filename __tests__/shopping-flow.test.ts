@@ -327,6 +327,14 @@ describe("Counter-Profile Detection", () => {
     const patterns = explorationGoals.deal.counterProfilePatterns;
     expect(patterns.some(p => p.toLowerCase().includes("anyway"))).toBe(true);
   });
+
+  it("price_felt_right should reroute when no threshold is found", () => {
+    const probing = getSubPathProbing("impulse", "price_felt_right");
+    expect(probing?.counterProfileId).toBe("no-clear-threshold");
+    expect(probing?.counterProfileBehavior).toBe("reroute");
+    expect(probing?.counterProfileRerouteToSubPath).toBe("treating_myself");
+    expect(probing?.counterProfilePatterns?.length).toBeGreaterThan(0);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -994,6 +1002,13 @@ describe("Graceful Exit Detection", () => {
     it("should detect counter-profile for 'trending' path when user says it's them not trend", () => {
       const trendingGoal = impulseSubPathGoals.trending;
       expect(trendingGoal.probingHints).toContain("Do you feel like it's you or more of a trend buy?");
+    });
+
+    it("price_felt_right should support no-clear-threshold reroute", () => {
+      const probing = getSubPathProbing("impulse", "price_felt_right");
+      expect(probing?.counterProfileId).toBe("no-clear-threshold");
+      expect(probing?.counterProfileRerouteToSubPath).toBe("treating_myself");
+      expect(probing?.counterProfilePatterns?.join(" ").toLowerCase()).toContain("threshold");
     });
   });
 

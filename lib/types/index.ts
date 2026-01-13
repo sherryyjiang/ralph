@@ -180,6 +180,7 @@ export interface LLMResponse {
   assignedMode?: CheckInMode;
   shouldTransition?: boolean;
   exitGracefully?: boolean;
+  rerouteToSubPath?: string;
 }
 
 export interface CheckInContext {

@@ -46,7 +46,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 15. [x] Add `intentional-collector` counter-profile with patterns and exit message
 16. [x] Add `trend-but-fits-me` counter-profile with patterns and exit message
 17. [x] Add `deal-assisted-intentional` counter-profile with patterns and exit message
-18. [ ] Add `no-clear-threshold` counter-profile with reroute logic
+18. [x] Add `no-clear-threshold` counter-profile with reroute logic
 
 ### Phase E: Add Layer 3 Reflection Logic
 19. [ ] Implement reflection option routing (problem, feel, worth, different, done)

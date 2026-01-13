@@ -1198,6 +1198,13 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         setMode(data.assignedMode);
       }
 
+      // Handle counter-profile reroute (e.g. no-clear-threshold)
+      if (data.rerouteToSubPath && currentLayer === 2) {
+        setSubPath(data.rerouteToSubPath);
+        addAssistantMessage(data.message, data.options, false);
+        return;
+      }
+
       // Handle graceful exit (counter-profile detected)
       if (data.exitGracefully) {
         addAssistantMessage(
@@ -1269,7 +1276,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         );
       }
     }
-  }, [messages, transaction, sessionId, currentLayer, currentPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setError, setLayer, setMode, incrementProbingDepth]);
+  }, [messages, transaction, sessionId, currentLayer, currentPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setError, setLayer, setMode, setSubPath, incrementProbingDepth]);
 
   // Handle special actions
   const handleOptionSelectWrapper = useCallback((value: string) => {

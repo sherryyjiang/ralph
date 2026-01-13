@@ -239,7 +239,9 @@ export interface SubPathProbing {
   modeSignals: Record<string, string[]>;
   counterProfileId?: string; // e.g. "intentional-collector"
   counterProfilePatterns?: string[]; // phrases indicating counter-profile behavior
+  counterProfileBehavior?: "exit" | "reroute";
   counterProfileExit?: string;
+  counterProfileRerouteToSubPath?: string; // e.g. "treating_myself"
   lightProbing?: boolean; // For deliberate paths that need less exploration
 }
 
@@ -265,6 +267,18 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
         "low cognitive load purchases - don't think about it as much",
       ],
     },
+    counterProfileId: "no-clear-threshold",
+    counterProfileBehavior: "reroute",
+    counterProfilePatterns: [
+      "I don't really have a threshold",
+      "I don't have a number in mind",
+      "price wasn't really the reason",
+      "it wasn't about the price",
+      "I would've bought it regardless of the price",
+    ],
+    counterProfileExit:
+      "Got it — it sounds like price wasn’t really the driver here. Let me ask a different question.",
+    counterProfileRerouteToSubPath: "treating_myself",
   },
   treating_myself: {
     subPath: "treating_myself",

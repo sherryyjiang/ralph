@@ -4,8 +4,8 @@
 
 ### Current Status
 - **Phase**: Phase D (Add Counter-Profiles)
-- **Last Criterion Completed**: 15 (Add `intentional-collector` counter-profile)
-- **Verification**: `pnpm test shopping-flow` passing (134 tests)
+- **Last Criterion Completed**: 18 (Add `no-clear-threshold` reroute counter-profile)
+- **Verification**: `pnpm test shopping-flow` passing (136 tests)
 
 ---
 

@@ -105,7 +105,8 @@ ${Object.entries(subPathProbing.modeSignals).map(([mode, signals]) =>
   `${mode}:\n${signals.map((s) => `  - "${s}"`).join("\n")}`
 ).join("\n")}
 
-${subPathProbing.counterProfilePatterns?.length ? `### Counter-Profile Patterns (if these show up, exit early):\n${subPathProbing.counterProfilePatterns.map((p) => `- \"${p}\"`).join("\n")}` : ""}
+${subPathProbing.counterProfilePatterns?.length ? `### Counter-Profile Patterns (${subPathProbing.counterProfileBehavior === "reroute" ? "if these show up, reroute" : "if these show up, exit early"}):\n${subPathProbing.counterProfilePatterns.map((p) => `- \"${p}\"`).join("\n")}` : ""}
+${subPathProbing.counterProfileBehavior === "reroute" && subPathProbing.counterProfileRerouteToSubPath ? `### Counter-Profile Reroute Behavior:\nIf the counter-profile patterns show up, you MUST pivot away from this sub-path and ask a question aligned with the \"${subPathProbing.counterProfileRerouteToSubPath}\" branch instead.\n- Do NOT assign a mode yet\n- Do NOT exit\n- Continue probing with a concrete, specific question\n` : ""}
 ${subPathProbing.counterProfileExit ? `### Counter-Profile Exit Message:\n${subPathProbing.counterProfileExit}` : ""}
 `;
   }
@@ -139,10 +140,13 @@ Respond with ONLY your conversational message - no JSON.
 
 **Counter-Profile Detection**: If the user's responses suggest intentional behavior (not matching the path), 
 acknowledge gracefully and respond with JSON:
-{
+${subPathProbing?.counterProfileRerouteToSubPath ? `{
+  "message": "Price might not be the real driver here — let me ask a different question.",
+  "rerouteToSubPath": "${subPathProbing.counterProfileRerouteToSubPath}"
+}` : `{
   "message": "It sounds like this was actually more planned/intentional - that's great!",
   "exitGracefully": true
-}`;
+}`}`;
     }
   } else if (session.currentLayer === 3) {
     responseFormat = `

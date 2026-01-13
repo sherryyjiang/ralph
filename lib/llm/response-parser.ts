@@ -68,6 +68,7 @@ export function parseResponse(text: string, expectModeAssignment = false): LLMRe
         assignedMode: parsed.assignedMode,
         shouldTransition: parsed.shouldTransition ?? false,
         exitGracefully: parsed.exitGracefully ?? false,
+        rerouteToSubPath: parsed.rerouteToSubPath,
       };
     }
   } catch {

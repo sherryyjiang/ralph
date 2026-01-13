@@ -131,9 +131,14 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "Did you compare options?",
       "What made you finally decide to buy?",
     ],
-    // Deliberate path uses light probing and assigns modes after probing;
-    // keep this empty to avoid implying modes during path-level exploration.
-    modeIndicators: {},
+    // Deliberate purchases are intentional; use an exploration TAG (not a mode).
+    modeIndicators: {
+      "#deliberate-purchase": [
+        "describes researching, comparing options, or waiting intentionally",
+        "mentions standards for the 'right one' or timing for the purchase",
+        "frames the decision as planned rather than spontaneous",
+      ],
+    },
     counterProfilePatterns: [],
   },
   deal: {
@@ -144,9 +149,25 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "How did you find out about the deal?",
       "Do you have other similar items?",
     ],
-    // Deal path splits into Fixed Q2 sub-paths; avoid mode names here and let
-    // SubPathProbing/LLM determine the final mode after probing.
-    modeIndicators: {},
+    // Deal path splits into Fixed Q2 sub-paths. Use exploration TAGS here (not modes);
+    // the final mode is still assigned after probing via SubPathProbing.targetModes.
+    modeIndicators: {
+      "#scarcity-driven": [
+        "mentions a limited drop, running out, or time pressure (urgency/FOMO)",
+        "frames it as 'had to grab it before it was gone'",
+        "decision driven by scarcity rather than need",
+      ],
+      "#deal-driven": [
+        "emphasizes discount/savings as the main driver (e.g. 'couldn't pass it up')",
+        "talks about value-per-dollar or getting a bargain",
+        "might buy extra because it feels financially smart",
+      ],
+      "#threshold-spending-driven": [
+        "mentions free shipping thresholds, bonuses, or samples",
+        "added items to reach a minimum spend requirement",
+        "the 'free' perk increased total spend",
+      ],
+    },
     counterProfilePatterns: [
       "I was already planning to buy this",
       "I would have bought it anyway",

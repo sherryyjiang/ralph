@@ -106,6 +106,15 @@ export type CheckInPath = ShoppingPath;
 export type CheckInMode = string; // e.g., "#comfort-driven-spender"
 export type ShoppingSubPath = ImpulseSubPath | DeliberateSubPath | DealSubPath | GiftSubPath | MaintenanceSubPath;
 
+/**
+ * Layer 3 reflection path options
+ */
+export type ReflectionPath = 
+  | "problem"   // "Is this a problem?" - Behavioral excavation
+  | "feel"      // "How do I feel?" - Emotional reflection
+  | "worth"     // "Is this a good use?" - Cost comparison
+  | "different"; // "I have a different question" - Open-ended
+
 export interface CheckInSession {
   id: string;
   transactionId: string;
@@ -115,6 +124,7 @@ export interface CheckInSession {
   path?: CheckInPath;
   subPath?: ShoppingSubPath;
   mode?: CheckInMode;
+  reflectionPath?: ReflectionPath; // Layer 3 reflection path choice
   messages: Message[];
   metadata: {
     startedAt?: Date;

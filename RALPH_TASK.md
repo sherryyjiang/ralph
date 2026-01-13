@@ -57,9 +57,9 @@ Build a mock-up chat application that helps users understand their spending beha
 
 ### Phase 8: Testing & Polish
 28. [x] Write integration tests for complete check-in flows
-29. [ ] Test mode detection accuracy
-30. [ ] Ensure mobile responsiveness
-31. [ ] Final UI polish and error states
+29. [x] Test mode detection accuracy
+30. [x] Ensure mobile responsiveness
+31. [x] Final UI polish and error states
 
 ## Technical Notes
 

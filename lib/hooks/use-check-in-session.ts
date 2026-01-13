@@ -49,6 +49,7 @@ export type CheckInAction =
   | { type: "SET_ACTUAL_AMOUNT"; payload: number }
   | { type: "SET_USER_GUESS_COUNT"; payload: number }
   | { type: "SET_ACTUAL_COUNT"; payload: number }
+  | { type: "SET_COFFEE_MOTIVATION"; payload: string }
   | { type: "ADD_TAG"; payload: string }
   | { type: "INCREMENT_PROBING_DEPTH" }
   | { type: "COMPLETE_SESSION" }

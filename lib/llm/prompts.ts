@@ -201,6 +201,47 @@ export function getFixedQuestion1Options(category: TransactionCategory): QuickRe
   }
 }
 
+/**
+ * Get Fixed Question 2 options for a given category and path
+ */
+export function getFixedQuestion2Options(category: TransactionCategory, path: string): QuickReplyOption[] | undefined {
+  if (category !== "shopping") return undefined;
+  
+  const q2Options: Record<string, QuickReplyOption[]> = {
+    impulse: [
+      { id: "price_felt_right", label: "The price felt right", emoji: "💰", value: "price_felt_right", color: "yellow" },
+      { id: "treating_myself", label: "Treating myself", emoji: "🎁", value: "treating_myself", color: "yellow" },
+      { id: "caught_eye", label: "Just caught my eye", emoji: "👀", value: "caught_eye", color: "yellow" },
+      { id: "trending", label: "It's been trending lately", emoji: "📈", value: "trending", color: "yellow" },
+    ],
+    deliberate: [
+      { id: "afford_it", label: "Waiting until I could afford it", emoji: "💳", value: "afford_it", color: "white" },
+      { id: "right_price", label: "Waiting for the right price/deal", emoji: "🏷️", value: "right_price", color: "white" },
+      { id: "right_one", label: "Waiting for the right one", emoji: "✨", value: "right_one", color: "white" },
+      { id: "still_wanted", label: "Letting it sit to see if I still wanted it", emoji: "⏳", value: "still_wanted", color: "white" },
+      { id: "got_around", label: "Finally got around to it", emoji: "✅", value: "got_around", color: "white" },
+    ],
+    deal: [
+      { id: "limited_edition", label: "Limited edition or drop running out", emoji: "⚡", value: "limited_edition", color: "yellow" },
+      { id: "sale_discount", label: "Good sale, deal, or discount", emoji: "💸", value: "sale_discount", color: "yellow" },
+      { id: "free_shipping", label: "Hit free shipping threshold or bonus", emoji: "📦", value: "free_shipping", color: "yellow" },
+    ],
+    gift: [
+      { id: "family", label: "Family member", emoji: "👨‍👩‍👧", value: "family", color: "white" },
+      { id: "friend", label: "Friend", emoji: "👋", value: "friend", color: "white" },
+      { id: "partner", label: "Partner", emoji: "💕", value: "partner", color: "white" },
+      { id: "coworker", label: "Coworker", emoji: "💼", value: "coworker", color: "white" },
+    ],
+    maintenance: [
+      { id: "same_thing", label: "Got the same thing", emoji: "🔁", value: "same_thing", color: "white" },
+      { id: "switched_up", label: "Switched it up", emoji: "🔄", value: "switched_up", color: "white" },
+      { id: "upgraded", label: "Upgraded", emoji: "⬆️", value: "upgraded", color: "white" },
+    ],
+  };
+  
+  return q2Options[path];
+}
+
 // =============================================================================
 // System Prompts for LLM
 // =============================================================================
@@ -353,6 +394,46 @@ Respond with JSON:
 // =============================================================================
 // Layer 3 Reflection Prompts
 // =============================================================================
+
+/**
+ * Mode-based entry questions for "Is this a problem?" behavioral excavation
+ * Based on PEEK_QUESTION_TREES.md specification
+ */
+const BEHAVIORAL_EXCAVATION_ENTRY_QUESTIONS: Record<string, string> = {
+  "#intuitive-threshold-spender": "can you think of another time you bought something just because the price felt right?",
+  "#reward-driven-spender": "can you think of another time you bought something to celebrate or reward yourself?",
+  "#comfort-driven-spender": "can you think of another time you shopped because you were stressed or needed a pick-me-up?",
+  "#routine-treat-spender": "can you think of another time you treated yourself as part of your regular routine?",
+  "#visual-impulse-driven": "can you think of another time something just caught your eye and you went for it?",
+  "#scroll-triggered": "can you think of another time something just caught your eye while scrolling and you went for it?",
+  "#in-store-wanderer": "can you think of another time something just caught your eye in a store and you went for it?",
+  "#aesthetic-driven": "can you think of another time something visually appealing made you want to buy it?",
+  "#duplicate-collector": "can you think of another time you bought something similar to things you already have?",
+  "#trend-susceptibility-driven": "can you think of another time you bought something because everyone seemed to have it?",
+  "#social-media-influenced": "can you think of another time you bought something because you saw it on social media?",
+  "#friend-peer-influenced": "can you think of another time you bought something because a friend had it or recommended it?",
+  "#scarcity-driven": "can you think of another time you bought something because it was running out or limited?",
+  "#deal-driven": "can you think of another time a sale or deal made you go for something?",
+  "#threshold-spending-driven": "can you think of another time you added stuff to hit free shipping or get a bonus?",
+};
+
+/**
+ * Get the behavioral excavation entry question for a specific mode
+ */
+export function getBehavioralExcavationEntryQuestion(mode: string): string | undefined {
+  return BEHAVIORAL_EXCAVATION_ENTRY_QUESTIONS[mode];
+}
+
+/**
+ * Probing question hints for behavioral excavation (Layer 3)
+ */
+export const BEHAVIORAL_EXCAVATION_PROBING = {
+  frequencyCheck: "does this feel like something that happens a lot, sometimes, or rarely?",
+  usageCheck: "what usually happens with the stuff that slides through — do you end up using it?",
+  comfortCheck: "does that sit okay with you or is there something about it that bugs you?",
+  rootCause: "if it doesn't feel great, what do you think is behind that?",
+  barrierExploration: "you said it bugs you but it keeps happening — what do you think gets in the way?",
+};
 
 export function getReflectionPrompt(reflectionType: string, category?: TransactionCategory): string {
   // Food-specific reflection prompts

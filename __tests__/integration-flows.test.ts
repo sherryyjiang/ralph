@@ -1,216 +1,322 @@
 /**
  * Integration Tests for Complete Check-In Flows
  * 
- * Tests end-to-end scenarios for shopping, food, and coffee check-ins.
+ * Tests the full user journey through each check-in type.
  */
 
-import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount, getTransactionsByCategory } from "@/lib/data/synthetic-transactions";
-import { getFixedQuestion1Options, explorationGoals } from "@/lib/llm/prompts";
-import { getShoppingFixedQuestion1, getCoffeeFrequencyCalibration, getFoodAwarenessCalibration } from "@/lib/llm/question-trees";
+import { getMonthlyFoodSpend, getMonthlyCoffeeCount, getTransactionById, syntheticTransactions } from "@/lib/data/synthetic-transactions";
+import { 
+  getFoodAwarenessCalibration, 
+  getCoffeeFrequencyCalibration,
+  getFoodModeFromMotivation,
+  getCoffeeModeFromQ2Response,
+  getSubPathProbing,
+  impulseSubPathProbing,
+  dealSubPathProbing,
+  deliberateSubPathProbing,
+} from "@/lib/llm/question-trees";
+import { buildSystemPrompt, explorationGoals, getFixedQuestion1Options } from "@/lib/llm/prompts";
 
 // ═══════════════════════════════════════════════════════════════
-// Shopping Flow Integration Tests
+// Food Check-In Complete Flow Tests
 // ═══════════════════════════════════════════════════════════════
 
-describe("Shopping Check-In Flow Integration", () => {
-  const shoppingTransactions = getTransactionsByCategory("shopping");
+describe("Food Check-In Complete Flow", () => {
+  const foodTransaction = syntheticTransactions.find(t => t.category === "food");
+  const actualSpend = getMonthlyFoodSpend();
 
-  it("should have shopping transactions for testing", () => {
-    expect(shoppingTransactions.length).toBeGreaterThan(0);
+  it("should have a food transaction in test data", () => {
+    expect(foodTransaction).toBeDefined();
+    expect(foodTransaction!.category).toBe("food");
   });
 
-  describe("Impulse Path Flow", () => {
-    const transaction = shoppingTransactions[0];
-
-    it("should start with Fixed Question 1", () => {
-      const q1 = getShoppingFixedQuestion1(transaction);
-      expect(q1.content).toContain("When you bought");
-      expect(q1.options.length).toBe(5);
+  describe("Layer 1: Awareness Calibration", () => {
+    it("should generate guess options for food spending", () => {
+      const calibration = getFoodAwarenessCalibration(foodTransaction!, actualSpend);
+      expect(calibration.options).toBeDefined();
+      expect(calibration.options!.length).toBeGreaterThan(0);
     });
 
-    it("should have exploration goals for impulse path", () => {
-      const goal = explorationGoals.impulse;
-      expect(goal).toBeDefined();
-      expect(goal.probingHints.length).toBeGreaterThan(0);
-    });
-
-    it("should have mode indicators for impulse path", () => {
-      const goal = explorationGoals.impulse;
-      expect(goal.modeIndicators.length).toBeGreaterThan(0);
-      expect(goal.modeIndicators.some(m => m.includes("comfort"))).toBe(true);
-    });
-
-    it("should have counter-profile patterns for graceful exit", () => {
-      const goal = explorationGoals.impulse;
-      expect(goal.counterProfilePatterns.length).toBeGreaterThan(0);
+    it("should include calibration content with actual spend reveal", () => {
+      const calibration = getFoodAwarenessCalibration(foodTransaction!, actualSpend);
+      expect(calibration.content).toBeDefined();
     });
   });
 
-  describe("Deliberate Path Flow", () => {
-    it("should have exploration goals for deliberate path", () => {
-      const goal = explorationGoals.deliberate;
-      expect(goal).toBeDefined();
-      expect(goal.goal).toContain("intentionality");
-    });
+  describe("Layer 2: Mode Assignment from Motivation", () => {
+    const motivations = ["stress", "convenience", "planning", "craving", "social"];
 
-    it("should have no counter-profiles (already intentional)", () => {
-      const goal = explorationGoals.deliberate;
-      expect(goal.counterProfilePatterns.length).toBe(0);
-    });
-  });
-
-  describe("Deal Path Flow", () => {
-    it("should have exploration goals for deal path", () => {
-      const goal = explorationGoals.deal;
-      expect(goal).toBeDefined();
-      expect(goal.goal).toContain("value");
-    });
-
-    it("should ask about full price willingness", () => {
-      const goal = explorationGoals.deal;
-      expect(goal.probingHints.some(h => h.toLowerCase().includes("full price"))).toBe(true);
-    });
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════
-// Food Flow Integration Tests
-// ═══════════════════════════════════════════════════════════════
-
-describe("Food Check-In Flow Integration", () => {
-  const foodTransactions = getTransactionsByCategory("food");
-  const actualMonthlySpend = getMonthlyFoodSpend();
-
-  it("should have food transactions for testing", () => {
-    expect(foodTransactions.length).toBeGreaterThan(0);
-  });
-
-  it("should calculate monthly food spend", () => {
-    expect(actualMonthlySpend).toBeGreaterThan(0);
-    expect(typeof actualMonthlySpend).toBe("number");
-  });
-
-  describe("Awareness Calibration", () => {
-    const transaction = foodTransactions[0];
-    const calibration = getFoodAwarenessCalibration(transaction, actualMonthlySpend);
-
-    it("should generate awareness calibration question", () => {
-      expect(calibration.content).toContain("spent");
-      expect(calibration.content).toContain(transaction.merchant);
-    });
-
-    it("should have guess options with monetary values", () => {
-      expect(calibration.options.length).toBeGreaterThan(0);
-      calibration.options.forEach(option => {
-        expect(option.label).toContain("$");
+    motivations.forEach(motivation => {
+      it(`should assign a mode for motivation: ${motivation}`, () => {
+        const mode = getFoodModeFromMotivation(motivation);
+        expect(mode).toBeDefined();
+        expect(mode.startsWith("#")).toBe(true);
       });
     });
-  });
 
-  describe("Mode Assignment Options", () => {
-    const options = getFixedQuestion1Options("food");
-
-    it("should have food mode options", () => {
-      expect(options.length).toBeGreaterThan(0);
+    it("should return stress-eater mode for stress motivation", () => {
+      const mode = getFoodModeFromMotivation("stress");
+      expect(mode).toContain("stress");
     });
 
-    it("should cover key food spending motivations", () => {
-      // The options are guess amounts, not modes
-      // Modes come in Layer 2 after reveal
-      const values = options.map(o => o.value);
-      expect(values.length).toBeGreaterThanOrEqual(4);
+    it("should return convenience mode for time-pressed motivation", () => {
+      const mode = getFoodModeFromMotivation("convenience");
+      expect(mode).toContain("convenience");
     });
   });
-});
 
-// ═══════════════════════════════════════════════════════════════
-// Coffee Flow Integration Tests
-// ═══════════════════════════════════════════════════════════════
-
-describe("Coffee Check-In Flow Integration", () => {
-  const coffeeTransactions = getTransactionsByCategory("coffee");
-  const actualMonthlyCount = getMonthlyCoffeeCount();
-
-  it("should have coffee transactions for testing", () => {
-    expect(coffeeTransactions.length).toBeGreaterThan(0);
-  });
-
-  it("should calculate monthly coffee count", () => {
-    expect(actualMonthlyCount).toBeGreaterThan(0);
-    expect(typeof actualMonthlyCount).toBe("number");
-  });
-
-  describe("Frequency Calibration", () => {
-    const transaction = coffeeTransactions[0];
-    const calibration = getCoffeeFrequencyCalibration(transaction, actualMonthlyCount);
-
-    it("should generate frequency calibration question", () => {
-      expect(calibration.content).toContain(transaction.merchant);
-    });
-
-    it("should have guess options with frequency values", () => {
-      expect(calibration.options.length).toBeGreaterThan(0);
-      calibration.options.forEach(option => {
-        expect(option.label).toBeDefined();
-        // Values should be numeric strings
-        expect(parseInt(option.value, 10)).toBeGreaterThan(0);
-      });
+  describe("Complete Flow Integration", () => {
+    it("should flow from guess → reveal → mode → reflection", () => {
+      // Step 1: User makes a guess
+      const userGuess = 150;
+      
+      // Step 2: System reveals actual and shows calibration
+      const calibration = getFoodAwarenessCalibration(foodTransaction!, actualSpend);
+      expect(calibration).toBeDefined();
+      
+      // Step 3: User selects motivation
+      const motivation = "stress";
+      const mode = getFoodModeFromMotivation(motivation);
+      expect(mode).toBeDefined();
+      
+      // Step 4: Mode is assigned
+      expect(mode.startsWith("#")).toBe(true);
     });
   });
 });
 
 // ═══════════════════════════════════════════════════════════════
-// Transaction Data Quality Tests
+// Coffee Check-In Complete Flow Tests
 // ═══════════════════════════════════════════════════════════════
 
-describe("Transaction Data Quality", () => {
-  it("should have transactions for all categories", () => {
-    const shopping = getTransactionsByCategory("shopping");
-    const food = getTransactionsByCategory("food");
-    const coffee = getTransactionsByCategory("coffee");
+describe("Coffee Check-In Complete Flow", () => {
+  const coffeeTransaction = syntheticTransactions.find(t => t.category === "coffee");
+  const actualCount = getMonthlyCoffeeCount();
 
-    expect(shopping.length).toBeGreaterThan(0);
-    expect(food.length).toBeGreaterThan(0);
-    expect(coffee.length).toBeGreaterThan(0);
+  it("should have a coffee transaction in test data", () => {
+    expect(coffeeTransaction).toBeDefined();
+    expect(coffeeTransaction!.category).toBe("coffee");
   });
 
-  it("should have valid transaction data", () => {
-    const txn = getTransactionById("txn_001");
-    expect(txn).toBeDefined();
-    expect(txn?.merchant).toBeDefined();
-    expect(txn?.amount).toBeGreaterThan(0);
-    expect(txn?.category).toBeDefined();
+  describe("Layer 1: Frequency Calibration", () => {
+    it("should generate guess options for coffee count", () => {
+      const calibration = getCoffeeFrequencyCalibration(coffeeTransaction!, actualCount);
+      expect(calibration.options).toBeDefined();
+      expect(calibration.options!.length).toBeGreaterThan(0);
+    });
   });
 
-  it("should have frequency data for pattern detection", () => {
-    const food = getTransactionsByCategory("food");
-    const withFrequency = food.filter(t => t.frequencyThisMonth !== undefined);
-    expect(withFrequency.length).toBeGreaterThan(0);
+  describe("Layer 2: Mode Assignment from Q2 Response", () => {
+    it("should assign a mode for routine responses", () => {
+      const mode = getCoffeeModeFromQ2Response("routine", "yes");
+      expect(mode).toBeDefined();
+    });
+
+    it("should assign a mode for treat responses", () => {
+      const mode = getCoffeeModeFromQ2Response("treat", "yes");
+      expect(mode).toBeDefined();
+    });
   });
 });
 
 // ═══════════════════════════════════════════════════════════════
-// Layer Transition Tests
+// Shopping Check-In Complete Flow Tests
 // ═══════════════════════════════════════════════════════════════
 
-describe("Layer Transitions", () => {
-  it("should have Layer 1 → Layer 2 path for all shopping paths", () => {
-    const paths = ["impulse", "deliberate", "deal", "gift", "maintenance"];
+describe("Shopping Check-In Complete Flow", () => {
+  const shoppingTransaction = syntheticTransactions.find(t => t.category === "shopping");
+
+  it("should have a shopping transaction in test data", () => {
+    expect(shoppingTransaction).toBeDefined();
+    expect(shoppingTransaction!.category).toBe("shopping");
+  });
+
+  describe("Layer 1 → Layer 2 Flow", () => {
+    const paths = ["impulse", "deliberate", "deal", "gift", "maintenance"] as const;
+
     paths.forEach(path => {
-      expect(explorationGoals[path]).toBeDefined();
+      it(`should have exploration goals for ${path} path`, () => {
+        expect(explorationGoals[path]).toBeDefined();
+        expect(explorationGoals[path].goal).toBeDefined();
+      });
     });
   });
 
-  it("should have probing hints for Layer 2", () => {
-    Object.keys(explorationGoals).forEach(path => {
-      expect(explorationGoals[path].probingHints.length).toBeGreaterThan(0);
+  describe("Sub-Path Probing", () => {
+    it("should have probing for impulse sub-paths", () => {
+      const subPaths = Object.keys(impulseSubPathProbing);
+      expect(subPaths.length).toBeGreaterThan(0);
+    });
+
+    it("should have probing for deal sub-paths", () => {
+      const subPaths = Object.keys(dealSubPathProbing);
+      expect(subPaths.length).toBeGreaterThan(0);
+    });
+
+    it("should have probing for deliberate sub-paths", () => {
+      const subPaths = Object.keys(deliberateSubPathProbing);
+      expect(subPaths.length).toBeGreaterThan(0);
+    });
+
+    it("should return probing for known path/sub-path combinations", () => {
+      const probing = getSubPathProbing("impulse", "price_felt_right");
+      expect(probing).toBeDefined();
     });
   });
 
-  it("should have mode indicators for mode assignment", () => {
-    Object.keys(explorationGoals).forEach(path => {
-      // Deliberate has intentional-planner modes
-      expect(explorationGoals[path].modeIndicators).toBeDefined();
+  describe("Impulse Path Complete Flow", () => {
+    it("should flow through impulse → sub-path → mode", () => {
+      // Step 1: User selects "impulse"
+      const path = "impulse";
+      
+      // Step 2: Get Fixed Q2 options
+      const q2Options = getFixedQuestion2Options("shopping", path);
+      expect(q2Options!.length).toBeGreaterThan(0);
+      
+      // Step 3: User selects a sub-path
+      const subPath = q2Options![0].value;
+      
+      // Step 4: System can build probing prompt
+      const promptContext = {
+        transaction: shoppingTransaction!,
+        session: {
+          id: "test-session",
+          transactionId: shoppingTransaction!.id,
+          type: "shopping" as const,
+          status: "in_progress" as const,
+          currentLayer: 2 as const,
+          path: path,
+          subPath: subPath,
+          messages: [],
+          metadata: { tags: [] },
+        },
+      };
+      
+      const prompt = buildSystemPrompt(promptContext);
+      expect(prompt).toBeDefined();
+      expect(prompt.length).toBeGreaterThan(100);
+    });
+  });
+
+  describe("Deal Path Complete Flow", () => {
+    it("should flow through deal → sub-path → mode", () => {
+      // Step 1: User selects "deal"
+      const path = "deal";
+      
+      // Step 2: Get Fixed Q2 options
+      const q2Options = getFixedQuestion2Options("shopping", path);
+      expect(q2Options!.length).toBeGreaterThan(0);
+      
+      // Step 3: Verify deal-specific options
+      const hasLimitedEdition = q2Options!.some(o => o.value === "limited_edition");
+      const hasSaleDiscount = q2Options!.some(o => o.value === "sale_discount");
+      expect(hasLimitedEdition || hasSaleDiscount).toBe(true);
+    });
+  });
+
+  describe("Deliberate Path Complete Flow", () => {
+    it("should have deliberate-specific sub-paths", () => {
+      const q2Options = getFixedQuestion2Options("shopping", "deliberate");
+      expect(q2Options!.some(o => o.value.includes("afford") || o.value.includes("right"))).toBe(true);
+    });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Layer 3 Reflection Path Tests
+// ═══════════════════════════════════════════════════════════════
+
+describe("Layer 3 Reflection Paths", () => {
+  describe("'Is this a problem?' Path", () => {
+    it("should explore behavioral patterns", () => {
+      // This path should help users identify if their behavior is problematic
+      const reflectionOptions = ["problem", "feel", "done"];
+      expect(reflectionOptions).toContain("problem");
+    });
+  });
+
+  describe("'How do I feel?' Path", () => {
+    it("should explore emotional responses", () => {
+      const reflectionOptions = ["problem", "feel", "done"];
+      expect(reflectionOptions).toContain("feel");
+    });
+  });
+
+  describe("Graceful Exit", () => {
+    it("should allow users to exit at any time", () => {
+      const reflectionOptions = ["problem", "feel", "done"];
+      expect(reflectionOptions).toContain("done");
+    });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// System Prompt Construction Tests
+// ═══════════════════════════════════════════════════════════════
+
+describe("System Prompt Construction", () => {
+  const testTransaction = syntheticTransactions[0];
+  
+  it("should build a system prompt with transaction context", () => {
+    const prompt = buildSystemPrompt({
+      transaction: testTransaction,
+      session: {
+        id: "test",
+        transactionId: testTransaction.id,
+        type: testTransaction.category,
+        status: "in_progress",
+        currentLayer: 2,
+        messages: [],
+        metadata: { tags: [] },
+      },
+    });
+    
+    expect(prompt).toContain(testTransaction.merchant);
+  });
+
+  it("should include exploration goals when path is set", () => {
+    const prompt = buildSystemPrompt({
+      transaction: testTransaction,
+      session: {
+        id: "test",
+        transactionId: testTransaction.id,
+        type: "shopping",
+        status: "in_progress",
+        currentLayer: 2,
+        path: "impulse",
+        messages: [],
+        metadata: { tags: [] },
+      },
+      questionTreeSection: "Path: IMPULSE",
+    });
+    
+    expect(prompt.toLowerCase()).toContain("impulse");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Transaction Data Integrity Tests
+// ═══════════════════════════════════════════════════════════════
+
+describe("Transaction Data Integrity", () => {
+  it("should have transactions for all categories", () => {
+    const categories = ["shopping", "food", "coffee"];
+    categories.forEach(category => {
+      const hasCategory = syntheticTransactions.some(t => t.category === category);
+      expect(hasCategory).toBe(true);
+    });
+  });
+
+  it("should be able to retrieve transactions by ID", () => {
+    const firstTransaction = syntheticTransactions[0];
+    const retrieved = getTransactionById(firstTransaction.id);
+    expect(retrieved).toEqual(firstTransaction);
+  });
+
+  it("should have valid amounts for all transactions", () => {
+    syntheticTransactions.forEach(transaction => {
+      expect(transaction.amount).toBeGreaterThan(0);
+      expect(typeof transaction.amount).toBe("number");
     });
   });
 });

@@ -15,11 +15,18 @@ import {
   getCoffeeModeFromQ2Response,
   coffeeModeExplorations,
   getCoffeeEconomicEvaluation,
+  getFoodCalibrationResult,
+  getFoodFeelingQuestion,
+  getFoodMotivationQuestion,
+  getFoodModeFromMotivation,
+  getFoodEconomicEvaluation,
+  foodModeExplorations,
   type CoffeeMotivation,
   type CoffeeMode,
+  type FoodMode,
 } from "@/lib/llm/question-trees";
 import { getMonthlyCoffeeSpend } from "@/lib/data/synthetic-transactions";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING
@@ -261,6 +268,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setActualAmount,
     setUserGuessCount,
     setActualCount,
+    addTag,
     incrementProbingDepth,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
@@ -580,59 +588,134 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         }
       }
     } else if (transaction.category === "coffee") {
-      // Coffee Check-In: Frequency Calibration
+      // Coffee Check-In: Frequency Calibration (Layer 1)
       if (currentLayer === 1) {
         // User just made their guess - calculate and reveal actual
         const actualMonthlyCount = getMonthlyCoffeeCount();
+        const actualMonthlySpend = getMonthlyCoffeeSpend();
         
-        // Parse the guess from the value
-        let userGuessCount: number;
-        switch (value) {
-          case "few":
-            userGuessCount = Math.max(1, Math.round(actualMonthlyCount * 0.3));
-            break;
-          case "some":
-            userGuessCount = Math.round(actualMonthlyCount * 0.7);
-            break;
-          case "many":
-          default:
-            userGuessCount = Math.round(actualMonthlyCount);
-            break;
+        // Parse the guess from the value (value is now the numeric guess)
+        const userGuessCount = parseInt(value, 10) || Math.round(actualMonthlyCount * 0.5);
+        
+        // Get calibration result
+        const calibration = getCoffeeCalibrationResult(userGuessCount, actualMonthlyCount, actualMonthlySpend);
+        
+        // Transition to Layer 1.5 (feeling question)
+        setTimeout(() => {
+          const feelingQ = getCoffeeFeelingQuestion();
+          addAssistantMessage(
+            `${calibration.message}\n\n${feelingQ.content}`,
+            feelingQ.options,
+            true
+          );
+        }, 800);
+        
+      } else if (currentLayer === 2) {
+        // Handle Layer 2 flow based on coffee check-in phase
+        const coffeeMotivations = ["routine", "nearby", "pick_me_up", "focus"];
+        const coffeeQ2Responses = [
+          "just_happened", "intentional", // routine path
+          "near_work", "near_home", "out_and_about", // nearby path
+          "work_heavy", "bored_stuck", "stressed_anxious", "step_away", // pick_me_up path
+          "real_difference", "half_time", "hard_to_say", "probably_not", "ritual", // focus path
+        ];
+        
+        if (value === "ok_with_it") {
+          // User is fine with their spending - light reflection and exit
+          setTimeout(() => {
+            addAssistantMessage(
+              "Got it — sounds like it's working for you! We can always revisit if anything changes. ☕✨",
+              [{ id: "done", label: "Thanks for the check-in!", emoji: "✨", value: "done", color: "white" as const }],
+              false
+            );
+          }, 500);
+          
+        } else if (value === "could_be_better") {
+          // User wants to explore - show motivation question
+          setTimeout(() => {
+            const motivationQ = getCoffeeMotivationQuestion();
+            addAssistantMessage(motivationQ.content, motivationQ.options, true);
+          }, 500);
+          
+        } else if (coffeeMotivations.includes(value)) {
+          // User selected a motivation - show Fixed Q2 for that path
+          const motivation = value as CoffeeMotivation;
+          setCoffeeMotivation(motivation);
+          
+          // Calculate weekly average for routine path
+          const actualMonthlyCount = getMonthlyCoffeeCount();
+          const weeklyAverage = Math.round(actualMonthlyCount / 4);
+          
+          setTimeout(() => {
+            const q2 = getCoffeeFixedQ2(motivation, weeklyAverage);
+            addAssistantMessage(q2.content, q2.options, true);
+          }, 500);
+          
+        } else if (coffeeQ2Responses.includes(value)) {
+          // User answered Fixed Q2 - assign mode
+          const motivation = coffeeMotivation || "routine";
+          const modeAssignment = getCoffeeModeFromQ2Response(motivation as CoffeeMotivation, value);
+          
+          setMode(modeAssignment.mode);
+          
+          if (modeAssignment.isCounterProfile && modeAssignment.exitMessage) {
+            // Counter-profile: graceful exit
+            setTimeout(() => {
+              addAssistantMessage(
+                modeAssignment.exitMessage!,
+                [{ id: "done", label: "Thanks!", emoji: "✨", value: "done", color: "white" as const }],
+                false
+              );
+            }, 500);
+          } else {
+            // Regular mode - transition to Layer 3 with reflection options
+            setLayer(3);
+            const modeInfo = coffeeModeExplorations[modeAssignment.mode];
+            const modeLabel = getModeLabel(modeAssignment.mode);
+            
+            setTimeout(() => {
+              const actualMonthlyCount = getMonthlyCoffeeCount();
+              const actualMonthlySpend = getMonthlyCoffeeSpend();
+              const economicQ = getCoffeeEconomicEvaluation(modeAssignment.mode, actualMonthlySpend, actualMonthlyCount);
+              
+              let transitionMessage = `I think I see the pattern here.`;
+              if (modeLabel) {
+                transitionMessage = `Based on what you've shared, it sounds like you might be in **${modeLabel}** mode — ${modeInfo.description.toLowerCase()}.`;
+              }
+              transitionMessage += `\n\n${economicQ.content}`;
+              
+              addAssistantMessage(transitionMessage, economicQ.options, true);
+            }, 500);
+          }
         }
         
-        // Store guess and actual in session metadata
-        setUserGuessCount(userGuessCount);
-        setActualCount(actualMonthlyCount);
-        
-        // Calculate the difference
-        const difference = actualMonthlyCount - userGuessCount;
-        
-        // Transition to Layer 2 with reveal message and motivation question
-        setLayer(2);
-        
-        setTimeout(() => {
-          let revealMessage: string;
-          const modeOptions: QuickReplyOption[] = [
-            { id: "routine", label: "It's just part of my routine", emoji: "🔄", value: "routine", color: "yellow" as const },
-            { id: "pick_me_up", label: "I need the energy boost", emoji: "⚡", value: "pick_me_up", color: "yellow" as const },
-            { id: "treat", label: "Treating myself, a little reward", emoji: "🎁", value: "treat", color: "yellow" as const },
-            { id: "social", label: "Meeting someone or working there", emoji: "👥", value: "social", color: "white" as const },
-            { id: "nearby", label: "Just happened to be nearby", emoji: "📍", value: "nearby", color: "white" as const },
-          ];
-          
-          if (difference <= 0 || difference < 3) {
-            // User guessed accurately
-            revealMessage = `Good eye! You've grabbed coffee or treats ${actualMonthlyCount} times this month. You know your habits! ☕\n\nWhen you go for coffee or a treat, what's usually driving it?`;
-          } else if (difference < 6) {
-            // Slightly underestimated
-            revealMessage = `Pretty close! You've actually grabbed coffee or treats ${actualMonthlyCount} times this month — about ${difference} more than you thought. Not a huge gap!\n\nWhen you go for coffee or a treat, what's usually driving it?`;
-          } else {
-            // Significantly underestimated
-            revealMessage = `Interesting! You've grabbed coffee or treats ${actualMonthlyCount} times this month — that's ${difference} more visits than you thought. 📊\n\nNo judgment here — let's explore what's going on. What usually drives these visits?`;
-          }
-          
-          addAssistantMessage(revealMessage, modeOptions, true);
-        }, 800);
+      } else if (currentLayer === 3) {
+        // Handle Layer 3 economic evaluation responses
+        if (value === "worth_it") {
+          setTimeout(() => {
+            addAssistantMessage(
+              "Fair enough! If it's bringing you value, that's what matters. Just keep checking in with yourself from time to time. ☕",
+              LAYER_3_REFLECTION_OPTIONS,
+              false
+            );
+          }, 500);
+        } else if (value === "not_worth") {
+          setTimeout(() => {
+            addAssistantMessage(
+              "That's an honest reflection. Sometimes just noticing the pattern is the first step. Would you like to explore what might help?",
+              LAYER_3_REFLECTION_OPTIONS,
+              false
+            );
+          }, 500);
+        } else if (value === "mixed") {
+          setTimeout(() => {
+            addAssistantMessage(
+              "That makes sense — some purchases feel more intentional than others. Maybe it's about being more selective about when you go?",
+              LAYER_3_REFLECTION_OPTIONS,
+              false
+            );
+          }, 500);
+        }
       }
     }
     
@@ -694,7 +777,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           );
         });
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuessCount, setActualCount]);
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, addTag]);
 
   // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {

@@ -199,18 +199,89 @@ Keep it natural and empathetic. Don't label or diagnose the user.`
 
   // Layer 3 reflection instructions
   if (session.currentLayer === 3) {
+    const reflectionPath = session.reflectionPath || "problem"; // Default to behavioral excavation
+    
+    // Mode-based entry questions for behavioral excavation
+    const modeEntryQuestions: Record<string, string> = {
+      "#intuitive-threshold-spender": "can you think of another time you bought something just because the price felt right?",
+      "#reward-driven-spender": "can you think of another time you bought something to celebrate or reward yourself?",
+      "#comfort-driven-spender": "can you think of another time you shopped because you were stressed or needed a pick-me-up?",
+      "#routine-treat-spender": "can you think of another time you treated yourself as part of your regular routine?",
+      "#scroll-triggered": "can you think of another time something caught your eye while scrolling and you went for it?",
+      "#in-store-wanderer": "can you think of another time something caught your eye in a store and you went for it?",
+      "#aesthetic-driven": "can you think of another time something visually appealing made you want to buy it?",
+      "#duplicate-collector": "can you think of another time you bought something similar to things you already have?",
+      "#social-media-influenced": "can you think of another time you bought something because you saw it on social media?",
+      "#friend-peer-influenced": "can you think of another time you bought something because a friend had it?",
+      "#scarcity-driven": "can you think of another time you bought something because it was running out or limited?",
+      "#deal-driven": "can you think of another time a sale or deal made you go for something?",
+      "#threshold-spending-driven": "can you think of another time you added stuff to hit free shipping or get a bonus?",
+    };
+    
+    const entryQuestion = session.mode ? modeEntryQuestions[session.mode] : undefined;
+    
+    // Behavioral excavation probing hints
+    const behavioralProbingHints = `
+### Probing Question Hints (use progressively):
+1. FREQUENCY: "does this feel like something that happens a lot, sometimes, or rarely?"
+2. USAGE/OUTCOME: "what usually happens with the stuff that slides through — do you end up using it?"
+3. COMFORT: "does that sit okay with you or is there something about it that bugs you?"
+4. ROOT CAUSE (if it bugs them): "if it doesn't feel great, what do you think is behind that?"
+5. BARRIERS (if pattern persists): "you said it bugs you but it keeps happening — what do you think gets in the way?"`;
+    
+    // Reflection path-specific instructions
+    const reflectionInstructions: Record<string, string> = {
+      problem: `## BEHAVIORAL EXCAVATION PATH ("Is this a problem?")
+
+**Goal**: Surface how often autopilot behavior kicks in, and whether they're using what they buy or it's piling up.
+
+${entryQuestion ? `**Mode-Based Entry Question** (use this to start):
+"${entryQuestion}"` : ""}
+
+${behavioralProbingHints}
+
+**Guidelines**:
+- Never tell them they have a problem — help them discover for themselves
+- If they say it's fine, validate and don't push
+- If they show concern, explore gently without judgment`,
+
+      feel: `## EMOTIONAL REFLECTION PATH ("How do I feel about this?")
+
+**Goal**: Surface gut reactions and help the user name their feelings about the spending.
+
+**Entry**: "Looking at this purchase, how does that land for you?"
+
+**Guidelines**:
+- Validate whatever they're feeling first
+- Explore the emotion BEHIND the purchase AND how they feel NOW
+- If they seem neutral ("meh"), that's fine — don't push
+- If they express concern, explore what specifically bothers them`,
+
+      worth: `## COST COMPARISON PATH ("Is this a good use of money?")
+
+**Goal**: Help evaluate value in THEIR terms, not abstract comparisons.
+
+**Entry**: "What did you get out of this purchase?"
+
+**Guidelines**:
+- AVOID simple cost comparisons ("that's X cups of coffee") — patronizing
+- Ask about value in THEIR terms: joy, utility, alignment with goals
+- Explore opportunity cost gently: "is there something else you would have put this toward?"`,
+    };
+    
     return (
       basePrompt +
       `
 
 ## Layer 3 Reflection Instructions
 
-The user has been assigned mode: ${session.mode}
-Guide them through reflection based on their chosen path.
-Be supportive and help them discover insights about their spending.
+The user has been assigned mode: ${session.mode || "not assigned"}
+Reflection path: ${reflectionPath}
 
-If they seem ready to close:
-{ "message": "Your closing message", "exitGracefully": true }`
+${reflectionInstructions[reflectionPath] || reflectionInstructions.problem}
+
+**Closing**: After 2-3 meaningful exchanges, offer to close or continue:
+{ "message": "Your closing summary", "exitGracefully": true }`
     );
   }
 

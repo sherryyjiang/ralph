@@ -27,8 +27,8 @@ Build a mock-up chat application that helps users understand their spending beha
 8. [x] Connect transaction tap to check-in flow
 
 ### Phase 3: Gemini Integration
-9. [ ] Create API route at `/api/chat/route.ts` for Gemini calls
-10. [ ] Build system prompt construction from question tree context
+9. [x] Create API route at `/api/chat/route.ts` for Gemini calls
+10. [x] Build system prompt construction from question tree context
 11. [ ] Handle streaming responses and display in chat
 12. [ ] Add error handling and loading states
 

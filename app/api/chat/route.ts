@@ -69,6 +69,11 @@ ${pathGoal.counterProfilePatterns.map((p: string) => `- ${p}`).join("\n")}`
     // Build system prompt
     const systemPrompt = getSystemPrompt(transaction.category, session.path);
 
+    // Build full system prompt with question tree context
+    const fullSystemPrompt = `${systemPrompt}
+
+${questionTreeSection}`;
+
     // Handle streaming response
     if (stream) {
       const encoder = new TextEncoder();
@@ -89,7 +94,7 @@ ${pathGoal.counterProfilePatterns.map((p: string) => `- ${p}`).join("\n")}`
                   .filter((m) => m.role === "user")
                   .map((m) => m.content),
               },
-              systemPrompt,
+              systemPrompt: fullSystemPrompt,
             });
 
             for await (const chunk of generator) {
@@ -130,7 +135,7 @@ ${pathGoal.counterProfilePatterns.map((p: string) => `- ${p}`).join("\n")}`
           .filter((m) => m.role === "user")
           .map((m) => m.content),
       },
-      systemPrompt,
+      systemPrompt: fullSystemPrompt,
     });
 
     const result: ChatResponse = {

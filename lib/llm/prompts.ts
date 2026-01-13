@@ -32,8 +32,10 @@ export const explorationGoals: Record<string, ExplorationGoal> = Object.fromEntr
     {
       goal: value.goal,
       probingHints: value.probingHints,
-      modeIndicators: Object.entries(value.modeIndicators).flatMap(([mode, indicators]) => 
-        indicators.map((i: string) => `${mode}: ${i}`)
+      // Note: in Shopping, these prefixes are *exploration tags* (e.g. "#price-sensitivity-driven"),
+      // not the flat modes assigned after probing completes.
+      modeIndicators: Object.entries(value.modeIndicators).flatMap(([tag, indicators]) =>
+        indicators.map((i: string) => `${tag}: ${i}`)
       ),
       counterProfilePatterns: value.counterProfilePatterns,
     },

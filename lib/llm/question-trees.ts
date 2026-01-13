@@ -131,18 +131,9 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "Did you compare options?",
       "What made you finally decide to buy?",
     ],
-    modeIndicators: {
-      "#deliberate-purchase": [
-        "researched options or compared alternatives",
-        "waited for timing, availability, or readiness",
-        "made a conscious decision after thinking about it",
-      ],
-      "#value-standards-driven": [
-        "mentions durability, longevity, or build quality",
-        "talks about 'worth it' beyond price alone",
-        "mentions standards/preferences they were trying to meet",
-      ],
-    },
+    // Deliberate path uses light probing and assigns modes after probing;
+    // keep this empty to avoid implying modes during path-level exploration.
+    modeIndicators: {},
     counterProfilePatterns: [],
   },
   deal: {
@@ -153,23 +144,9 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "How did you find out about the deal?",
       "Do you have other similar items?",
     ],
-    modeIndicators: {
-      "#deal-driven": [
-        "the discount/savings is the main justification",
-        "mentions tracking sales, coupons, or waiting for a markdown",
-        "frames the purchase as 'smart' because it was cheaper",
-      ],
-      "#scarcity-driven": [
-        "mentions limited drop, running out, or time pressure",
-        "fear of missing out / urgency is the primary driver",
-        "would likely hesitate without the scarcity framing",
-      ],
-      "#threshold-spending-driven": [
-        "mentions free shipping threshold, bonus/sample, or add-ons",
-        "added extra items to hit a minimum spend",
-        "frames additions as 'it was basically free' or 'might as well'",
-      ],
-    },
+    // Deal path splits into Fixed Q2 sub-paths; avoid mode names here and let
+    // SubPathProbing/LLM determine the final mode after probing.
+    modeIndicators: {},
     counterProfilePatterns: [
       "I was already planning to buy this",
       "I would have bought it anyway",
@@ -184,18 +161,8 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "How did you decide on this gift?",
       "How does gift-giving make you feel?",
     ],
-    modeIndicators: {
-      "#gift-giving": [
-        "mentions a specific person and what they'd like",
-        "references occasion, relationship, or intention behind the gift",
-        "talks about how giving affects them (joy, pressure, connection)",
-      ],
-      "#obligation-pressure": [
-        "mentions expectations, 'had to', or social pressure",
-        "frames it as keeping up / not wanting to disappoint",
-        "mentions budgets being stretched due to obligation",
-      ],
-    },
+    // Gift path is generally intentional; keep path-level indicators empty.
+    modeIndicators: {},
     counterProfilePatterns: [],
   },
   maintenance: {
@@ -206,18 +173,8 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "Do you have a regular restocking schedule?",
       "Did you consider any alternatives?",
     ],
-    modeIndicators: {
-      "#maintenance-need": [
-        "the old item was used up, broken, or worn out",
-        "frames it as a practical replacement, not a want",
-        "mentions consistency ('it works', 'I always get this')",
-      ],
-      "#just-in-case-buffering": [
-        "buys backups or extras to avoid running out",
-        "mentions anxiety about not having it when needed",
-        "might already have duplicates at home",
-      ],
-    },
+    // Maintenance path is generally necessity; keep path-level indicators empty.
+    modeIndicators: {},
     counterProfilePatterns: [],
   },
 };
@@ -228,6 +185,11 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
 
 export interface SubPathProbing {
   subPath: string;
+  /**
+   * Exploration tag inferred from the Fixed Q2 selection.
+   * NOTE: Tags (e.g. #visual-impulse-driven) are NOT modes.
+   */
+  explorationTag?: string;
   explorationGoal: string;
   probingHints: string[];
   targetModes: string[];
@@ -242,6 +204,7 @@ export interface SubPathProbing {
 export const impulseSubPathProbing: Record<string, SubPathProbing> = {
   price_felt_right: {
     subPath: "price_felt_right",
+    explorationTag: "#price-sensitivity-driven",
     explorationGoal: "Understand their internal price threshold around 'reasonable' to justify purchases",
     probingHints: [
       "What price did you get it for?",
@@ -260,6 +223,7 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
   },
   treating_myself: {
     subPath: "treating_myself",
+    explorationTag: "#self-reward-driven",
     explorationGoal: "What triggered the need for reward/treat? Is it tied to an event, emotion, or habit?",
     probingHints: [
       "What were you treating yourself for?",
@@ -290,6 +254,7 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
   },
   caught_eye: {
     subPath: "caught_eye",
+    explorationTag: "#visual-impulse-driven",
     explorationGoal: "Where/how did they encounter it? Is this a pattern (scroll, in-store, etc)?",
     probingHints: [
       "Where did you see it?",
@@ -324,6 +289,7 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
   },
   trending: {
     subPath: "trending",
+    explorationTag: "#trend-susceptibility-driven",
     explorationGoal: "How susceptible are they to trends, especially trend-following that leads to purchases that don't fit them?",
     probingHints: [
       "Where have you been seeing it?",

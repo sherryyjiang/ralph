@@ -1,72 +1,174 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
 import { getTransactionById } from "@/lib/data/synthetic-transactions";
-import { getFixedQuestion1Options } from "@/lib/llm/prompts";
-import type { Transaction } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
-// CHECK-IN PAGE
+// FIXED QUESTIONS - Shopping Check-In (Layer 1)
+// ═══════════════════════════════════════════════════════════════
+
+const SHOPPING_FIXED_Q1 = {
+  question: "When you bought this, were you...",
+  options: [
+    { id: "impulse", label: "Saw it and bought it in the moment", emoji: "⚡", value: "impulse", color: "yellow" as const },
+    { id: "deliberate", label: "Been thinking about this for a while", emoji: "🤔", value: "deliberate", color: "white" as const },
+    { id: "deal", label: "A good deal/discount or limited drop made me go for it", emoji: "🏷️", value: "deal", color: "yellow" as const },
+    { id: "gift", label: "Bought it for someone else", emoji: "🎁", value: "gift", color: "white" as const },
+    { id: "maintenance", label: "Restocking or replacing", emoji: "🔄", value: "maintenance", color: "white" as const },
+  ],
+};
+
+const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: QuickReplyOption[] }> = {
+  impulse: {
+    question: "What made you go for it?",
+    options: [
+      { id: "price_felt_right", label: "The price felt right", emoji: "💰", value: "price_felt_right", color: "yellow" },
+      { id: "treating_myself", label: "Treating myself", emoji: "🎁", value: "treating_myself", color: "yellow" },
+      { id: "caught_eye", label: "Just caught my eye", emoji: "👀", value: "caught_eye", color: "yellow" },
+      { id: "trending", label: "It's been trending lately", emoji: "📈", value: "trending", color: "yellow" },
+    ],
+  },
+  deliberate: {
+    question: "What were you waiting for?",
+    options: [
+      { id: "afford_it", label: "Waiting until I could afford it", emoji: "💳", value: "afford_it", color: "white" },
+      { id: "right_price", label: "Waiting for the right price/deal", emoji: "🏷️", value: "right_price", color: "white" },
+      { id: "right_one", label: "Waiting for the right one", emoji: "✨", value: "right_one", color: "white" },
+      { id: "still_wanted", label: "Letting it sit to see if I still wanted it", emoji: "⏳", value: "still_wanted", color: "white" },
+      { id: "got_around", label: "Finally got around to it", emoji: "✅", value: "got_around", color: "white" },
+    ],
+  },
+  deal: {
+    question: "Tell me more about the deal, discount, or event?",
+    options: [
+      { id: "limited_edition", label: "Limited edition or drop running out", emoji: "⚡", value: "limited_edition", color: "yellow" },
+      { id: "sale_discount", label: "Good sale, deal, or discount", emoji: "💸", value: "sale_discount", color: "yellow" },
+      { id: "free_shipping", label: "Hit free shipping threshold or bonus", emoji: "📦", value: "free_shipping", color: "yellow" },
+    ],
+  },
+  gift: {
+    question: "Who was it for?",
+    options: [
+      { id: "family", label: "Family member", emoji: "👨‍👩‍👧", value: "family", color: "white" },
+      { id: "friend", label: "Friend", emoji: "👋", value: "friend", color: "white" },
+      { id: "partner", label: "Partner", emoji: "💕", value: "partner", color: "white" },
+      { id: "coworker", label: "Coworker", emoji: "💼", value: "coworker", color: "white" },
+    ],
+  },
+  maintenance: {
+    question: "Did you get the same thing or switch it up?",
+    options: [
+      { id: "same_thing", label: "Got the same thing", emoji: "🔁", value: "same_thing", color: "white" },
+      { id: "switched_up", label: "Switched it up", emoji: "🔄", value: "switched_up", color: "white" },
+      { id: "upgraded", label: "Upgraded", emoji: "⬆️", value: "upgraded", color: "white" },
+    ],
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// FIXED QUESTIONS - Food Check-In (Layer 1)
+// ═══════════════════════════════════════════════════════════════
+
+const FOOD_INTRO = {
+  question: "Let's check in on your food spending. How much do you think you've spent on food delivery this month?",
+  isGuessPrompt: true,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// FIXED QUESTIONS - Coffee/Treats Check-In (Layer 1)
+// ═══════════════════════════════════════════════════════════════
+
+const COFFEE_INTRO = {
+  question: "Quick check-in! How many coffee or treat runs do you think you've made this month?",
+  isGuessPrompt: true,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function getInitialMessage(category: TransactionCategory, merchantName: string): { content: string; options?: QuickReplyOption[] } {
+  switch (category) {
+    case "shopping":
+      return {
+        content: `Let's reflect on your ${merchantName} purchase! ${SHOPPING_FIXED_Q1.question}`,
+        options: SHOPPING_FIXED_Q1.options,
+      };
+    case "food":
+      return {
+        content: FOOD_INTRO.question,
+      };
+    case "coffee":
+      return {
+        content: COFFEE_INTRO.question,
+      };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN PAGE COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
 export default function CheckInPage() {
-  const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-
+  const router = useRouter();
+  
   const sessionId = params.sessionId as string;
   const transactionId = searchParams.get("txn");
 
-  // Get transaction from synthetic data
+  // Find the transaction
   const transaction = useMemo(() => {
     if (!transactionId) return null;
     return getTransactionById(transactionId);
   }, [transactionId]);
 
-  // If no valid transaction, show error and redirect
+  // Handle missing transaction
   if (!transaction) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#1a0a2e]">
+      <div className="flex h-screen items-center justify-center bg-[var(--peek-bg-primary)]">
         <div className="text-center">
-          <p className="text-lg text-white">Transaction not found</p>
+          <p className="text-xl text-white">Transaction not found</p>
           <button
             onClick={() => router.push("/")}
-            className="mt-4 rounded-lg bg-[#ff7b00] px-6 py-2 font-medium text-white"
+            className="mt-4 rounded-lg bg-[var(--peek-accent-orange)] px-6 py-2 text-white"
           >
-            Go Back
+            Go back
           </button>
         </div>
       </div>
     );
   }
 
-  return <CheckInFlow sessionId={sessionId} transaction={transaction} />;
+  return (
+    <CheckInChat
+      sessionId={sessionId}
+      transaction={transaction}
+      onClose={() => router.push("/")}
+    />
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CHECK-IN FLOW COMPONENT
+// CHECK-IN CHAT COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
-function CheckInFlow({
-  sessionId,
-  transaction,
-}: {
+interface CheckInChatProps {
   sessionId: string;
-  transaction: Transaction;
-}) {
-  const router = useRouter();
+  transaction: NonNullable<ReturnType<typeof getTransactionById>>;
+  onClose: () => void;
+}
 
+function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
   const {
-    session,
     messages,
     isLoading,
-    error,
     currentLayer,
     currentPath,
-    status,
     startSession,
     addAssistantMessage,
     addUserMessage,
@@ -74,276 +176,136 @@ function CheckInFlow({
     setSubPath,
     setLayer,
     setLoading,
-    setError,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
 
-  // Initialize the conversation when the component mounts
+  // Initialize session with first message
   useEffect(() => {
-    if (status === "pending" && messages.length === 0) {
-      initializeConversation();
+    if (messages.length === 0) {
+      startSession();
+      const initial = getInitialMessage(transaction.category, transaction.merchant);
+      addAssistantMessage(initial.content, initial.options, true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, messages.length]);
+  }, [messages.length, startSession, addAssistantMessage, transaction.category, transaction.merchant]);
 
-  function initializeConversation() {
-    startSession();
-
-    // Add welcome message
-    const checkInLabel = getCheckInTypeLabel(transaction.category);
-    addAssistantMessage(
-      `Let's do a quick ${checkInLabel.toLowerCase()}! 👀`
-    );
-
-    // After a brief delay, ask the first fixed question
-    setTimeout(() => {
-      askFixedQuestion1();
-    }, 800);
-  }
-
-  function askFixedQuestion1() {
-    const options = getFixedQuestion1Options(transaction.category);
-    
-    if (transaction.category === "shopping") {
-      addAssistantMessage(
-        "When you bought this, were you...",
-        options,
-        true
-      );
-    } else if (transaction.category === "food") {
-      // For food, we do awareness calibration first
-      addAssistantMessage(
-        `Take a quick guess: How much do you think you've spent on food delivery this month?`,
-        [
-          { id: "guess_100", label: "$100 or less", value: "100" },
-          { id: "guess_200", label: "$100-200", value: "200" },
-          { id: "guess_300", label: "$200-300", value: "300" },
-          { id: "guess_400", label: "$300-400", value: "400" },
-          { id: "guess_500", label: "$400+", value: "500" },
-        ],
-        true
-      );
-    } else if (transaction.category === "coffee") {
-      // For coffee, we do frequency calibration
-      addAssistantMessage(
-        `How many times do you think you've bought coffee or treats this month?`,
-        [
-          { id: "guess_5", label: "5 or less", value: "5" },
-          { id: "guess_10", label: "6-10 times", value: "10" },
-          { id: "guess_15", label: "11-15 times", value: "15" },
-          { id: "guess_20", label: "16-20 times", value: "20" },
-          { id: "guess_25", label: "More than 20", value: "25" },
-        ],
-        true
-      );
-    }
-  }
-
-  async function handleSendMessage(content: string) {
-    addUserMessage(content);
-    setLoading(true);
-
-    try {
-      // TODO: Send to Gemini API for response
-      // For now, simulate a response after a delay
-      await simulateResponse(content);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get response");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleOptionSelect(value: string) {
-    // Find the selected option label for display
-    const lastMessage = messages[messages.length - 1];
-    const selectedOption = lastMessage?.options?.find((o) => o.value === value);
+  // Handle user option selection
+  const handleOptionSelect = useCallback((value: string) => {
+    // Add user's response as message
+    const selectedOption = messages[messages.length - 1]?.options?.find(o => o.value === value);
     const displayText = selectedOption?.label || value;
-
     addUserMessage(displayText);
 
-    // Handle the selection based on current state
-    if (currentLayer === 1 && transaction.category === "shopping") {
-      handleShoppingFixedQ1Response(value);
-    } else {
-      // Continue conversation with LLM
-      setLoading(true);
-      try {
-        await simulateResponse(value);
-      } finally {
-        setLoading(false);
-      }
-    }
-  }
-
-  function handleShoppingFixedQ1Response(value: string) {
-    // Route to appropriate path based on Fixed Q1 response
-    switch (value) {
-      case "impulse":
-        setPath("impulse");
+    // Handle shopping flow based on current state
+    if (transaction.category === "shopping") {
+      if (currentLayer === 1 && !currentPath) {
+        // First fixed question response - set the path
+        const path = value as ShoppingPath;
+        setPath(path);
+        
+        // Show Fixed Question 2
+        const q2 = SHOPPING_FIXED_Q2[path];
+        if (q2) {
+          setTimeout(() => {
+            addAssistantMessage(q2.question, q2.options, true);
+          }, 500);
+        }
+      } else if (currentLayer === 1 && currentPath) {
+        // Second fixed question response - set sub-path and transition to Layer 2
+        const subPath = value as ImpulseSubPath | DealSubPath;
+        setSubPath(subPath);
+        setLayer(2);
+        
+        // For now, show a placeholder for LLM probing (to be implemented in Phase 3)
         setTimeout(() => {
           addAssistantMessage(
-            "What made you go for it?",
-            [
-              { id: "price", label: "The price felt right", value: "price-felt-right", color: "yellow" },
-              { id: "treat", label: "Treating myself", value: "treating-myself", color: "yellow" },
-              { id: "eye", label: "Just caught my eye", value: "caught-my-eye", color: "yellow" },
-              { id: "trend", label: "It's been trending lately", value: "trending", color: "yellow" },
-              { id: "other", label: "Other", value: "other" },
-            ],
-            true
-          );
-        }, 500);
-        break;
-
-      case "deliberate":
-        setPath("deliberate");
-        setTimeout(() => {
-          addAssistantMessage(
-            "What were you waiting for?",
-            [
-              { id: "afford", label: "Waiting until I could afford it", value: "afford" },
-              { id: "deal", label: "Waiting for the right price/deal", value: "deal" },
-              { id: "right-one", label: "Waiting for the right one", value: "right-one" },
-              { id: "wanted", label: "Letting it sit to see if I still wanted it", value: "wanted" },
-              { id: "got-around", label: "Finally got around to it", value: "got-around" },
-              { id: "other", label: "Other", value: "other" },
-            ],
-            true
-          );
-        }, 500);
-        break;
-
-      case "deal":
-        setPath("deal");
-        setTimeout(() => {
-          addAssistantMessage(
-            "Tell me more about the deal, discount or limited event?",
-            [
-              { id: "limited", label: "Limited edition or drop that is running out", value: "limited-edition", color: "yellow" },
-              { id: "sale", label: "It was a good sale, deal or discount", value: "sale-discount", color: "yellow" },
-              { id: "threshold", label: "Hit free shipping threshold or got a bonus/sample", value: "threshold-bonus", color: "yellow" },
-              { id: "other", label: "Other", value: "other" },
-            ],
-            true
-          );
-        }, 500);
-        break;
-
-      case "gift":
-        setPath("gift");
-        setTimeout(() => {
-          addAssistantMessage(
-            "Who was it for? 🎁",
+            "Thanks for sharing! I'm curious to understand more about what was going on when you made this purchase. Can you tell me a bit about the context—what were you doing, how were you feeling?",
             undefined,
             false
           );
         }, 500);
-        break;
-
-      case "maintenance":
-        setPath("maintenance");
-        setTimeout(() => {
-          addAssistantMessage(
-            "Did you get the same thing or switched it up?",
-            [
-              { id: "same", label: "Same as always", value: "same" },
-              { id: "switched", label: "Switched it up", value: "switched" },
-              { id: "upgrade", label: "Upgraded", value: "upgrade" },
-            ],
-            true
-          );
-        }, 500);
-        break;
-
-      default:
-        // Handle "other" or custom responses
-        setLoading(true);
-        simulateResponse(value).finally(() => setLoading(false));
-    }
-  }
-
-  async function simulateResponse(userInput: string): Promise<void> {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // For now, provide a simple response based on layer
-    if (currentLayer === 1) {
-      // Move to Layer 2 probing
-      setLayer(2);
-      addAssistantMessage(
-        "That's interesting! Tell me more about what was going through your mind when you decided to buy it."
-      );
-    } else if (currentLayer === 2) {
-      // After some probing, move to Layer 3 reflection
-      setLayer(3);
-      addAssistantMessage(
-        "Thanks for sharing! Now, what would you like to explore?",
-        [
-          { id: "problem", label: "Is this a problem?", value: "is-problem", emoji: "🤔" },
-          { id: "feel", label: "How do I feel about this?", value: "how-feel", emoji: "💭" },
-          { id: "good-use", label: "Is this a good use of money?", value: "good-use", emoji: "💰" },
-          { id: "different", label: "I have a different question", value: "different", emoji: "❓" },
-          { id: "done", label: "I'm good for now", value: "done", emoji: "✅" },
-        ],
-        false
-      );
-    } else {
-      // Layer 3 - handle reflection or complete
-      if (userInput === "done" || userInput === "I'm good for now") {
-        completeSession();
-        addAssistantMessage(
-          "Great chat! Remember, understanding your spending patterns is the first step to feeling more in control. 💪"
-        );
-        
-        // Redirect back to dashboard after a delay
-        setTimeout(() => {
-          router.push("/");
-        }, 2000);
-      } else {
-        addAssistantMessage(
-          "That's a great question to explore. Understanding the 'why' behind our spending helps us make more intentional choices. What feels most true for you?"
-        );
       }
     }
-  }
+    
+    // Food and Coffee flows will be implemented in later phases
+    if (transaction.category === "food" || transaction.category === "coffee") {
+      setTimeout(() => {
+        addAssistantMessage(
+          "Thanks! This check-in type will be fully implemented in a future phase. For now, let me share a quick reflection: being aware of your spending patterns is the first step to making intentional choices.",
+          [{ id: "done", label: "Got it, thanks!", emoji: "👍", value: "done", color: "white" }],
+          false
+        );
+      }, 500);
+    }
+  }, [messages, addUserMessage, addAssistantMessage, transaction.category, currentLayer, currentPath, setPath, setSubPath, setLayer]);
 
-  function handleBack() {
-    router.push("/");
-  }
+  // Handle free-form text input
+  const handleSendMessage = useCallback((content: string) => {
+    addUserMessage(content);
+    setLoading(true);
+
+    // Simulate LLM response (to be replaced with actual API call in Phase 3)
+    setTimeout(() => {
+      setLoading(false);
+      
+      if (currentLayer === 2) {
+        // Layer 2 probing response
+        addAssistantMessage(
+          "That's really insightful. Understanding these patterns is the first step to making choices that align with your values. How would you like to explore this further?",
+          [
+            { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
+            { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
+            { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
+          ],
+          false
+        );
+        setLayer(3);
+      } else if (currentLayer === 3) {
+        // Layer 3 - wrap up
+        addAssistantMessage(
+          "Great reflection! Remember, the goal isn't to judge yourself, but to understand your patterns so you can make more intentional choices. See you next time! 👋",
+          [{ id: "close", label: "Close", emoji: "✨", value: "close", color: "white" }],
+          false
+        );
+      }
+    }, 1500);
+  }, [addUserMessage, addAssistantMessage, setLoading, setLayer, currentLayer]);
+
+  // Handle special actions
+  const handleOptionSelectWrapper = useCallback((value: string) => {
+    if (value === "close" || value === "done") {
+      completeSession();
+      onClose();
+      return;
+    }
+    handleOptionSelect(value);
+  }, [handleOptionSelect, completeSession, onClose]);
 
   return (
-    <div className="flex h-screen flex-col bg-[#1a0a2e]">
-      {/* Back Button Header */}
-      <header className="flex items-center gap-3 border-b border-white/5 bg-[#2d1b4e] px-4 py-3">
+    <div className="h-screen bg-[var(--peek-bg-primary)]">
+      {/* Header */}
+      <header className="flex items-center justify-between border-b border-white/5 bg-[var(--peek-bg-card)] px-4 py-3">
         <button
-          onClick={handleBack}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          onClick={onClose}
+          className="rounded-lg p-2 text-[var(--peek-text-muted)] hover:bg-white/10"
         >
-          ←
+          ← Back
         </button>
-        <h1 className="font-medium text-white">
+        <h1 className="text-sm font-medium text-white">
           {getCheckInTypeLabel(transaction.category)}
         </h1>
+        <div className="w-10" /> {/* Spacer for centering */}
       </header>
 
-      {/* Chat Container */}
-      <div className="flex-1 overflow-hidden">
+      {/* Chat */}
+      <div className="h-[calc(100vh-60px)]">
         <ChatContainer
           messages={messages}
           transaction={transaction}
           isLoading={isLoading}
           onSendMessage={handleSendMessage}
-          onOptionSelect={handleOptionSelect}
+          onOptionSelect={handleOptionSelectWrapper}
         />
       </div>
-
-      {/* Error Toast */}
-      {error && (
-        <div className="absolute bottom-20 left-4 right-4 rounded-lg bg-red-500/90 px-4 py-3 text-white">
-          {error}
-        </div>
-      )}
     </div>
   );
 }

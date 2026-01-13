@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback, useState } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";

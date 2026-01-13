@@ -40,9 +40,9 @@ Build a mock-up chat application that helps users understand their spending beha
 17. [x] Write tests for shopping flow in `__tests__/shopping-flow.test.ts`
 
 ### Phase 5: Food Check-In
-18. [ ] Implement awareness calibration (guess vs actual spending)
-19. [ ] Implement Layer 2 mode assignment (stress, convenience, planning)
-20. [ ] Implement economic evaluation reflection
+18. [x] Implement awareness calibration (guess vs actual spending)
+19. [x] Implement Layer 2 mode assignment (stress, convenience, planning)
+20. [x] Implement economic evaluation reflection
 
 ### Phase 6: Coffee/Treats Check-In
 21. [ ] Implement frequency calibration (guess vs actual count)

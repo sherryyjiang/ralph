@@ -105,7 +105,8 @@ ${Object.entries(subPathProbing.modeSignals).map(([mode, signals]) =>
   `${mode}:\n${signals.map((s) => `  - "${s}"`).join("\n")}`
 ).join("\n")}
 
-${subPathProbing.counterProfileExit ? `### Counter-Profile Exit:\n${subPathProbing.counterProfileExit}` : ""}
+${subPathProbing.counterProfilePatterns?.length ? `### Counter-Profile Patterns (if these show up, exit early):\n${subPathProbing.counterProfilePatterns.map((p) => `- \"${p}\"`).join("\n")}` : ""}
+${subPathProbing.counterProfileExit ? `### Counter-Profile Exit Message:\n${subPathProbing.counterProfileExit}` : ""}
 `;
   }
 

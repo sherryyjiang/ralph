@@ -14,6 +14,8 @@ import {
   impulseSubPathProbing,
   deliberateSubPathProbing,
   dealSubPathProbing,
+  giftSubPathProbing,
+  maintenanceSubPathProbing,
   impulseSubPathGoals, 
   dealSubPathGoals,
   deliberateSubPathGoals,
@@ -927,6 +929,31 @@ describe("Question Tree Routing - Shopping Paths", () => {
       expect(probing?.targetModes).toEqual(
         expect.arrayContaining(["#social-media-influenced", "#friend-peer-influenced"]),
       );
+    });
+
+    it("all SubPathProbing targetModes should exclude exploration tags", () => {
+      const tagOnlyModes = new Set([
+        "#price-sensitivity-driven",
+        "#self-reward-driven",
+        "#visual-impulse-driven",
+        "#trend-susceptibility-driven",
+      ]);
+
+      const allProbingRecords = [
+        impulseSubPathProbing,
+        deliberateSubPathProbing,
+        dealSubPathProbing,
+        giftSubPathProbing,
+        maintenanceSubPathProbing,
+      ] as const;
+
+      allProbingRecords.forEach((record) => {
+        Object.values(record).forEach((probing) => {
+          probing.targetModes.forEach((mode) => {
+            expect(tagOnlyModes.has(mode)).toBe(false);
+          });
+        });
+      });
     });
   });
 });

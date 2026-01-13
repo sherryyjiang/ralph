@@ -26,6 +26,7 @@ interface ChatRequest {
   transaction: Transaction;
   session: CheckInSession;
   stream?: boolean;
+  probingDepth?: number; // 0-3, tracks Layer 2 probing exchanges
 }
 
 // =============================================================================

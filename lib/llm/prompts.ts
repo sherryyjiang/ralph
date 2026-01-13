@@ -51,6 +51,7 @@ interface BuildSystemPromptParams {
   transaction: Transaction;
   session: CheckInSession;
   questionTreeSection?: string;
+  probingDepth?: number;
 }
 
 export function buildSystemPrompt({ transaction, session, questionTreeSection }: BuildSystemPromptParams): string {

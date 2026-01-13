@@ -104,3 +104,9 @@
 
 ### 2026-01-13 12:43:23
 **Session 13 started** (model: opus-4.5-thinking)
+
+### 2026-01-13 12:43:53
+**Session 13 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 12:43:55
+**Session 14 started** (model: opus-4.5-thinking)

@@ -40,21 +40,50 @@ export type ShoppingPath =
 
 /**
  * Sub-paths for impulse shopping (Fixed Question 2 responses)
+ * Based on PEEK_QUESTION_TREES.md "What made you go for it?"
  */
 export type ImpulseSubPath = 
-  | "saw_got_excited"    // [YELLOW] "I saw it and got excited"
-  | "friend_recommended" // [WHITE] "A friend recommended it"
-  | "better_deal"        // [YELLOW] "Found a better deal than expected"
-  | "retail_therapy"     // [YELLOW] "Retail therapy moment";
+  | "price_felt_right"   // [YELLOW] "The price felt right" → #intuitive-threshold-spender
+  | "treating_myself"    // [YELLOW] "Treating myself" → branches to reward/comfort/routine
+  | "caught_eye"         // [YELLOW] "Just caught my eye" → #visual-impulse-driven
+  | "trending";          // [YELLOW] "It's been trending lately" → #trend-susceptibility-driven
+
+/**
+ * Sub-paths for deliberate shopping (Fixed Question 2 responses)
+ * Based on PEEK_QUESTION_TREES.md "What were you waiting for?"
+ */
+export type DeliberateSubPath =
+  | "afford_it"          // [WHITE] "Waiting until I could afford it" → #deliberate-budget-saver
+  | "right_price"        // [WHITE] "Waiting for the right price/deal" → #deliberate-deal-hunter
+  | "right_one"          // [WHITE] "Waiting for the right one" → #deliberate-researcher
+  | "still_wanted"       // [WHITE] "Letting it sit to see if I still wanted it" → #deliberate-pause-tester
+  | "got_around";        // [WHITE] "Finally got around to it" → #deliberate-low-priority
 
 /**
  * Sub-paths for deal/scarcity shopping (Fixed Question 2 responses)
+ * Based on PEEK_QUESTION_TREES.md "Tell me more about the deal..."
  */
 export type DealSubPath = 
-  | "flash_sale"         // [YELLOW] "Flash sale / limited time"
-  | "coupons"            // [WHITE] "I had coupons / cashback"
-  | "price_drop"         // "Price dropped on wishlist item"
-  | "bulk_discount";     // "Bulk discount opportunity"
+  | "limited_edition"    // [YELLOW] "Limited edition or drop running out" → #scarcity-driven
+  | "sale_discount"      // [YELLOW] "Good sale, deal, or discount" → #deal-driven
+  | "free_shipping";     // [YELLOW] "Hit free shipping threshold or bonus" → #threshold-spending-driven
+
+/**
+ * Sub-paths for gift shopping (Fixed Question 2 responses)
+ */
+export type GiftSubPath =
+  | "family"             // [WHITE] "Family member"
+  | "friend"             // [WHITE] "Friend"
+  | "partner"            // [WHITE] "Partner"
+  | "coworker";          // [WHITE] "Coworker"
+
+/**
+ * Sub-paths for maintenance shopping (Fixed Question 2 responses)
+ */
+export type MaintenanceSubPath =
+  | "same_thing"         // [WHITE] "Got the same thing" → #loyal-repurchaser
+  | "switched_up"        // [WHITE] "Switched it up" → #brand-switcher
+  | "upgraded";          // [WHITE] "Upgraded" → #upgrader
 
 /**
  * Food check-in modes assigned after probing
@@ -75,6 +104,7 @@ export type CoffeeMode =
 
 export type CheckInPath = ShoppingPath;
 export type CheckInMode = string; // e.g., "#comfort-driven-spender"
+export type ShoppingSubPath = ImpulseSubPath | DeliberateSubPath | DealSubPath | GiftSubPath | MaintenanceSubPath;
 
 export interface CheckInSession {
   id: string;
@@ -83,7 +113,7 @@ export interface CheckInSession {
   status: CheckInStatus;
   currentLayer: CheckInLayer;
   path?: CheckInPath;
-  subPath?: ImpulseSubPath | DealSubPath;
+  subPath?: ShoppingSubPath;
   mode?: CheckInMode;
   messages: Message[];
   metadata: {

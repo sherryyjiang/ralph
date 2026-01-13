@@ -10,8 +10,7 @@ import type {
   Message,
   QuickReplyOption,
   ShoppingPath,
-  ImpulseSubPath,
-  DealSubPath,
+  ShoppingSubPath,
   Transaction,
   TransactionCategory,
 } from "@/lib/types";
@@ -40,7 +39,7 @@ export type CheckInAction =
   | { type: "FINISH_STREAMING_MESSAGE"; payload: { options?: QuickReplyOption[] } }
   | { type: "ADD_USER_MESSAGE"; payload: { content: string } }
   | { type: "SET_PATH"; payload: ShoppingPath }
-  | { type: "SET_SUB_PATH"; payload: ImpulseSubPath | DealSubPath }
+  | { type: "SET_SUB_PATH"; payload: ShoppingSubPath }
   | { type: "SET_MODE"; payload: CheckInMode }
   | { type: "SET_LAYER"; payload: CheckInLayer }
   | { type: "SET_STATUS"; payload: CheckInStatus }
@@ -428,6 +427,7 @@ function createInitialState(
     session: createInitialSession(sessionId, transaction),
     isLoading: false,
     error: null,
+    probingExchangeCount: 0,
   };
 }
 
@@ -475,7 +475,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     dispatch({ type: "SET_PATH", payload: path });
   }, []);
 
-  const setSubPath = useCallback((subPath: ImpulseSubPath | DealSubPath) => {
+  const setSubPath = useCallback((subPath: ShoppingSubPath) => {
     dispatch({ type: "SET_SUB_PATH", payload: subPath });
   }, []);
 

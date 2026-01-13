@@ -115,25 +115,6 @@ function LoadingIndicator() {
   );
 }
 
-// Error display component
-function ErrorDisplay({ error, onRetry }: { error: string; onRetry?: () => void }) {
-  return (
-    <div className="flex justify-start">
-      <div className="rounded-2xl rounded-bl-md bg-red-900/30 border border-red-500/30 px-4 py-3 max-w-[85%]">
-        <p className="text-sm text-red-300">{error}</p>
-        {onRetry && (
-          <button
-            onClick={onRetry}
-            className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
-          >
-            Try again
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // Error display with retry button
 function ErrorDisplay({ error, onRetry }: { error: string; onRetry?: () => void }) {
   return (

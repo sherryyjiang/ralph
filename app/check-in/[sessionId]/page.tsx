@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
+import { useChatAPI } from "@/lib/hooks/use-chat-api";
 import { getTransactionById } from "@/lib/data/synthetic-transactions";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
 
@@ -70,24 +71,6 @@ const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: Quick
 };
 
 // ═══════════════════════════════════════════════════════════════
-// FIXED QUESTIONS - Food Check-In (Layer 1)
-// ═══════════════════════════════════════════════════════════════
-
-const FOOD_INTRO = {
-  question: "Let's check in on your food spending. How much do you think you've spent on food delivery this month?",
-  isGuessPrompt: true,
-};
-
-// ═══════════════════════════════════════════════════════════════
-// FIXED QUESTIONS - Coffee/Treats Check-In (Layer 1)
-// ═══════════════════════════════════════════════════════════════
-
-const COFFEE_INTRO = {
-  question: "Quick check-in! How many coffee or treat runs do you think you've made this month?",
-  isGuessPrompt: true,
-};
-
-// ═══════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
@@ -100,11 +83,11 @@ function getInitialMessage(category: TransactionCategory, merchantName: string):
       };
     case "food":
       return {
-        content: FOOD_INTRO.question,
+        content: "Let's check in on your food spending. How much do you think you've spent on food delivery this month?",
       };
     case "coffee":
       return {
-        content: COFFEE_INTRO.question,
+        content: "Quick check-in! How many coffee or treat runs do you think you've made this month?",
       };
   }
 }
@@ -121,13 +104,11 @@ export default function CheckInPage() {
   const sessionId = params.sessionId as string;
   const transactionId = searchParams.get("txn");
 
-  // Find the transaction
   const transaction = useMemo(() => {
     if (!transactionId) return null;
     return getTransactionById(transactionId);
   }, [transactionId]);
 
-  // Handle missing transaction
   if (!transaction) {
     return (
       <div className="flex h-screen items-center justify-center bg-[var(--peek-bg-primary)]">
@@ -169,13 +150,11 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     isLoading,
     currentLayer,
     currentPath,
-    currentMode,
     startSession,
     addAssistantMessage,
     addUserMessage,
     setPath,
     setSubPath,
-    setMode,
     setLayer,
     setLoading,
     completeSession,
@@ -192,19 +171,15 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
 
   // Handle user option selection
   const handleOptionSelect = useCallback((value: string) => {
-    // Add user's response as message
     const selectedOption = messages[messages.length - 1]?.options?.find(o => o.value === value);
     const displayText = selectedOption?.label || value;
     addUserMessage(displayText);
 
-    // Handle shopping flow based on current state
     if (transaction.category === "shopping") {
       if (currentLayer === 1 && !currentPath) {
-        // First fixed question response - set the path
+        // Fixed Q1 response - set path, show Fixed Q2
         const path = value as ShoppingPath;
         setPath(path);
-        
-        // Show Fixed Question 2
         const q2 = SHOPPING_FIXED_Q2[path];
         if (q2) {
           setTimeout(() => {
@@ -212,13 +187,13 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           }, 500);
         }
       } else if (currentLayer === 1 && currentPath) {
-        // Second fixed question response - set sub-path and transition to Layer 2
+        // Fixed Q2 response - transition to Layer 2 LLM probing
         const subPath = value as ImpulseSubPath | DealSubPath;
         setSubPath(subPath);
         setLayer(2);
-        
-        // Call LLM API for Layer 2 probing
         setLoading(true);
+
+        // Call LLM for probing
         fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -232,17 +207,17 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
               status: "in_progress",
               currentLayer: 2,
               path: currentPath,
-              subPath: subPath,
-              messages: messages,
+              subPath,
+              messages,
               metadata: { tags: [] },
             },
           }),
         })
-          .then((res) => res.json())
-          .then((data) => {
+          .then(res => res.json())
+          .then(data => {
             setLoading(false);
             addAssistantMessage(
-              data.message || "Thanks for sharing! I'm curious to understand more about what was going on when you made this purchase. Can you tell me a bit about the context—what were you doing, how were you feeling?",
+              data.message || "Thanks for sharing! I'm curious—what was going on when you made this purchase?",
               data.options,
               false
             );
@@ -250,25 +225,23 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           .catch(() => {
             setLoading(false);
             addAssistantMessage(
-              "Thanks for sharing! I'm curious to understand more about what was going on when you made this purchase. Can you tell me a bit about the context—what were you doing, how were you feeling?",
+              "Thanks for sharing! I'm curious—what was going on when you made this purchase?",
               undefined,
               false
             );
           });
       }
-    }
-    
-    // Food and Coffee flows will be implemented in later phases
-    if (transaction.category === "food" || transaction.category === "coffee") {
+    } else {
+      // Food and Coffee - placeholder for now
       setTimeout(() => {
         addAssistantMessage(
-          "Thanks! This check-in type will be fully implemented in a future phase. For now, let me share a quick reflection: being aware of your spending patterns is the first step to making intentional choices.",
+          "Thanks! This check-in type will be fully implemented in a future phase.",
           [{ id: "done", label: "Got it, thanks!", emoji: "👍", value: "done", color: "white" }],
           false
         );
       }, 500);
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction.category, currentLayer, currentPath, setPath, setSubPath, setLayer]);
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading]);
 
   // Handle free-form text input
   const handleSendMessage = useCallback(async (content: string) => {
@@ -276,12 +249,11 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setLoading(true);
 
     try {
-      // Call the chat API
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages,
+          messages: [...messages, { id: `user_${Date.now()}`, role: "user", content, timestamp: new Date() }],
           transaction,
           session: {
             id: sessionId,
@@ -296,14 +268,9 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get response");
-      }
-
       const data = await response.json();
       setLoading(false);
 
-      // Handle the response
       if (data.shouldTransition && currentLayer === 2) {
         setLayer(3);
       }
@@ -317,25 +284,14 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         return;
       }
 
-      // Parse options if they exist
-      const options = data.options?.map((opt: { id: string; label: string; value: string; emoji?: string; color?: "yellow" | "white" }) => ({
-        id: opt.id,
-        label: opt.label,
-        value: opt.value,
-        emoji: opt.emoji,
-        color: opt.color || "white",
-      }));
+      addAssistantMessage(data.message, data.options, false);
 
-      addAssistantMessage(data.message, options, false);
-
-    } catch (error) {
+    } catch {
       setLoading(false);
-      console.error("Chat API error:", error);
-      
       // Fallback response
       if (currentLayer === 2) {
         addAssistantMessage(
-          "Thanks for sharing that! Understanding these patterns is the first step to making choices that align with your values. How would you like to explore this further?",
+          "Thanks for sharing! How would you like to explore this further?",
           [
             { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
             { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
@@ -344,9 +300,9 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           false
         );
         setLayer(3);
-      } else if (currentLayer === 3) {
+      } else {
         addAssistantMessage(
-          "Great reflection! Remember, the goal isn't to judge yourself, but to understand your patterns so you can make more intentional choices. See you next time! 👋",
+          "Great reflection! See you next time! 👋",
           [{ id: "close", label: "Close", emoji: "✨", value: "close", color: "white" }],
           false
         );
@@ -366,7 +322,6 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
 
   return (
     <div className="h-screen bg-[var(--peek-bg-primary)]">
-      {/* Header */}
       <header className="flex items-center justify-between border-b border-white/5 bg-[var(--peek-bg-card)] px-4 py-3">
         <button
           onClick={onClose}
@@ -377,10 +332,9 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         <h1 className="text-sm font-medium text-white">
           {getCheckInTypeLabel(transaction.category)}
         </h1>
-        <div className="w-10" /> {/* Spacer for centering */}
+        <div className="w-10" />
       </header>
 
-      {/* Chat */}
       <div className="h-[calc(100vh-60px)]">
         <ChatContainer
           messages={messages}

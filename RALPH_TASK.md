@@ -49,7 +49,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 18. [x] Add `no-clear-threshold` counter-profile with reroute logic
 
 ### Phase E: Add Layer 3 Reflection Logic
-19. [ ] Implement reflection option routing (problem, feel, worth, different, done)
+19. [x] Implement reflection option routing (problem, feel, worth, different, done)
 20. [ ] Add mode-based entry questions for Behavioral Excavation
 21. [ ] Add mode-aware question adaptation for Emotional Reflection
 22. [ ] Add mode-aware question adaptation for Cost Comparison

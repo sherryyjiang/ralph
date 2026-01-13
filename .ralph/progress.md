@@ -3,8 +3,8 @@
 ## Task: Fix Shopping Question Tree Logic - Iteration 3
 
 ### Current Status
-- **Phase**: Phase D (Add Counter-Profiles)
-- **Last Criterion Completed**: 18 (Add `no-clear-threshold` reroute counter-profile)
+- **Phase**: Phase E (Add Layer 3 Reflection Logic)
+- **Last Criterion Completed**: 19 (Reflection option routing incl. "different" + "done")
 - **Verification**: `pnpm test shopping-flow` passing (136 tests)
 
 ---

@@ -275,6 +275,7 @@ const LAYER_3_REFLECTION_OPTIONS: QuickReplyOption[] = [
   { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
   { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
   { id: "worth", label: "Is this a good use of money?", emoji: "💰", value: "worth", color: "white" },
+  { id: "different", label: "I have a different question", emoji: "❓", value: "different", color: "white" },
   { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
 ];
 

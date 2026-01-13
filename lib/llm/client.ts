@@ -1,7 +1,8 @@
 // LLM Client Wrapper for Peek Check-In Chat
-// Allows model switching via NEXT_PUBLIC_LLM_MODEL environment variable
+// Uses Cerebras with OpenAI-compatible API
+// Model switching via NEXT_PUBLIC_LLM_MODEL environment variable
 
-import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
+import OpenAI from "openai";
 import type { CheckInContext, LLMResponse, Message } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
@@ -9,17 +10,23 @@ import type { CheckInContext, LLMResponse, Message } from "@/lib/types";
 // ═══════════════════════════════════════════════════════════════
 
 // Model ID from environment variable with fallback
-const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "gemini-2.5-flash";
+const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "zai-glm-4.6";
 
-// Initialize client (will use GOOGLE_API_KEY from environment)
-function getClient(): GoogleGenAI {
-  const apiKey = process.env.GOOGLE_API_KEY;
+// Cerebras API base URL
+const BASE_URL = "https://api.cerebras.ai/v1";
+
+// Initialize client (will use CEREBRAS_API_KEY from environment)
+function getClient(): OpenAI {
+  const apiKey = process.env.CEREBRAS_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "GOOGLE_API_KEY environment variable is required. Add it to .env.local"
+      "CEREBRAS_API_KEY environment variable is required. Add it to .env.local"
     );
   }
-  return new GoogleGenAI({ apiKey });
+  return new OpenAI({ 
+    apiKey,
+    baseURL: BASE_URL,
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -36,25 +43,25 @@ export async function chat(options: ChatOptions): Promise<LLMResponse> {
   const { messages, systemPrompt } = options;
   const client = getClient();
 
-  // Build conversation history for the model
-  const conversationHistory = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
+  // Build conversation history for the model (OpenAI format)
+  const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+    ...messages.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    })),
+  ];
 
   try {
-    const response: GenerateContentResponse = await client.models.generateContent({
+    const response = await client.chat.completions.create({
       model: MODEL_ID,
-      contents: conversationHistory,
-      config: {
-        systemInstruction: systemPrompt,
-        temperature: 0.7,
-        topP: 0.9,
-        maxOutputTokens: 500,
-      },
+      messages: openaiMessages,
+      temperature: 0.7,
+      top_p: 0.9,
+      max_tokens: 500,
     });
 
-    const text = response.text || "";
+    const text = response.choices[0]?.message?.content || "";
     
     // Try to parse as JSON response
     return parseResponse(text);
@@ -72,26 +79,29 @@ export async function* streamChat(options: ChatOptions): AsyncGenerator<string> 
   const { messages, systemPrompt } = options;
   const client = getClient();
 
-  const conversationHistory = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
+  // Build conversation history for the model (OpenAI format)
+  const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+    ...messages.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    })),
+  ];
 
   try {
-    const stream = await client.models.generateContentStream({
+    const stream = await client.chat.completions.create({
       model: MODEL_ID,
-      contents: conversationHistory,
-      config: {
-        systemInstruction: systemPrompt,
-        temperature: 0.7,
-        topP: 0.9,
-        maxOutputTokens: 500,
-      },
+      messages: openaiMessages,
+      temperature: 0.7,
+      top_p: 0.9,
+      max_tokens: 500,
+      stream: true,
     });
 
     for await (const chunk of stream) {
-      if (chunk.text) {
-        yield chunk.text;
+      const text = chunk.choices[0]?.delta?.content;
+      if (text) {
+        yield text;
       }
     }
   } catch (error) {
@@ -143,5 +153,5 @@ export function getCurrentModel(): string {
 }
 
 export function isConfigured(): boolean {
-  return !!process.env.GOOGLE_API_KEY;
+  return !!process.env.CEREBRAS_API_KEY;
 }

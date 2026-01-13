@@ -342,6 +342,7 @@ So Food reflection focuses on **economic evaluation** — is the benefit worth t
 
 ## Related Documentation
 
-- [Reflection Paths](./reflection-paths.md) - Layer 3 reflection options (shared)
 - [Artifact Mapping](./artifact-mapping.md) - How food modes map to artifacts
+- [Shopping Check-In](./shopping-check-in.md) - Shopping transaction debrief flow
+- [Coffee Check-In](./coffee-check-in.md) - Coffee/treats pattern check-in
 

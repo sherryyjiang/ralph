@@ -96,6 +96,7 @@ function ShoppingTransactionCard({
         {PATH_OPTIONS.map((option) => (
           <button
             key={option.value}
+            type="button"
             onClick={() => onPathSelect(transaction.id, option.value)}
             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 
                        text-left text-sm text-white transition-colors hover:bg-white/10"
@@ -182,6 +183,7 @@ function CategoryCheckInCard({
           />
         </div>
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!guess.trim()}
           className="rounded-lg bg-[#ff7b00] px-4 py-2.5 text-white 
@@ -213,14 +215,16 @@ export default function DashboardPage() {
   // Handle shopping path selection
   const handlePathSelect = (transactionId: string, path: string) => {
     const sessionId = `session_${Date.now()}_${transactionId}`;
-    router.push(`/check-in/${sessionId}?txn=${transactionId}&path=${path}`);
+    const params = new URLSearchParams({ txn: transactionId, path });
+    router.push(`/check-in/${sessionId}?${params.toString()}`);
   };
 
   // Handle category guess submission
   const handleGuessSubmit = (category: "food" | "coffee", guess: string) => {
     const sessionId = `session_${Date.now()}_${category}`;
     const param = category === "food" ? "guess" : "guessCount";
-    router.push(`/check-in/${sessionId}?category=${category}&${param}=${guess}`);
+    const params = new URLSearchParams({ category, [param]: guess });
+    router.push(`/check-in/${sessionId}?${params.toString()}`);
   };
 
   const categories: { value: TransactionCategory | "all"; label: string; icon: string }[] = [
@@ -244,6 +248,7 @@ export default function DashboardPage() {
           {categories.map((cat) => (
             <button
               key={cat.value}
+              type="button"
               onClick={() => setSelectedCategory(cat.value)}
               className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
                 selectedCategory === cat.value

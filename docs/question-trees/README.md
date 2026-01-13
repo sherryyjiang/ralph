@@ -10,11 +10,12 @@ This documentation is split into focused files for easier navigation:
 
 | File | Description |
 |------|-------------|
-| [shopping-check-in.md](./shopping-check-in.md) | Shopping question trees, modes, and counter-profiles |
-| [food-check-in.md](./food-check-in.md) | Food/takeout question trees and modes |
-| [coffee-check-in.md](./coffee-check-in.md) | Coffee & treats question trees and modes |
-| [reflection-paths.md](./reflection-paths.md) | Layer 3 reflection paths (shared across check-ins) |
+| [shopping-check-in.md](./shopping-check-in.md) | Shopping question trees, modes, Layer 3 reflection paths, and counter-profiles |
+| [food-check-in.md](./food-check-in.md) | Food/takeout question trees, modes, and economic evaluation |
+| [coffee-check-in.md](./coffee-check-in.md) | Coffee & treats question trees, modes, and mode-specific reflections |
 | [artifact-mapping.md](./artifact-mapping.md) | Memory → Artifact mapping system |
+
+> **Note:** Each check-in type has its own unique Layer 3 reflection approach. Shopping uses user-directed paths (behavioral excavation, emotional reflection, cost comparison). Food uses economic evaluation. Coffee uses mode-specific reflection questions.
 
 ---
 

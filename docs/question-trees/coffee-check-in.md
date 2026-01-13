@@ -325,6 +325,7 @@ Each mode has a **unique reflection question** tailored to what was revealed in 
 
 ## Related Documentation
 
-- [Reflection Paths](./reflection-paths.md) - Layer 3 reflection options (shared)
 - [Artifact Mapping](./artifact-mapping.md) - How coffee modes map to artifacts
+- [Shopping Check-In](./shopping-check-in.md) - Shopping transaction debrief flow
+- [Food Check-In](./food-check-in.md) - Food/takeout pattern check-in
 

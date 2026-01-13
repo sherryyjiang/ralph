@@ -15,6 +15,7 @@ import {
   getCoffeeModeFromQ2Response,
   coffeeModeExplorations,
   getCoffeeEconomicEvaluation,
+  getSubPathProbing,
   type CoffeeMotivation,
 } from "@/lib/llm/question-trees";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
@@ -542,48 +543,33 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           return;
         }
         
-        // For impulse and deal paths, continue with LLM probing
+        // For impulse and deal paths, continue with Layer 2 probing
+        // Use the FIRST probing hint directly from question tree (no LLM needed)
         setLayer(2);
-        setLoading(true);
-
-        // Call LLM for initial Layer 2 probing (depth = 0)
-        fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [...messages, { id: `user_${Date.now()}`, role: "user", content: displayText, timestamp: new Date() }],
-            transaction,
-            session: {
-              id: sessionId,
-              transactionId: transaction.id,
-              type: transaction.category,
-              status: "in_progress",
-              currentLayer: 2,
-              path: currentPath,
-              subPath,
-              messages,
-              metadata: { tags: [], probingDepth: 0 },
-            },
-            probingDepth: 0,
-          }),
-        })
-          .then(res => res.json())
-          .then(data => {
-            setLoading(false);
+        
+        // Get the sub-path probing details
+        const probingDetails = getSubPathProbing(currentPath, subPath);
+        
+        if (probingDetails && probingDetails.probingHints.length > 0) {
+          // Use the first probing hint with a warm opener
+          const firstProbingQuestion = probingDetails.probingHints[0];
+          setTimeout(() => {
             addAssistantMessage(
-              data.message || "Thanks for sharing! I'm curious—what was going on when you made this purchase?",
-              data.options,
-              false
-            );
-          })
-          .catch(() => {
-            setLoading(false);
-            addAssistantMessage(
-              "Thanks for sharing! I'm curious—what was going on when you made this purchase?",
+              `Got it! ${firstProbingQuestion}`,
               undefined,
               false
             );
-          });
+          }, 500);
+        } else {
+          // Fallback if no probing hints found (shouldn't happen)
+          setTimeout(() => {
+            addAssistantMessage(
+              "Got it! Tell me more about what was going on when you made this purchase.",
+              undefined,
+              false
+            );
+          }, 500);
+        }
       }
     } else if (transaction.category === "food") {
       // Food Check-In: Full flow per PEEK_QUESTION_TREES.md spec

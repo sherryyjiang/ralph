@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import { explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
 import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
 
 // =============================================================================
-// Configuration
+// Configuration - Cerebras with OpenAI-compatible API
 // =============================================================================
 
-const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "gemini-2.5-flash";
+const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "zai-glm-4.6";
 
 // Min/max probing exchanges before mode assignment
 const MIN_PROBING_DEPTH = 2;
 
-function getClient(): GoogleGenAI {
-  const apiKey = process.env.GOOGLE_API_KEY;
+function getClient(): OpenAI {
+  const apiKey = process.env.CEREBRAS_API_KEY;
   if (!apiKey) {
-    throw new Error("GOOGLE_API_KEY environment variable is required");
+    throw new Error("CEREBRAS_API_KEY environment variable is required");
   }
-  return new GoogleGenAI({ apiKey });
+  return new OpenAI({
+    apiKey,
+    baseURL: "https://api.cerebras.ai/v1",
+  });
 }
 
 // =============================================================================
@@ -353,7 +356,7 @@ ${reflectionInstructions[reflectionPath] || reflectionInstructions.problem}
 }
 
 // =============================================================================
-// Non-streaming Response Handler
+// Non-streaming Response Handler (Cerebras/OpenAI format)
 // =============================================================================
 
 async function handleNonStreamingResponse(
@@ -362,31 +365,31 @@ async function handleNonStreamingResponse(
 ): Promise<NextResponse> {
   const client = getClient();
 
-  // Convert messages to Gemini format
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
+  // Convert messages to OpenAI format
+  const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+    ...messages.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    })),
+  ];
 
-  const response = await client.models.generateContent({
+  const response = await client.chat.completions.create({
     model: MODEL_ID,
-    contents,
-    config: {
-      systemInstruction: systemPrompt,
-      temperature: 0.7,
-      topP: 0.9,
-      maxOutputTokens: 500,
-    },
+    messages: openaiMessages,
+    temperature: 0.7,
+    top_p: 0.9,
+    max_tokens: 500,
   });
 
-  const text = response.text || "";
+  const text = response.choices[0]?.message?.content || "";
   const parsedResponse = parseResponse(text);
 
   return NextResponse.json(parsedResponse);
 }
 
 // =============================================================================
-// Streaming Response Handler
+// Streaming Response Handler (Cerebras/OpenAI format)
 // =============================================================================
 
 async function handleStreamingResponse(
@@ -395,21 +398,22 @@ async function handleStreamingResponse(
 ): Promise<Response> {
   const client = getClient();
 
-  // Convert messages to Gemini format
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
+  // Convert messages to OpenAI format
+  const openaiMessages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "system", content: systemPrompt },
+    ...messages.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    })),
+  ];
 
-  const stream = await client.models.generateContentStream({
+  const stream = await client.chat.completions.create({
     model: MODEL_ID,
-    contents,
-    config: {
-      systemInstruction: systemPrompt,
-      temperature: 0.7,
-      topP: 0.9,
-      maxOutputTokens: 500,
-    },
+    messages: openaiMessages,
+    temperature: 0.7,
+    top_p: 0.9,
+    max_tokens: 500,
+    stream: true,
   });
 
   // Create a ReadableStream for SSE
@@ -418,7 +422,7 @@ async function handleStreamingResponse(
     async start(controller) {
       try {
         for await (const chunk of stream) {
-          const text = chunk.text || "";
+          const text = chunk.choices[0]?.delta?.content || "";
           if (text) {
             // Send as SSE data event
             const data = `data: ${JSON.stringify({ text })}\n\n`;

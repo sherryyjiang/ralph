@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { explorationGoals, getSubPathProbing, getComparisonExample } from "@/lib/llm/prompts";
-import { getCostComparisonModeAdaptedQuestion } from "@/lib/llm/question-trees";
+import { getCostComparisonModeAdaptedQuestion, getGracefulExitMessage } from "@/lib/llm/question-trees";
 import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
 
 // =============================================================================
@@ -59,6 +59,14 @@ export async function POST(request: NextRequest) {
         { error: "Missing required fields: messages, transaction, session" },
         { status: 400 }
       );
+    }
+
+    // Layer 3 "I'm good for now" should exit immediately with canonical copy.
+    if (session.currentLayer === 3 && session.reflectionPath === "done") {
+      return NextResponse.json({
+        message: getGracefulExitMessage(Boolean(session.mode)),
+        exitGracefully: true,
+      });
     }
 
     // Get question tree context for the current path

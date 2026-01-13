@@ -12,9 +12,19 @@ import type { ShoppingPath } from "@/lib/types";
 // `lib/llm/question-trees/` (modular). Some modules import from "@/lib/llm/question-trees",
 // which resolves to this file; re-export selected helpers from the modular implementation
 // to avoid drift.
-import { getCostComparisonModeAdaptedQuestion as getCostComparisonModeAdaptedQuestionImpl } from "./question-trees/reflection";
+import {
+  getCostComparisonModeAdaptedQuestion as getCostComparisonModeAdaptedQuestionImpl,
+  BEHAVIORAL_EXCAVATION_PROBING_HINTS as BEHAVIORAL_EXCAVATION_PROBING_HINTS_IMPL,
+  EMOTIONAL_REFLECTION_PROBING_HINTS as EMOTIONAL_REFLECTION_PROBING_HINTS_IMPL,
+  COST_COMPARISON_PROBING_HINTS as COST_COMPARISON_PROBING_HINTS_IMPL,
+  OPEN_ENDED_REFLECTION_GUIDANCE as OPEN_ENDED_REFLECTION_GUIDANCE_IMPL,
+} from "./question-trees/reflection";
 
 export const getCostComparisonModeAdaptedQuestion = getCostComparisonModeAdaptedQuestionImpl;
+export const BEHAVIORAL_EXCAVATION_PROBING_HINTS = BEHAVIORAL_EXCAVATION_PROBING_HINTS_IMPL;
+export const EMOTIONAL_REFLECTION_PROBING_HINTS = EMOTIONAL_REFLECTION_PROBING_HINTS_IMPL;
+export const COST_COMPARISON_PROBING_HINTS = COST_COMPARISON_PROBING_HINTS_IMPL;
+export const OPEN_ENDED_REFLECTION_GUIDANCE = OPEN_ENDED_REFLECTION_GUIDANCE_IMPL;
 
 // =============================================================================
 // Shopping Check-In Fixed Questions

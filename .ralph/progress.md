@@ -4,7 +4,7 @@
 
 ### Current Status
 - **Phase**: Phase E (Add Layer 3 Reflection Logic)
-- **Last Criterion Completed**: 19 (Reflection option routing incl. "different" + "done")
+- **Last Criterion Completed**: 20 (Mode-based entry questions for Behavioral Excavation)
 - **Verification**: `pnpm test shopping-flow` passing (136 tests)
 
 ---

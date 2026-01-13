@@ -42,10 +42,12 @@ Peek Check-Ins uses **question trees** to guide users through structured convers
 
 ### Core Concepts
 
-- **Modes**: Behavioral profiles assigned based on user responses (e.g., `#autopilot-drift`, `#comfort-driven-spender`)
+- **Modes** (`#mode-name`): Behavioral profiles assigned based on user responses. Only modes use the `#` prefix.
+  - Examples: `#comfort-driven-spender`, `#intuitive-threshold-spender`, `#scroll-triggered`
+- **Tags** (`tag: name`): Metadata for categorizing questions and responses. No `#` prefix.
+  - Examples: `tag: purchase-context`, `tag: purchase-justification`, `tag: impulse-driven`
 - **Blindspots**: Gaps in user awareness (frequency, timing, merchant concentration)
 - **Counter-profiles**: Escape routes for users whose behavior is actually intentional/healthy
-- **Tags**: Metadata for categorizing responses (`#purchase-awareness`, `#impulse-driven`, etc.)
 
 ---
 
@@ -216,38 +218,93 @@ The mode is assigned AFTER probing is complete.
 
 #### Impulse Path Probing Details
 
-##### "The price felt right" → `#price-sensitivity-driven`
+##### "The price felt right" → `#intuitive-threshold-spender`
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│  MODE: #price-sensitivity-driven                                                         │
-├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  🔵 EXPLORATION GOAL:                                                                    │
-│  Understand their internal price threshold around "reasonable" to justify               │
+│  ┌─────────────────┐      ┌─────────────────────────────────┐      ┌─────────────────┐  │
+│  │  "the price     │      │  🔵 EXPLORATION GOAL:           │      │  🟢 PROBING     │  │
+│  │   felt right"   │ ───▶ │  Understand their internal      │ ───▶ │  QUESTIONS:     │  │
+│  │                 │      │  price threshold around         │      │                 │  │
+│  │  [YELLOW]       │      │  "reasonable" to justify        │      │  [BLUE]         │  │
+│  └─────────────────┘      │                                 │      └─────────────────┘  │
+│                           │                                 │                           │
+│                           │  [GREEN]                        │                           │
+│                           └─────────────────────────────────┘                           │
+│                                                                                          │
+│  MODE: #intuitive-threshold-spender                                                      │
+│  Buys on impulse but has invisible price ceilings that act as automatic guardrails      │
 │                                                                                          │
 │  🟢 PROBING QUESTION HINTS:                                                              │
 │  • "What price did you get it for?"                                                      │
 │  • "What price would've made you pause?"                                                 │
 │  • "Do things under $X usually feel like a no-brainer for you?"                          │
 │                                                                                          │
+│  KEY SIGNALS:                                                                            │
+│  • "saw it, wanted it, bought it"                                                        │
+│  • "the price felt right"                                                                │
+│  • Clear mental threshold around price                                                   │
+│  • Low cognitive load purchases dominate - "don't think about it as much"                │
+│                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-##### "Treating myself" → `#self-reward-driven`
+##### "Treating myself" → Leads to ONE of THREE modes
+
+> **Note:** "Treating myself" is NOT a single mode—it's a path that branches to one of three modes based on what probing reveals about WHY they're treating themselves.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│  MODE: #self-reward-driven                                                               │
-├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  🔵 EXPLORATION GOAL:                                                                    │
-│  What triggered the need for reward?                                                     │
+│  ┌─────────────────┐      ┌─────────────────────────────────┐                           │
+│  │  "treating      │      │  🔵 EXPLORATION GOAL:           │                           │
+│  │   myself"       │ ───▶ │  What triggered the need for    │                           │
+│  │                 │      │  reward/treat? Is it tied to    │                           │
+│  │  [YELLOW]       │      │  an event, emotion, or habit?   │                           │
+│  └─────────────────┘      │                                 │                           │
+│                           │  tag: #self-treat               │                           │
+│                           │  [GREEN]                        │                           │
+│                           └───────────────┬─────────────────┘                           │
+│                                           │                                              │
+│                                           ▼                                              │
+│                           ┌───────────────────────────────────┐                          │
+│                           │  🟢 PROBING QUESTIONS:            │                          │
+│                           │  • "What were you treating        │                          │
+│                           │     yourself for?"                │                          │
+│                           │  • "Was it tied to something or   │                          │
+│                           │     more of a random mood?"       │                          │
+│                           │  • "Do you just enjoy shopping    │                          │
+│                           │     as a fun activity?"           │                          │
+│                           └───────────────┬─────────────────┘                           │
+│                                           │                                              │
+│                    ┌──────────────────────┼──────────────────────┐                       │
+│                    │                      │                      │                       │
+│                    ▼                      ▼                      ▼                       │
+│  ┌─────────────────────────┐ ┌─────────────────────────┐ ┌─────────────────────────┐    │
+│  │ #reward-driven-spender  │ │ #comfort-driven-spender │ │ #routine-treat-spender  │    │
+│  │                         │ │                         │ │                         │    │
+│  │ Buys to celebrate wins  │ │ Buys to soothe stress,  │ │ Regular self-treating   │    │
+│  │ or accomplishments      │ │ sadness, boredom        │ │ as habit — not tied to  │    │
+│  │ "I earned this"         │ │ — retail therapy        │ │ specific trigger        │    │
+│  └─────────────────────────┘ └─────────────────────────┘ └─────────────────────────┘    │
 │                                                                                          │
-│  🟢 PROBING QUESTION HINTS:                                                              │
-│  • "What were you treating yourself for?"                                                │
-│  • "Was it tied to something or more of a random mood?"                                  │
-│  • "Do you just enjoy shopping as a fun activity?"                                       │
+│  KEY SIGNALS BY MODE:                                                                    │
+│                                                                                          │
+│  #reward-driven-spender:                                                                 │
+│  • "I hit my goal"                                                                       │
+│  • "finished a hard week"                                                                │
+│  • "got a promotion"                                                                     │
+│                                                                                          │
+│  #comfort-driven-spender:                                                                │
+│  • "rough week"                                                                          │
+│  • "felt down"                                                                           │
+│  • "needed a pick-me-up"                                                                 │
+│                                                                                          │
+│  #routine-treat-spender:                                                                 │
+│  • "I always do this on Fridays"                                                         │
+│  • "it's just my thing"                                                                  │
+│  • no specific reason                                                                    │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -256,11 +313,19 @@ The mode is assigned AFTER probing is complete.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│  MODE: #visual-impulse-driven                                                            │
-├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  🔵 EXPLORATION GOAL:                                                                    │
-│  Where/how did they encounter it? Is this a pattern (scroll, in-store, etc)?            │
+│  ┌─────────────────┐      ┌─────────────────────────────────┐      ┌─────────────────┐  │
+│  │  "just caught   │      │  🔵 EXPLORATION GOAL:           │      │  🟢 PROBING     │  │
+│  │   my eye"       │ ───▶ │  Where/how did they encounter   │ ───▶ │  QUESTIONS:     │  │
+│  │                 │      │  it? Is this a pattern          │      │                 │  │
+│  │  [YELLOW]       │      │  (scroll, in-store, etc)?       │      │  [BLUE]         │  │
+│  └─────────────────┘      │                                 │      └─────────────────┘  │
+│                           │  tag: #visual-impulse-driven    │                           │
+│                           │  [GREEN]                        │                           │
+│                           └─────────────────────────────────┘                           │
+│                                                                                          │
+│  MODE: #visual-impulse-driven                                                            │
+│  Gets caught by things visually — either online or in physical stores                   │
 │                                                                                          │
 │  🟢 PROBING QUESTION HINTS:                                                              │
 │  • "Where did you see it?"                                                               │
@@ -269,6 +334,18 @@ The mode is assigned AFTER probing is complete.
 │  • "How many similar items do you have?"                                                 │
 │  • "Is trying new stuff kind of the fun part for you?"                                   │
 │                                                                                          │
+│  KEY SIGNALS:                                                                            │
+│  • "I was scrolling and saw it" / "it came up in my feed"                                │
+│  • "I was just walking by" / "it was right there"                                        │
+│  • "it was so pretty" / "I loved the packaging" / "the color got me"                     │
+│                                                                                          │
+│  NOTE: Based on probing, may refine to sub-modes:                                        │
+│  • #scroll-triggered — caught while browsing online                                      │
+│  • #in-store-wanderer — caught while physically shopping                                 │
+│  • #aesthetic-driven — drawn to how things look                                          │
+│  • #duplicate-collector — "I have like 5 of these already"                               │
+│  • #exploration-hobbyist — "I like trying new things"                                    │
+│                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -276,16 +353,37 @@ The mode is assigned AFTER probing is complete.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│  MODE: #trend-susceptibility-driven                                                      │
-├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  🔵 EXPLORATION GOAL:                                                                    │
-│  How susceptible are they to trends, especially trend-following that leads them         │
-│  to purchases that don't fit them                                                        │
+│  ┌─────────────────┐      ┌─────────────────────────────────┐      ┌─────────────────┐  │
+│  │  "it's been     │      │  🔵 EXPLORATION GOAL:           │      │  🟢 PROBING     │  │
+│  │   trending      │ ───▶ │  How susceptible are they to    │ ───▶ │  QUESTIONS:     │  │
+│  │   lately"       │      │  trends, especially trend-      │      │                 │  │
+│  │                 │      │  following that leads them to   │      │  [BLUE]         │  │
+│  │  [YELLOW]       │      │  purchases that don't fit them  │      └─────────────────┘  │
+│  └─────────────────┘      │                                 │                           │
+│                           │  tag: #trend-susceptibility-    │                           │
+│                           │       driven                    │                           │
+│                           │  [GREEN]                        │                           │
+│                           └─────────────────────────────────┘                           │
+│                                                                                          │
+│  MODE: #trend-susceptibility-driven                                                      │
+│  Buys things because they're popular or trending                                        │
 │                                                                                          │
 │  🟢 PROBING QUESTION HINTS:                                                              │
 │  • "Where have you been seeing it?"                                                      │
 │  • "Do you feel like it's you or more of a trend buy?"                                   │
+│                                                                                          │
+│  KEY SIGNALS:                                                                            │
+│  • "I saw it on TikTok" / "everyone's posting about it"                                  │
+│  • "a creator I follow had it"                                                           │
+│  • "my friend got one" / "everyone at work has it"                                       │
+│                                                                                          │
+│  NOTE: Based on probing, may refine to sub-modes:                                        │
+│  • #social-media-influenced — saw it on TikTok/Instagram/YouTube                         │
+│  • #friend-peer-influenced — someone they know has it or recommended it                  │
+│                                                                                          │
+│  COUNTER-PROFILE: #trend-but-fits-me                                                     │
+│  User confirms "it's me" when asked if it's them or a trend buy → exit gracefully       │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -298,13 +396,15 @@ These paths require **lighter probing** because the purchase was intentional. Mo
 
 ##### "Been thinking about this for a while" → Sub-selections
 
+> **Note:** All modes in this path are prefixed with `deliberate-` to distinguish them from impulse-related modes on other branches.
+
 | User Response | Mode | Exploration Goal | Probing Question(s) |
 |---------------|------|------------------|---------------------|
-| "waiting until I could afford it" | `#budget-conscious` | Were they saving toward a goal or waiting for cash flow to clear? | "What changed that made it feel okay to buy?" |
-| "waiting for the right price/deal" | `#deal-patient` | Understand their deal-seeking patience—how do they track prices or find deals? | "What deal did you find?" |
-| "waiting for the right one" | `#researcher` | Understand their research/standards process—what made this the "right" one? | "Where did you go for your research?" / "Where did you end up finding it?" |
-| "letting it sit to see if I still wanted it" | `#impulse-aware` | Validate their intentional pause—how long did they sit with it? Did the desire persist? | "How long was it on your radar?" |
-| "finally got around to it" | `#low-urgency` | Understand what was creating the delay—friction, low priority, or just life? | "What finally made you do it?" |
+| "waiting until I could afford it" | `#deliberate-budget-saver` | Were they saving toward a goal or waiting for cash flow to clear? | "What changed that made it feel okay to buy?" |
+| "waiting for the right price/deal" | `#deliberate-deal-hunter` | Understand their deal-seeking patience—how do they track prices or find deals? | "What deal did you find?" |
+| "waiting for the right one" | `#deliberate-researcher` | Understand their research/standards process—what made this the "right" one? | "Where did you go for your research?" / "Where did you end up finding it?" |
+| "letting it sit to see if I still wanted it" | `#deliberate-pause-tester` | Validate their intentional pause—how long did they sit with it? Did the desire persist? | "How long was it on your radar?" |
+| "finally got around to it" | `#deliberate-low-priority` | Understand what was creating the delay—friction, low priority, or just life? | "What finally made you do it?" |
 
 ##### "Bought it for someone else" → Gift Path
 
@@ -441,10 +541,27 @@ These paths require **lighter probing** because the purchase was intentional. Mo
 │  IMPULSE PATH ("Saw it and bought it in the moment")                                     │
 │  Deep exploration required • High artifact potential                                     │
 │  ══════════════════════════════════════════════════════════════════════════════════════  │
-│  ├─ #price-sensitivity-driven    ← "the price felt right"                               │
-│  ├─ #self-reward-driven          ← "treating myself"                                    │
-│  ├─ #visual-impulse-driven       ← "just caught my eye"                                 │
-│  └─ #trend-susceptibility-driven ← "it's been trending lately"                          │
+│                                                                                          │
+│  FROM "the price felt right":                                                            │
+│  └─ #intuitive-threshold-spender                                                         │
+│                                                                                          │
+│  FROM "treating myself" (branches to ONE of three):                                      │
+│  ├─ #reward-driven-spender       ← celebrating wins/accomplishments                     │
+│  ├─ #comfort-driven-spender      ← retail therapy (stress, sadness, boredom)            │
+│  └─ #routine-treat-spender       ← habitual treating (no specific trigger)              │
+│                                                                                          │
+│  FROM "just caught my eye" (may refine to sub-modes):                                    │
+│  ├─ #visual-impulse-driven       ← base mode                                            │
+│  ├─ #scroll-triggered            ← caught while browsing online                         │
+│  ├─ #in-store-wanderer           ← caught while physically shopping                     │
+│  ├─ #aesthetic-driven            ← drawn to how things look                             │
+│  ├─ #duplicate-collector         ← already owns similar items                           │
+│  └─ #exploration-hobbyist        ← likes trying new things                              │
+│                                                                                          │
+│  FROM "it's been trending lately" (may refine to sub-modes):                             │
+│  ├─ #trend-susceptibility-driven ← base mode                                            │
+│  ├─ #social-media-influenced     ← saw it on TikTok/Instagram/YouTube                   │
+│  └─ #friend-peer-influenced      ← someone they know has/recommended it                 │
 │                                                                                          │
 │  ══════════════════════════════════════════════════════════════════════════════════════  │
 │  DEAL/SCARCITY PATH ("A good deal/discount or limited drop")                             │
@@ -456,13 +573,13 @@ These paths require **lighter probing** because the purchase was intentional. Mo
 │                                                                                          │
 │  ══════════════════════════════════════════════════════════════════════════════════════  │
 │  DELIBERATE PATH ("Been thinking about this for a while")                                │
-│  Light exploration • Informational modes                                                 │
+│  Light exploration • Informational modes • All prefixed with "deliberate-"               │
 │  ══════════════════════════════════════════════════════════════════════════════════════  │
-│  ├─ #budget-conscious            ← "waiting until I could afford it"                    │
-│  ├─ #deal-patient                ← "waiting for the right price/deal"                   │
-│  ├─ #researcher                  ← "waiting for the right one"                          │
-│  ├─ #impulse-aware               ← "letting it sit to see if I still wanted it"         │
-│  └─ #low-urgency                 ← "finally got around to it"                           │
+│  ├─ #deliberate-budget-saver     ← "waiting until I could afford it"                    │
+│  ├─ #deliberate-deal-hunter      ← "waiting for the right price/deal"                   │
+│  ├─ #deliberate-researcher       ← "waiting for the right one"                          │
+│  ├─ #deliberate-pause-tester     ← "letting it sit to see if I still wanted it"         │
+│  └─ #deliberate-low-priority     ← "finally got around to it"                           │
 │                                                                                          │
 │  ══════════════════════════════════════════════════════════════════════════════════════  │
 │  GIFT PATH ("Bought it for someone else")                                                │
@@ -517,6 +634,8 @@ Counter-profiles are escape routes for users whose behavior is actually intentio
 
 ### Layer 3: Reflection
 
+After mode assignment, users choose how they want to explore their behavior. This is **user-directed**—they pick what resonates.
+
 ```
                               ┌─────────────────────────────────┐
                               │    "Want to dig deeper?"         │
@@ -535,6 +654,305 @@ Counter-profiles are escape routes for users whose behavior is actually intentio
     Behavioral       Emotional          Cost                Open-ended        [EXIT]
     Excavation       Reflection         Comparison          Exploration
        Path             Path               Path
+```
+
+---
+
+#### Reflection Path 1: "Is this a problem?" — Behavioral Excavation
+
+> **Exploration Goal:** Surface how often autopilot behavior kicks in, and whether the user is actually using what they buy or it's piling up.
+
+**V1 Approach (No Historical Data):** Since we only have threshold data on day 1 (e.g., purchases <$50), we use a **no-data fallback** that asks users to recall patterns from memory rather than showing them aggregated transaction history.
+
+##### Mode-Based Entry Questions
+
+The entry question is **dynamically generated based on the assigned mode**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  MODE-BASED ENTRY QUESTIONS (No-Data Fallback)                                          │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  #intuitive-threshold-spender                                                            │
+│  └─ "can you think of another time you bought something just because the price          │
+│      felt right?"                                                                        │
+│                                                                                          │
+│  #reward-driven-spender                                                                  │
+│  └─ "can you think of another time you bought something to celebrate or reward          │
+│      yourself?"                                                                          │
+│                                                                                          │
+│  #comfort-driven-spender                                                                 │
+│  └─ "can you think of another time you shopped because you were stressed or             │
+│      needed a pick-me-up?"                                                               │
+│                                                                                          │
+│  #routine-treat-spender                                                                  │
+│  └─ "can you think of another time you treated yourself as part of your regular         │
+│      routine?"                                                                           │
+│                                                                                          │
+│  #visual-impulse-driven / #scroll-triggered / #in-store-wanderer                         │
+│  └─ "can you think of another time something just caught your eye and you went          │
+│      for it?"                                                                            │
+│                                                                                          │
+│  #trend-susceptibility-driven / #social-media-influenced                                 │
+│  └─ "can you think of another time you bought something because everyone seemed         │
+│      to have it?"                                                                        │
+│                                                                                          │
+│  #scarcity-driven                                                                        │
+│  └─ "can you think of another time you bought something because it was running          │
+│      out or limited?"                                                                    │
+│                                                                                          │
+│  #deal-driven                                                                            │
+│  └─ "can you think of another time a sale or deal made you go for something?"           │
+│                                                                                          │
+│  #threshold-spending-driven                                                              │
+│  └─ "can you think of another time you added stuff to hit free shipping or get          │
+│      a bonus?"                                                                           │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+##### Probing Question Hints (Behavioral Excavation)
+
+These are **loose questions** the LLM can draw from—not a rigid script:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  How often does this autopilot behavior kick in? Are they using the items or are        │
+│  they piling up?                                                                         │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│                                                                                          │
+│  FREQUENCY CHECK:                                                                        │
+│  • "does this feel like something that happens a lot, sometimes, or rarely?"             │
+│                                                                                          │
+│  USAGE/OUTCOME CHECK:                                                                    │
+│  • "what usually happens with the stuff that slides through — do you end up using it?"  │
+│                                                                                          │
+│  COMFORT CHECK (Transition to Emotional):                                                │
+│  • "does that sit okay with you or is there something about it that bugs you?"           │
+│                                                                                          │
+│  ROOT CAUSE (If it bugs them):                                                           │
+│  • "if it doesn't feel great, what do you think is behind that?"                         │
+│                                                                                          │
+│  BARRIER EXPLORATION (If pattern persists):                                              │
+│  • "you said it bugs you but it keeps happening — what do you think gets in the way?"   │
+│                                                                                          │
+│  CONTEXT MEMORY HOOKS (use info from Layer 2):                                           │
+│  • Reference {place}: "does this happen more at {merchant} specifically?"                │
+│  • Reference {item}: "do you have a lot of {category} already?"                          │
+│  • Reference {timing}: "is this usually a {day of week} thing?"                          │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Reflection Path 2: "How do I feel about this?" — Emotional Reflection
+
+> **Exploration Goal:** Surface the gut reaction to seeing the amount spent on autopilot and help the user name why they feel that tension.
+
+```
+┌───────────────────────────────────────┐
+│  "how do i feel about this?"           │
+│                                        │
+│  (LLM adapts based on mode)            │
+└─────────────────┬─────────────────────┘
+                  │
+                  ▼
+┌───────────────────────────────────────┐
+│  ENTRY:                                │
+│  "you spent ${price} on {item} —       │
+│   how does that land for you?"         │
+└─────────────────┬─────────────────────┘
+                  │
+       ┌──────────┴──────────┐
+       │                     │
+       ▼                     ▼
+  ┌─────────┐          ┌─────────────┐
+  │  "meh"  │          │ "bothers me"│
+  └────┬────┘          └──────┬──────┘
+       │                      │
+       ▼                      ▼
+  [Light check]         [Tension exploration]
+  "want to explore       "is it the amount,
+   anyway?"               the frequency, or
+                          something else?"
+                              │
+                              ▼
+                    [Values alignment]
+                    "does this line up with
+                     how you want to spend?"
+```
+
+##### LLM Instruction: Mode-Aware Question Adaptation
+
+The questions below are **structurally the same** but the LLM should **incorporate mode context** to make them feel personal and specific to the user's situation.
+
+**Example adaptations:**
+| Mode | Generic Question | Mode-Adapted Question |
+|------|------------------|----------------------|
+| `#comfort-driven-spender` | "does this sit well with you?" | "does spending money shopping because you're stressed sit well with you?" |
+| `#routine-treat-spender` | "does this sit well with you?" | "does spending money on these regular treats sit well with you?" |
+| `#visual-impulse-driven` | "does this sit well with you?" | "does buying things just because they caught your eye sit well with you?" |
+| `#deal-driven` | "does this sit well with you?" | "does buying things because they were on sale sit well with you?" |
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  Surface gut reaction to spending. Help user name the tension they feel.                │
+│  This path is for users who aren't sure if it's a "problem" but know something          │
+│  feels off.                                                                              │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  ENTRY APPROACH:                                                                         │
+│  Reflect back what we know:                                                              │
+│  • "you mentioned you spent ${price} on {item} — how does that number land for you?"     │
+│  • "when you think about this purchase, what comes up?"                                  │
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│                                                                                          │
+│  NAMING THE FEELING:                                                                     │
+│  • "is it more of a 'meh' or does it actually bother you?"                               │
+│  • "if you had to name what you're feeling, what would it be?"                           │
+│                                                                                          │
+│  TENSION EXPLORATION:                                                                    │
+│  • "what is it about this that's creating the tension?"                                  │
+│  • "is it the amount, the frequency, or something else?"                                 │
+│                                                                                          │
+│  VALUES ALIGNMENT:                                                                       │
+│  • "does this feel like it lines up with how you want to spend?"                         │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Reflection Path 3: "Is this a good use of money?" — Cost Comparison
+
+> **Exploration Goal:** Compare to benchmarks, evaluate tradeoffs, surface opportunity cost. Help user see the same money through a different lens.
+
+```
+┌───────────────────────────────────────┐
+│  "is this a good use of money?"        │
+│                                        │
+│  (LLM adapts based on mode)            │
+└─────────────────┬─────────────────────┘
+                  │
+                  ▼
+┌───────────────────────────────────────┐
+│  COMPARISON FRAMING:                   │
+│  "you spent ${price} on {item} —       │
+│   that's the equivalent of             │
+│   {other item}"                        │
+└─────────────────┬─────────────────────┘
+                  │
+                  ▼
+┌───────────────────────────────────────┐
+│  "which one feels like a better        │
+│   use of money?"                       │
+└─────────────────┬─────────────────────┘
+                  │
+       ┌──────────┴──────────┐
+       │                     │
+       ▼                     ▼
+  ┌──────────┐         ┌──────────┐
+  │ This one │         │ The other│
+  └────┬─────┘         └────┬─────┘
+       │                    │
+       ▼                    ▼
+  [Utility check]     [Regret test]
+  "will you get       "if you had to
+   a lot of use        spend that again,
+   out of it?"         would you?"
+```
+
+##### LLM Instruction: Mode-Aware Question Adaptation
+
+Same principle as Emotional Reflection—**incorporate mode context** into the questions.
+
+**Example adaptations:**
+| Mode | Generic Question | Mode-Adapted Question |
+|------|------------------|----------------------|
+| `#threshold-spending-driven` | "is this a good use of money?" | "was adding those extra items to hit free shipping worth the ${X} you spent?" |
+| `#scarcity-driven` | "if you had to spend that again, would you?" | "if that limited drop came back, would you buy it again at ${price}?" |
+| `#reward-driven-spender` | "is this something you'll get a lot of use out of?" | "is this reward something you'll get a lot of use out of?" |
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  Make abstract spending concrete through comparisons. Surface opportunity cost          │
+│  by showing what else the money could have been.                                         │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│                                                                                          │
+│  ITEM-TO-ITEM COMPARISON:                                                                │
+│  • "you spent ${price} on {item} — that's the equivalent of {other item}.               │
+│     which one feels like a better use of money?"                                         │
+│     🔧 V1 NOTE: May need hardcoded comparisons by price tier until we have user data    │
+│                                                                                          │
+│  AGGREGATE COMPARISON (V2):                                                              │
+│  • "you spent $X on Y items that are <$Z — that's the equivalent of {other things}.    │
+│     how does that make you feel?"                                                        │
+│     🔧 V1 NOTE: Skip for V1 since we don't have aggregate data                          │
+│                                                                                          │
+│  UTILITY/VALUE CHECK:                                                                    │
+│  • "is this something you'll get a lot of use out of?"                                   │
+│                                                                                          │
+│  REGRET TEST:                                                                            │
+│  • "if you had to spend that ${price} again, would you?"                                 │
+│                                                                                          │
+│  COST-PER-USE (for durable goods):                                                       │
+│  • "if you use this {X times}, that's about ${Y} per use — does that feel worth it?"    │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Reflection Path 4: "I have a different question" — Open-Ended
+
+> **Exploration Goal:** Let user drive. They may have something specific on their mind.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  User-directed exploration. Meet them where they are.                                   │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  ENTRY:                                                                                  │
+│  • "what's on your mind?"                                                                │
+│  • "what are you curious about?"                                                         │
+│                                                                                          │
+│  LLM BEHAVIOR:                                                                           │
+│  • Listen for keywords that map to other reflection paths                                │
+│  • If they ask about frequency → route to Behavioral Excavation                          │
+│  • If they express feelings → route to Emotional Reflection                              │
+│  • If they ask about value/worth → route to Cost Comparison                              │
+│  • If novel question → answer directly and offer to continue                             │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Reflection Path 5: "I'm good for now" — Exit
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  EXIT GRACEFULLY                                                                         │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  RESPONSES:                                                                              │
+│  • "got it — thanks for walking through this with me."                                   │
+│  • "cool, we can always pick this up later if something comes up."                       │
+│                                                                                          │
+│  OPTIONAL (if mode was assigned):                                                        │
+│  • "i'll keep an eye on this pattern and check in if i notice it happening again."       │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -615,10 +1033,14 @@ Counter-profiles are escape routes for users whose behavior is actually intentio
 
 ### Layer 2: Diagnosis (Mode Assignment)
 
+Unlike Shopping (which has complex branching), Food uses **direct mode assignment**—the user's response maps straight to a mode. Probing is for gathering context, not determining sub-modes.
+
 ```
                     ┌─────────────────────────────────────────────────────────┐
                     │  "When you think about why you order food, what feels   │
                     │   most true?"                                           │
+                    │                                                         │
+                    │  tag: #food-motivation                                  │
                     └────────────────────────────┬────────────────────────────┘
                                                  │
          ┌───────────────────┬───────────────────┼───────────────────┬───────────────────┐
@@ -634,84 +1056,228 @@ Counter-profiles are escape routes for users whose behavior is actually intentio
          ▼                   ▼                   ▼                   ▼                   ▼
    #autopilot-         #convenience-        #lack-of-           [COUNTER-          #lack-of-
    from-stress          driven              pre-planning         PROFILE]           pre-planning
-                                                                  Exit
+         │                   │                   │                  Exit                 │
+         ▼                   ▼                   ▼                                       ▼
+   [LIGHT PROBING]    [LIGHT PROBING]     [LIGHT PROBING]                         [LIGHT PROBING]
 ```
 
-### Food Modes
+---
+
+#### Mode Probing Details
+
+##### "I'm usually too drained to cook" → `#autopilot-from-stress`
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                                    FOOD MODES                                            │
+│  MODE: #autopilot-from-stress                                                            │
+│  Under cognitive load or stress, food purchases become automatic self-care               │
 ├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  #autopilot-from-stress                                                                  │
-│  ├─ Under cognitive load or stress, food purchases become automatic self-care            │
-│  └─ Signals: "when I'm stressed I just order" / "busy week so I didn't cook"             │
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  Understand what's driving the stress/drain. Is it work, life circumstances, or         │
+│  something more chronic? Gather context for reflection.                                  │
 │                                                                                          │
-│  #convenience-driven                                                                     │
-│  ├─ Orders because it's path of least resistance (no negative feelings about cooking)   │
-│  └─ Signals: "it's just easier" / "it shows up at my door" / "I don't have to do anything" │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│  • "what's usually going on when you feel that way?"                                     │
+│  • "is it more of a work thing or just life in general?"                                 │
+│  • "does it tend to happen on certain days?"                                             │
 │                                                                                          │
-│  #lack-of-pre-planning                                                                   │
-│  ├─ Each purchase feels like reasonable one-off because user didn't plan ahead          │
-│  └─ Signals: "got home late" / "forgot to bring lunch" / "didn't have time to prep"      │
+│  KEY SIGNALS:                                                                            │
+│  • "when I'm stressed I just order"                                                      │
+│  • "busy week so I didn't cook"                                                          │
+│  • "I don't have the energy"                                                             │
 │                                                                                          │
-│  #intentional-treat [COUNTER-PROFILE]                                                    │
-│  ├─ User made conscious choice to order a specific meal (intentional, not autopilot)    │
-│  └─ Signals: "I was craving it" / "planned treat" / "wanted that specific thing"         │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+##### "It's just easier to order" → `#convenience-driven`
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  MODE: #convenience-driven                                                               │
+│  Orders because it's path of least resistance (no negative feelings about cooking)      │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  Understand if this is a lifestyle choice or friction avoidance. Do they enjoy          │
+│  cooking but find ordering easier? Or do they not cook at all?                           │
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│  • "do you cook at all, or is ordering kind of the default?"                             │
+│  • "is it more about not wanting to deal with cleanup, or the whole thing?"              │
+│  • "do you have go-to orders or do you mix it up?"                                       │
+│                                                                                          │
+│  KEY SIGNALS:                                                                            │
+│  • "it's just easier"                                                                    │
+│  • "it shows up at my door"                                                              │
+│  • "I don't have to do anything"                                                         │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+##### "I keep meaning to cook but never plan" → `#lack-of-pre-planning`
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  MODE: #lack-of-pre-planning                                                             │
+│  Each purchase feels like reasonable one-off because user didn't plan ahead             │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  Understand where the planning breaks down. Is it grocery shopping? Meal prep?          │
+│  Time management? This mode often has a "I'll do better next week" pattern.             │
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│  • "what usually gets in the way of planning?"                                           │
+│  • "do you end up ordering because there's nothing in the fridge, or because you        │
+│     ran out of time?"                                                                    │
+│  • "have you tried meal prepping or is that not your thing?"                             │
+│                                                                                          │
+│  KEY SIGNALS:                                                                            │
+│  • "got home late"                                                                       │
+│  • "forgot to bring lunch"                                                               │
+│  • "didn't have time to prep"                                                            │
+│  • "there was nothing in the fridge"                                                     │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+##### "I'm too busy to plan" → `#lack-of-pre-planning`
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  MODE: #lack-of-pre-planning (same as above)                                             │
+│  Maps to same mode but with different framing                                            │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  Similar to "never plan" — understand if "busy" is temporary or permanent.              │
+│  Is this a season of life or an ongoing pattern?                                         │
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│  • "is this a particularly busy stretch or kind of how things are?"                      │
+│  • "do you see that changing anytime soon?"                                              │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+##### "I actually wanted that specific meal" → `#intentional-treat` [COUNTER-PROFILE]
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  COUNTER-PROFILE: #intentional-treat                                                     │
+│  User made conscious choice to order a specific meal (intentional, not autopilot)       │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  Validate that this was intentional. Light probing only — if confirmed, exit            │
+│  gracefully. This isn't a pattern to surface.                                            │
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│  • "nice — what did you get?"                                                            │
+│  • "was it a planned treat or more of a craving?"                                        │
+│                                                                                          │
+│  EXIT RESPONSES:                                                                         │
+│  • "sounds like you knew what you wanted — enjoy!"                                       │
+│  • "nothing wrong with treating yourself intentionally."                                 │
+│                                                                                          │
+│  KEY SIGNALS:                                                                            │
+│  • "I was craving it"                                                                    │
+│  • "planned treat"                                                                       │
+│  • "wanted that specific thing"                                                          │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Layer 3: Reflection
+### Layer 3: Reflection (Economic Evaluation)
+
+Unlike Shopping, Food's Layer 3 is simpler because:
+- **Emotional eval** → Already done in Layer 1 ("How do you feel about this number?")
+- **Behavioral frequency** → Already covered in Layer 1 (full month view)
+- **Food reasons are consistent** → Less mode variation than Shopping
+
+So Food reflection focuses on **economic evaluation** — is the benefit worth the cost?
 
 ```
-                    ┌─────────────────────────────────────────────────────────┐
-                    │  "Is the {mode-specific benefit} worth the ${X} spent?" │
-                    └────────────────────────────┬────────────────────────────┘
-                                                 │
-                    ┌────────────────────────────┴────────────────────────────┐
-                    │                                                          │
-                    ▼                                                          ▼
-    ┌───────────────────────────────────┐              ┌───────────────────────────────────┐
-    │             YES                   │              │              NO                   │
-    │                                   │              │                                   │
-    │   "Got it—sounds like it's        │              │   They've admitted the tradeoff   │
-    │    working for you."              │              │   isn't worth it. Help them       │
-    │                                   │              │   figure out what to do.          │
-    │         [EXIT or explore]         │              │                                   │
-    └───────────────────────────────────┘              └────────────────┬──────────────────┘
-                                                                        │
-                                                                        ▼
-                                                       ┌────────────────────────────────────┐
-                                                       │   "Let's explore what's blocking   │
-                                                       │    change..."                      │
-                                                       └────────────────┬───────────────────┘
-                                                                        │
-                              ┌─────────────────────────────────────────┼─────────────────────────────────────────┐
-                              │                                         │                                         │
-                              ▼                                         ▼                                         ▼
-               ┌─────────────────────────────┐       ┌─────────────────────────────┐       ┌─────────────────────────────┐
-               │"What gets in the way of     │       │"Is there something you'd    │       │"What would make it easier   │
-               │ changing it?"               │       │ rather that money go toward?"│       │ to change?"                 │
-               └──────────────┬──────────────┘       └──────────────┬──────────────┘       └──────────────┬──────────────┘
-                              │                                      │                                      │
-                              ▼                                      ▼                                      ▼
-               "Is it more about not          "What would that be?             "If you could change one
-                knowing how, or not            And how much of your             thing about your setup,
-                getting around to it?"         food spending would              what would it be?"
-                                               you want to redirect?"
+┌───────────────────────────────────────┐
+│  "is the {benefit from ordering}       │
+│   worth the ${X} spent?"               │
+│                                        │
+│  Mode-specific benefit:                │
+│  • #autopilot-from-stress → "relief"   │
+│  • #convenience-driven → "ease"        │
+│  • #lack-of-pre-planning → "not        │
+│    having to plan"                     │
+└─────────────────┬─────────────────────┘
+                  │
+       ┌──────────┴──────────┐
+       │                     │
+       ▼                     ▼
+  ┌─────────┐          ┌─────────┐
+  │   YES   │          │   NO    │
+  └────┬────┘          └────┬────┘
+       │                    │
+       ▼                    ▼
+  [EXIT or light      [CHANGE EXPLORATION]
+   exploration]        User said not worth it,
+                       help them figure out
+                       what to do about it
 ```
 
-**Mode-Specific Reflection Questions:**
+---
 
-| Mode | Reflection Question |
-|------|---------------------|
-| `#autopilot-from-stress` | "Is the **relief** worth $X?" |
-| `#convenience-driven` | "Is the **ease** worth $X?" |
-| `#lack-of-pre-planning` | "Is **not having to plan** worth $X?" |
+#### If YES — Exit Gracefully
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  USER SAYS IT'S WORTH IT                                                                 │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  RESPONSES:                                                                              │
+│  • "got it — sounds like it's working for you."                                          │
+│  • "makes sense. we can always revisit if anything changes."                             │
+│                                                                                          │
+│  OPTIONAL (light follow-up):                                                             │
+│  • "is there anything about it you'd still want to tweak?"                               │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### If NO — Change Exploration
+
+> **Exploration Goal:** User said not worth it, so help them figure out what to do about it.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  🔵 EXPLORATION GOAL:                                                                    │
+│  User admitted the tradeoff isn't worth it. Help them identify barriers and             │
+│  potential changes.                                                                      │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  🟢 PROBING QUESTION HINTS:                                                              │
+│                                                                                          │
+│  BARRIER EXPLORATION:                                                                    │
+│  • "what do you think gets in the way of changing it?"                                   │
+│                                                                                          │
+│  OPPORTUNITY COST:                                                                       │
+│  • "is there something you'd rather that money go toward?"                               │
+│                                                                                          │
+│  CHANGE ENABLEMENT:                                                                      │
+│  • "what would make it easier to change?"                                                │
+│                                                                                          │
+│  FOLLOW-UPS (based on response):                                                         │
+│  • If barrier is time: "is it more about not knowing how, or not getting around to it?" │
+│  • If they name an alternative: "how much of your food spending would you want to       │
+│    redirect toward that?"                                                                │
+│  • If they're unsure: "if you could change one thing about your setup, what would       │
+│    it be?"                                                                               │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -779,25 +1345,153 @@ Counter-profiles are escape routes for users whose behavior is actually intentio
 
 ### Layer 2: Diagnosis (Mode Assignment)
 
+Coffee/Treats uses **fixed questions with fixed response options**. Each path leads to a mode.
+
 ```
                     ┌─────────────────────────────────────────────────────────┐
                     │  "What's the main reason you buy these?"                │
+                    │                                                         │
+                    │  tag: #coffee-motivation                                │
                     └────────────────────────────┬────────────────────────────┘
                                                  │
              ┌─────────────────┬─────────────────┼─────────────────┬─────────────────┐
              │                 │                 │                 │                 │
              ▼                 ▼                 ▼                 ▼                 ▼
       ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-      │"It's become │   │"When I      │   │"When I need │   │"Helps me    │   │ [Other/     │
+      │"it's become │   │"when i      │   │"when i need │   │"helps me    │   │ [Other/     │
       │ a routine"  │   │ happen to   │   │ a pick-me-up│   │ focus or    │   │  Custom]    │
-      │             │   │ be nearby"  │   │ or break"   │   │ get things  │   │             │
-      │             │   │             │   │             │   │ done"       │   │             │
+      │             │   │ be nearby"  │   │ or take a   │   │ get things  │   │             │
+      │             │   │             │   │ break"      │   │ done"       │   │             │
       └──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘
              │                 │                 │                 │                 │
              ▼                 ▼                 ▼                 ▼                 ▼
-      #autopilot-        #environment-     #emotional-       #productivity-    → Explore
-       routine            triggered          coping           justification
+        [Fixed Q2]       [Fixed Q2]        [Fixed Q2]        [Fixed Q2]         → Explore
 ```
+
+---
+
+#### Fixed Question Flow: "it's become a routine" → `#autopilot-routine`
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│  Q2: "You've averaged {X} times a week — was that intentional or                      │
+│       did it just kind of happen?"                                                     │
+│                                                                                        │
+│  tag: #autopilot-routine-driven                                                        │
+└─────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                      │
+                    ┌─────────────────┴─────────────────┐
+                    │                                   │
+                    ▼                                   ▼
+        ┌─────────────────────┐             ┌─────────────────────┐
+        │ "just sort of       │             │ "yeah, intentional" │
+        │  happened"          │             │                     │
+        └──────────┬──────────┘             └──────────┬──────────┘
+                   │                                   │
+                   ▼                                   ▼
+            #autopilot-routine                  [COUNTER-PROFILE]
+                   │                            #intentional-ritual
+                   ▼                                   │
+            → Layer 3                                  ▼
+                                                 [EXIT gracefully]
+                                                 "sounds like you've
+                                                  got it dialed in"
+```
+
+---
+
+#### Fixed Question Flow: "when i happen to be nearby" → `#environment-triggered`
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│  Q2: "where does this usually happen?"                                                 │
+│                                                                                        │
+│  tag: #environment-driven                                                              │
+└─────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                      │
+              ┌───────────────────────┼───────────────────────┐
+              │                       │                       │
+              ▼                       ▼                       ▼
+  ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐
+  │ "near work /        │ │ "near home"         │ │ "when i'm out       │
+  │  on commute"        │ │                     │ │  doing other things"│
+  └──────────┬──────────┘ └──────────┬──────────┘ └──────────┬──────────┘
+             │                       │                       │
+             └───────────────────────┴───────────────────────┘
+                                     │
+                                     ▼
+                          #environment-triggered
+                          (capture location context)
+                                     │
+                                     ▼
+                               → Layer 3
+```
+
+---
+
+#### Fixed Question Flow: "when i need a pick-me-up or take a break" → `#emotional-coping`
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│  Q2: "what's usually going on?"                                                        │
+│                                                                                        │
+│  tag: #emotionally-driven                                                              │
+└─────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                      │
+        ┌─────────────┬───────────────┼───────────────┬─────────────┐
+        │             │               │               │             │
+        ▼             ▼               ▼               ▼             ▼
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│"work felt   │ │"bored or    │ │"stressed    │ │"just needed │
+│ like a lot" │ │ stuck,      │ │ or anxious" │ │ to step     │
+│             │ │ needed      │ │             │ │ away"       │
+│             │ │ change of   │ │             │ │             │
+│             │ │ scenery"    │ │             │ │             │
+└──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
+       │               │               │               │
+       └───────────────┴───────────────┴───────────────┘
+                               │
+                               ▼
+                    #emotional-coping
+                    (capture emotion context)
+                               │
+                               ▼
+                         → Layer 3
+```
+
+---
+
+#### Fixed Question Flow: "helps me focus or get things done" → `#productivity-justification`
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│  Q2: "You said it helps you focus — does it?"                                          │
+│                                                                                        │
+│  tag: #productivity-value-driven                                                       │
+└─────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                      │
+     ┌──────────────┬─────────────────┼─────────────────┬──────────────┐
+     │              │                 │                 │              │
+     ▼              ▼                 ▼                 ▼              ▼
+┌──────────┐ ┌──────────┐ ┌────────────────┐ ┌──────────────┐ ┌──────────────┐
+│"yeah, I  │ │"half the │ │"think so?      │ │"honestly,    │ │"it's more    │
+│ notice a │ │ time"    │ │ hard to say"   │ │ probably not"│ │ about the    │
+│ real     │ │          │ │                │ │              │ │ ritual"      │
+│difference│ │          │ │                │ │              │ │              │
+└────┬─────┘ └────┬─────┘ └───────┬────────┘ └──────┬───────┘ └──────┬───────┘
+     │            │               │                 │                │
+     ▼            └───────────────┴─────────────────┴────────────────┘
+[COUNTER-PROFILE]                         │
+#productive-coffee-                       ▼
+drinker                        #productivity-justification
+     │                         (productivity claim is uncertain)
+     ▼                                    │
+[EXIT gracefully]                         ▼
+"sounds like it's                   → Layer 3
+ working for you"
+```
+
+---
 
 ### Coffee/Treats Modes
 
@@ -826,11 +1520,12 @@ Counter-profiles are escape routes for users whose behavior is actually intentio
 │  COUNTER-PROFILES                                                                        │
 ├─────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  • intentional-ritual                                                                    │
+│  • #intentional-ritual                                                                   │
 │    └─ User intentionally chose to go to coffee X times a week                            │
 │                                                                                          │
-│  • productive-coffee-drinker                                                             │
-│    └─ User says they actually get productive work done                                   │
+│  • #productive-coffee-drinker                                                            │
+│    └─ User says they actually get productive work done ("yeah, I notice a real          │
+│       difference")                                                                       │
 │                                                                                          │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -839,36 +1534,53 @@ Counter-profiles are escape routes for users whose behavior is actually intentio
 
 ### Layer 3: Reflection
 
+Each mode has a **unique reflection question** tailored to what was revealed in Layer 2.
+
 ```
-                    ┌─────────────────────────────────────────────────────────┐
-                    │  "Do you think spending $X on {mode-benefit} is worth   │
-                    │   it?"                                                  │
-                    └────────────────────────────┬────────────────────────────┘
-                                                 │
-                    ┌────────────────────────────┴────────────────────────────┐
-                    │                                                          │
-                    ▼                                                          ▼
-    ┌───────────────────────────────────┐              ┌───────────────────────────────────┐
-    │             YES                   │              │              NO                   │
-    │                                   │              │                                   │
-    │   "Got it—sounds like it's        │              │   Surface what's blocking change  │
-    │    working for you."              │              │   and whether they're ready to    │
-    │                                   │              │   act.                            │
-    │         [EXIT or explore]         │              │                                   │
-    └───────────────────────────────────┘              └────────────────┬──────────────────┘
-                                                                        │
-                                                                        ▼
-                                                       [Same exploration flow as Food]
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│  MODE-SPECIFIC REFLECTION QUESTIONS                                                      │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  #autopilot-routine                                                                      │
+│  └─ "how do you feel about spending ${X} to get coffee {Y times a week}?"               │
+│                                                                                          │
+│  #environment-triggered                                                                  │
+│  └─ "would you still go here if it wasn't close by {location}?"                         │
+│                                                                                          │
+│  #emotional-coping                                                                       │
+│  └─ "do you think spending ${X} on {emotion} is worth it?"                              │
+│     (where {emotion} = the specific emotion captured in Layer 2)                        │
+│                                                                                          │
+│  #productivity-justification                                                             │
+│  └─ "do you think spending ${X} on {productivity outcome} is worth it?"                 │
+│     (where {productivity outcome} = what they said in Layer 2)                          │
+│                                                                                          │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Mode-Specific Reflection Questions:**
+```
+┌───────────────────────────────────────┐
+│  Mode-Specific Reflection Question     │
+└─────────────────┬─────────────────────┘
+                  │
+       ┌──────────┴──────────┐
+       │                     │
+       ▼                     ▼
+  ┌─────────┐          ┌─────────┐
+  │   YES   │          │   NO    │
+  └────┬────┘          └────┬────┘
+       │                    │
+       ▼                    ▼
+  [EXIT]               [CHANGE EXPLORATION]
+  "Got it — sounds     "what do you think gets
+   like it's working    in the way of changing it?"
+   for you."
+                       "is there something you'd
+                        rather that money go toward?"
 
-| Mode | Reflection Question |
-|------|---------------------|
-| `#autopilot-routine` | "Do you think spending $X on **this routine** is worth it?" |
-| `#environment-triggered` | "Would you still go here if it **wasn't close by**?" |
-| `#emotional-coping` | "Do you think spending $X on **{stress relief/break}** is worth it?" |
-| `#productivity-justification` | "Do you think spending $X on **{productivity outcome}** is worth it?" |
+                       "what would make it easier
+                        to change?"
+```
 
 ---
 

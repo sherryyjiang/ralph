@@ -1,27 +1,35 @@
-# Ralph Guardrails (Signs)
+# Guardrails (Signs)
 
-> Lessons learned from past failures. READ THESE BEFORE ACTING.
-
-## Core Signs
-
-### Sign: Read Before Writing
-- **Trigger**: Before modifying any file
-- **Instruction**: Always read the existing file first
-- **Added after**: Core principle
-
-### Sign: Test After Changes
-- **Trigger**: After any code change
-- **Instruction**: Run tests to verify nothing broke
-- **Added after**: Core principle
-
-### Sign: Commit Checkpoints
-- **Trigger**: Before risky changes
-- **Instruction**: Commit current working state first
-- **Added after**: Core principle
+> Lessons learned from previous failures - read these before each iteration.
 
 ---
 
-## Learned Signs
+## Signs for Peek Check-In App
 
-(Signs added from observed failures will appear below)
+### ⚠️ Sign 1: Follow Question Trees Exactly
+The question trees in `PEEK_QUESTION_TREES.md` define EXACT options for Layer 1 questions. Do not paraphrase or change the wording.
 
+### ⚠️ Sign 2: LLM Wrapper is Critical
+ALL Gemini calls must go through `lib/llm/client.ts` which reads from `NEXT_PUBLIC_LLM_MODEL` env var. Never hardcode model names.
+
+### ⚠️ Sign 3: Mode Assignment Timing
+Modes are assigned AFTER Layer 2 probing completes, not before. The probing reveals which mode applies.
+
+### ⚠️ Sign 4: Counter-Profiles Exit Early
+When counter-profile signals are detected (intentional behavior), exit gracefully. Don't force users through full probing.
+
+### ⚠️ Sign 5: Yellow vs White Options
+In the spec, [YELLOW] options indicate less intentional spending that requires deeper probing. [WHITE] options are more deliberate and need lighter probing.
+
+---
+
+## General Signs (from previous tasks)
+
+### ⚠️ Always Read Before Editing
+Read the full file before making changes. Understand existing patterns.
+
+### ⚠️ Run Linting
+Run `npm run lint` after code changes to catch errors early.
+
+### ⚠️ Commit Frequently
+Make small, focused commits. Git is the memory.

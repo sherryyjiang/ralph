@@ -271,3 +271,33 @@ echo "y" | ./.cursor/ralph-scripts/ralph-loop.sh -n 10
 - [ ] Learn about guardrails and "Signs" (happens when things fail)
 - [ ] Try running Ralph overnight on a complex feature
 
+---
+
+### Session 4: 2026-01-13 — Peek Check-In Chat App (Big Project!)
+
+**Task Overview:**
+Building a therapy-like chat app for spending reflections using:
+- Gemini Flash for AI orchestration
+- Complex question trees from `PEEK_QUESTION_TREES.md`
+- 31 success criteria across 8 phases
+
+**Key Files Created:**
+- `PEEK_CHECKIN_SPEC.md` - Full technical specification
+- `RALPH_TASK.md` - Updated with new task and criteria
+- `.ralph/design-decisions.md` - For tracking ambiguous interpretations
+
+**LLM Switching Pattern:**
+```typescript
+// All LLM calls go through wrapper for easy model switching
+const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "gemini-2.5-flash";
+```
+
+**API Key Location:**
+```bash
+# Create .env.local and add:
+GOOGLE_API_KEY=your_gemini_api_key
+NEXT_PUBLIC_LLM_MODEL=gemini-2.5-flash
+```
+
+**Status:** Ready to run Ralph iterations
+

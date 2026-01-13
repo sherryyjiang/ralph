@@ -861,6 +861,34 @@ After implementation, verify:
 
 ---
 
+## Context Window Management
+
+Large files can cause Ralph to hit context limits and trigger rotation loops. To manage this:
+
+### File Splitting Guidelines
+When a file exceeds ~40KB or ~1000 lines, split it into smaller modules:
+1. Group related functions/types into separate files
+2. Create a folder with the same name as the original file
+3. Add an `index.ts` that re-exports all modules
+4. Keep individual files under 500 lines (~20KB)
+
+### Current Split Structure
+- **lib/llm/question-trees/** - Modular code split from question-trees.ts
+  - `types.ts` - Shared type definitions
+  - `shopping.ts` - Shopping check-in logic
+  - `food.ts` - Food check-in logic
+  - `coffee.ts` - Coffee check-in logic
+  - `reflection.ts` - Layer 3 reflection
+  - `modes.ts` - Mode definitions
+  - `index.ts` - Re-exports all modules
+
+### For Ralph Iterations
+- Read individual subfiles as needed rather than the entire monolithic file
+- When implementing features, edit the specific module file (not the barrel index)
+- If you find a file is too large, you may split it following the guidelines above, as long as it is labeled and hierarchized correctly for easy finding
+
+---
+
 ## Ralph Instructions
 
 1. Read this spec AND `docs/question-trees/shopping-check-in.md` carefully
@@ -871,4 +899,5 @@ After implementation, verify:
 6. Yellow box probing (deep exploration) is mostly relevant for shopping - coffee/food can use lighter probing
 7. When ALL criteria are `[x]`, output: `<ralph>COMPLETE</ralph>`
 8. If stuck on same issue 3+ times, output: `<ralph>GUTTER</ralph>`
+9. **If files are too large**, split them following the "Context Window Management" guidelines above
 

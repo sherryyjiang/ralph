@@ -14,6 +14,21 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 - **docs/question-trees/shopping-check-in.md** - Authoritative spec for shopping flow
 - **.cursorrules/question-tree-design-and-testing.md** - Testing skill guide
 
+### Code Structure (Split for Context Management)
+- **lib/llm/question-trees/** - Modular code (read individual files as needed)
+  - `types.ts` - Shared type definitions (~2KB)
+  - `shopping.ts` - Shopping check-in logic (~15KB)
+  - `food.ts` - Food check-in logic (~5KB)
+  - `coffee.ts` - Coffee check-in logic (~8KB)
+  - `reflection.ts` - Layer 3 reflection (~3KB)
+  - `modes.ts` - Mode definitions (~5KB)
+  - `index.ts` - Re-exports all modules (~2KB)
+- **lib/llm/question-trees.ts** - Original monolithic file (still exists, can be deprecated)
+
+### Context Window Management
+Large files have been split into smaller modules to avoid context rotation loops. 
+Read individual subfiles as needed rather than entire large files.
+
 ### Previous Iterations
 - **RALPH_ITERATION_2.md** - Previous iteration (inline entry questions, calibration fixes)
 - **PEEK_CHECKIN_SPEC.md** - Original technical specification

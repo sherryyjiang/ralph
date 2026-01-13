@@ -15,7 +15,7 @@ Build a mock-up chat application that helps users understand their spending beha
 ## Success Criteria
 
 ### Phase 1: Foundation
-1. [ ] Create TypeScript interfaces in `lib/types/index.ts` (Transaction, CheckInSession, Message)
+1. [x] Create TypeScript interfaces in `lib/types/index.ts` (Transaction, CheckInSession, Message)
 2. [ ] Create synthetic transaction data in `lib/data/synthetic-transactions.ts` covering all check-in paths
 3. [ ] Create LLM wrapper in `lib/llm/client.ts` that reads model from `NEXT_PUBLIC_LLM_MODEL` env var
 4. [ ] Build basic dashboard page with weekly spend summary and transaction list

@@ -71,6 +71,29 @@ export function getShoppingFixedQuestion1(
   };
 }
 
+/**
+ * Shopping Fixed Question 2 question text mapping (Q1 response → specific Q2 question)
+ *
+ * NOTE: "other" is handled as open-ended exploration (no fixed Q2).
+ */
+export const SHOPPING_Q2_QUESTIONS: Record<
+  "impulse" | "deliberate" | "deal" | "gift" | "maintenance",
+  string
+> = {
+  impulse: "What made you go for it?",
+  deliberate: "What were you waiting for?",
+  deal: "Tell me more about the deal, discount or limited event?",
+  gift: "Who was it for?",
+  maintenance: "Did you get the same thing or switched it up?",
+};
+
+export function getShoppingFixedQuestion2Text(path: string): string | null {
+  if (path in SHOPPING_Q2_QUESTIONS) {
+    return SHOPPING_Q2_QUESTIONS[path as keyof typeof SHOPPING_Q2_QUESTIONS];
+  }
+  return null;
+}
+
 // =============================================================================
 // Shopping Path Exploration Goals
 // =============================================================================

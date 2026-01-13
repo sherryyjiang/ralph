@@ -4,8 +4,8 @@
 
 ### Current Status
 - **Phase**: Phase A (Fix Core Data Structures)
-- **Last Criterion Completed**: 4 (`getFixedQuestion2Options` uses `*SubPathProbing` maps)
-- **Verification**: `pnpm test shopping-flow` passing (110 tests)
+- **Last Criterion Completed**: 5 (Added Q1 → Q2 question text mapping)
+- **Verification**: `pnpm test shopping-flow` passing
 
 ---
 
@@ -787,3 +787,9 @@ Summary of verification:
 
 ### 2026-01-13 16:31:31
 **Session 17 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 16:32:24
+**Session 18 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 16:32:26
+**Session 19 started** (model: gpt-5.2-high)

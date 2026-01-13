@@ -156,12 +156,17 @@ describe("Mode Indicators", () => {
     expect(impulseIndicators).toContain("#trend-susceptibility-driven");
   });
 
-  it("should not expose mode indicators for deal path at path level", () => {
-    expect(explorationGoals.deal.modeIndicators).toHaveLength(0);
+  it("should include exploration tags for deal path", () => {
+    const dealIndicators = explorationGoals.deal.modeIndicators.join(" ");
+    expect(dealIndicators).toContain("#deal-driven");
+    expect(dealIndicators).toContain("#scarcity-driven");
+    expect(dealIndicators).toContain("#threshold-spending-driven");
   });
 
-  it("should not expose mode indicators for deliberate path at path level", () => {
-    expect(explorationGoals.deliberate.modeIndicators).toHaveLength(0);
+  it("should include exploration tags for deliberate path", () => {
+    const deliberateIndicators = explorationGoals.deliberate.modeIndicators.join(" ");
+    expect(deliberateIndicators).toContain("#deliberate-purchase");
+    expect(deliberateIndicators).toContain("#value-standards-driven");
   });
 });
 

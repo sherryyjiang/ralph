@@ -11,7 +11,6 @@ import {
   impulseSubPathGoals, 
   dealSubPathGoals,
   deliberateSubPathGoals,
-  deliberateSubPathProbing,
   modeDefinitions 
 } from "@/lib/llm/question-trees";
 

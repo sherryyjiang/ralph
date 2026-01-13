@@ -3,9 +3,9 @@
 ## Task: Fix Shopping Question Tree Logic - Iteration 3
 
 ### Current Status
-- **Phase**: Phase C (Fix Mode Definitions - Flat, No Hierarchy)
-- **Last Criterion Completed**: 14 (Verified `targetModes` only contains actual modes, not exploration tags)
-- **Verification**: `pnpm test shopping-flow` passing (131 tests)
+- **Phase**: Phase D (Add Counter-Profiles)
+- **Last Criterion Completed**: 17 (Added counter-profile patterns + exit messages for trending and sale_discount)
+- **Verification**: `pnpm test shopping-flow` passing (132 tests)
 
 ---
 

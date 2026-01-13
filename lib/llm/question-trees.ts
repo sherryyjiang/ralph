@@ -237,6 +237,8 @@ export interface SubPathProbing {
   probingHints: string[];
   targetModes: string[];
   modeSignals: Record<string, string[]>;
+  counterProfileId?: string; // e.g. "intentional-collector"
+  counterProfilePatterns?: string[]; // phrases indicating counter-profile behavior
   counterProfileExit?: string;
   lightProbing?: boolean; // For deliberate paths that need less exploration
 }
@@ -352,7 +354,14 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
         "someone recommended it",
       ],
     },
-    counterProfileExit: "If user confirms 'it's me' when asked if it's them or a trend buy, exit gracefully - this is intentional",
+    counterProfilePatterns: [
+      "it's me",
+      "it's totally my style",
+      "it fits me",
+      "I just genuinely like it",
+    ],
+    counterProfileExit:
+      "Sounds like this fits you (not just the trend) — that's an intentional choice. We can stop here if you want.",
   },
   other: {
     subPath: "other",
@@ -479,6 +488,19 @@ export const dealSubPathProbing: Record<string, SubPathProbing> = {
         "FOMO",
       ],
     },
+    counterProfileId: "intentional-collector",
+    counterProfilePatterns: [
+      "I collect these",
+      "adding to my collection",
+      "I've been waiting for this",
+      "waiting for this drop",
+      "I've been eyeing it",
+      "I would've bought this anyway",
+      "this is part of my collection",
+      "I love collecting",
+    ],
+    counterProfileExit:
+      "Sounds like this is part of an intentional collection — that’s different from impulse buying.",
   },
   sale_discount: {
     subPath: "sale_discount",
@@ -495,7 +517,15 @@ export const dealSubPathProbing: Record<string, SubPathProbing> = {
         "I love a good sale",
       ],
     },
-    counterProfileExit: "If they confirm they would have bought at full price, exit gracefully - this is intentional deal-hunting",
+    counterProfilePatterns: [
+      "I would've bought it anyway",
+      "I was already planning to buy it",
+      "I've been waiting for it to go on sale",
+      "I was already looking for this",
+      "I would've bought it at full price",
+    ],
+    counterProfileExit:
+      "Sounds like you were already going to buy it and just timed it for a better price — that’s intentional deal-hunting. We can stop here if you want.",
   },
   free_shipping: {
     subPath: "free_shipping",

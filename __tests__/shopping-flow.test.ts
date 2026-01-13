@@ -325,6 +325,46 @@ describe("getSubPathExplorationGoal helper", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// Right_One Path Probing Adherence Tests
+// ═══════════════════════════════════════════════════════════════
+
+describe("right_one Path Probing Adherence", () => {
+  it("should have correct probing hints for right_one path", () => {
+    const goal = getSubPathExplorationGoal("deliberate", "right_one");
+    expect(goal).toBeDefined();
+    
+    const expectedHints = [
+      "Where did you go for your research",
+      "Where did you end up finding it",
+      "How long did you spend looking",
+    ];
+    
+    // Each expected hint should be present in the probing hints
+    expectedHints.forEach(hint => {
+      const found = goal?.probingHints.some(h => 
+        h.toLowerCase().includes(hint.toLowerCase())
+      );
+      expect(found).toBe(true);
+    });
+  });
+
+  it("should target #deliberate-researcher mode for right_one", () => {
+    const goal = getSubPathExplorationGoal("deliberate", "right_one");
+    expect(goal?.mode).toBe("#deliberate-researcher");
+  });
+
+  it("should have exploration goal about research process", () => {
+    const goal = getSubPathExplorationGoal("deliberate", "right_one");
+    expect(goal?.explorationGoal.toLowerCase()).toContain("research");
+  });
+
+  it("should have at least 3 probing hints for thorough exploration", () => {
+    const goal = getSubPathExplorationGoal("deliberate", "right_one");
+    expect(goal?.probingHints.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
 // Mode Definition Tests
 // ═══════════════════════════════════════════════════════════════
 
@@ -356,5 +396,69 @@ describe("Mode Definitions", () => {
       expect(mode.indicators).toBeDefined();
       expect(mode.indicators.length).toBeGreaterThan(0);
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Probing Adherence Tests (right_one path specifically)
+// ═══════════════════════════════════════════════════════════════
+
+describe("LLM Probing Adherence - right_one path", () => {
+  it("right_one path should have specific probing questions", () => {
+    const subPathProbing = getSubPathProbing("deliberate", "right_one");
+    expect(subPathProbing).toBeDefined();
+    expect(subPathProbing?.probingHints).toBeDefined();
+    expect(subPathProbing?.probingHints.length).toBeGreaterThan(0);
+  });
+
+  it("right_one probing hints should include research-related questions", () => {
+    const subPathProbing = getSubPathProbing("deliberate", "right_one");
+    const hints = subPathProbing?.probingHints || [];
+    
+    // Check for the expected specific questions per LLM_PROBING_ADHERENCE.md
+    const expectedPatterns = [
+      /research/i,
+      /finding it/i,
+      /spend.*looking/i,
+    ];
+    
+    const matchesAtLeastOne = expectedPatterns.some(pattern => 
+      hints.some(hint => pattern.test(hint))
+    );
+    
+    expect(matchesAtLeastOne).toBe(true);
+  });
+
+  it("right_one should NOT use generic questions", () => {
+    const subPathProbing = getSubPathProbing("deliberate", "right_one");
+    const hints = subPathProbing?.probingHints || [];
+    
+    // These generic questions should NOT be in the probing hints
+    const genericPatterns = [
+      /what made you decide/i,
+      /can you tell me more/i,
+      /what factors did you consider/i,
+      /could you elaborate/i,
+    ];
+    
+    hints.forEach(hint => {
+      genericPatterns.forEach(pattern => {
+        expect(pattern.test(hint)).toBe(false);
+      });
+    });
+  });
+
+  it("right_one should target #deliberate-researcher mode", () => {
+    const subPathProbing = getSubPathProbing("deliberate", "right_one");
+    expect(subPathProbing?.targetModes).toContain("#deliberate-researcher");
+  });
+
+  it("right_one should have mode signals for research behavior", () => {
+    const subPathProbing = getSubPathProbing("deliberate", "right_one");
+    const modeSignals = subPathProbing?.modeSignals || {};
+    
+    // Should have signals for the target mode
+    expect(modeSignals["#deliberate-researcher"]).toBeDefined();
+    expect(modeSignals["#deliberate-researcher"]?.length).toBeGreaterThan(0);
   });
 });

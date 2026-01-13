@@ -1160,7 +1160,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           );
         });
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, calibrationPhase, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, setCalibrationPhase, addTag]);
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, calibrationPhase, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, setCalibrationPhase, addTag, session]);
 
   // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {

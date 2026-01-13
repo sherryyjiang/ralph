@@ -7,6 +7,8 @@
 import { getFixedQuestion1Options, explorationGoals } from "@/lib/llm/prompts";
 import { 
   getFixedQuestion2Options as getTreeFixedQuestion2Options,
+  SHOPPING_Q2_QUESTIONS,
+  getShoppingFixedQuestion2Text,
   getSubPathExplorationGoal, 
   getSubPathProbing,
   impulseSubPathProbing,
@@ -61,6 +63,63 @@ describe("Shopping Fixed Question 1", () => {
       expect(option.emoji).toBeDefined();
       expect(option.emoji?.length).toBeGreaterThan(0);
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Fixed Question 2 Question Text Mapping Tests
+// ═══════════════════════════════════════════════════════════════
+
+describe("Shopping Fixed Question 2 question text mapping", () => {
+  it("should map impulse to the impulse Q2 question", () => {
+    expect(getShoppingFixedQuestion2Text("impulse")).toBe("What made you go for it?");
+  });
+
+  it("should map deliberate to the deliberate Q2 question", () => {
+    expect(getShoppingFixedQuestion2Text("deliberate")).toBe("What were you waiting for?");
+  });
+
+  it("should map deal to the deal Q2 question", () => {
+    expect(getShoppingFixedQuestion2Text("deal")).toBe(
+      "Tell me more about the deal, discount or limited event?"
+    );
+  });
+
+  it("should map gift to the gift Q2 question", () => {
+    expect(getShoppingFixedQuestion2Text("gift")).toBe("Who was it for?");
+  });
+
+  it("should map maintenance to the maintenance Q2 question", () => {
+    expect(getShoppingFixedQuestion2Text("maintenance")).toBe(
+      "Did you get the same thing or switched it up?"
+    );
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Fixed Question 2 Question Text Mapping Tests
+// ═══════════════════════════════════════════════════════════════
+
+describe("Shopping Fixed Question 2 question mapping", () => {
+  it("should map each shopping path to the correct Q2 question text", () => {
+    expect(SHOPPING_Q2_QUESTIONS.impulse).toBe("What made you go for it?");
+    expect(SHOPPING_Q2_QUESTIONS.deliberate).toBe("What were you waiting for?");
+    expect(SHOPPING_Q2_QUESTIONS.deal).toBe("Tell me more about the deal, discount or limited event?");
+    expect(SHOPPING_Q2_QUESTIONS.gift).toBe("Who was it for?");
+    expect(SHOPPING_Q2_QUESTIONS.maintenance).toBe("Did you get the same thing or switched it up?");
+  });
+
+  it("should return the correct Q2 question text for known paths", () => {
+    expect(getShoppingFixedQuestion2Text("impulse")).toBe("What made you go for it?");
+    expect(getShoppingFixedQuestion2Text("deliberate")).toBe("What were you waiting for?");
+    expect(getShoppingFixedQuestion2Text("deal")).toBe("Tell me more about the deal, discount or limited event?");
+    expect(getShoppingFixedQuestion2Text("gift")).toBe("Who was it for?");
+    expect(getShoppingFixedQuestion2Text("maintenance")).toBe("Did you get the same thing or switched it up?");
+  });
+
+  it("should return null for unknown paths (including 'other')", () => {
+    expect(getShoppingFixedQuestion2Text("other")).toBeNull();
+    expect(getShoppingFixedQuestion2Text("unknown")).toBeNull();
   });
 });
 

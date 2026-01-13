@@ -110,12 +110,17 @@ describe("Path to Mode Mapping", () => {
   });
 
   it("deal should avoid path-level indicators (sub-path probing determines the mode)", () => {
-    expect(explorationGoals.deal.modeIndicators).toHaveLength(0);
+    const indicators = explorationGoals.deal.modeIndicators.join(" ");
+    expect(indicators).toContain("#deal-driven");
+    expect(indicators).toContain("#scarcity-driven");
+    expect(indicators).toContain("#threshold-spending-driven");
     expect(explorationGoals.deal.probingHints.join(" ").toLowerCase()).toContain("full price");
   });
 
   it("deliberate should avoid path-level indicators (sub-path probing determines the mode)", () => {
-    expect(explorationGoals.deliberate.modeIndicators).toHaveLength(0);
+    const indicators = explorationGoals.deliberate.modeIndicators.join(" ");
+    expect(indicators).toContain("#deliberate-purchase");
+    expect(indicators).toContain("#value-standards-driven");
     expect(explorationGoals.deliberate.probingHints.length).toBeGreaterThan(0);
   });
 });

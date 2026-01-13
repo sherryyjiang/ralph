@@ -596,6 +596,7 @@ export interface CalibrationResult {
   isClose: boolean;
   percentDiff: number;
   absoluteDiff: number;
+  actualAmount: number;
   message: string;
   showBreakdown: boolean;
 }
@@ -614,6 +615,7 @@ export function getFoodCalibrationResult(
       isClose: true,
       percentDiff,
       absoluteDiff,
+      actualAmount,
       message: `Nice awareness! You've spent $${actualAmount.toFixed(0)} on food delivery this month. You were pretty close! 🎯`,
       showBreakdown: false,
     };
@@ -623,6 +625,7 @@ export function getFoodCalibrationResult(
       isClose: false,
       percentDiff,
       absoluteDiff,
+      actualAmount,
       message: `Actually, you've spent $${actualAmount.toFixed(0)} this month — about $${absoluteDiff.toFixed(0)} ${direction} than you guessed. Would you like to see what's behind this amount?`,
       showBreakdown: true,
     };
@@ -1520,6 +1523,8 @@ export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "What changed that made it feel okay to buy?",
     ],
     keySignals: ["saved up for it", "waited until I had the money"],
+    lightProbing: true,
+    counterProfileExit: "That's really thoughtful — waiting until the timing was right financially shows solid awareness of your budget.",
   },
   right_price: {
     subPath: "right_price",
@@ -1529,6 +1534,8 @@ export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "What deal did you find?",
     ],
     keySignals: ["waited for a sale", "price tracking"],
+    lightProbing: true,
+    counterProfileExit: "Nice! Being patient for the right deal takes discipline. That kind of intentional waiting usually pays off.",
   },
   right_one: {
     subPath: "right_one",
@@ -1540,6 +1547,8 @@ export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "How long did you spend looking?",
     ],
     keySignals: ["researched options", "read reviews", "compared features"],
+    lightProbing: true,
+    counterProfileExit: "It sounds like you really put thought into this — doing your research and finding exactly what works for you. That's a great way to shop!",
   },
   still_wanted: {
     subPath: "still_wanted",
@@ -1549,6 +1558,8 @@ export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "How long was it on your radar?",
     ],
     keySignals: ["gave it time", "let the excitement pass", "still wanted it"],
+    lightProbing: true,
+    counterProfileExit: "That's a smart approach — giving yourself time to make sure it wasn't just a passing want. The fact that you still wanted it says something!",
   },
   got_around: {
     subPath: "got_around",
@@ -1558,6 +1569,8 @@ export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
       "What finally made you do it?",
     ],
     keySignals: ["kept putting it off", "finally had time"],
+    lightProbing: true,
+    counterProfileExit: "Got it — sometimes things just take a while to bubble up the priority list. At least it's done now!",
   },
 };
 
@@ -1684,6 +1697,62 @@ export const modeDefinitions: Record<string, ModeDefinition> = {
       "got a bonus",
     ],
     reflectionGuidance: "Consider if the 'free' thing actually cost you more than you realize.",
+  },
+  // Deliberate path modes (intentional - need light probing only)
+  "#deliberate-budget-saver": {
+    id: "#deliberate-budget-saver",
+    name: "Deliberate Budget Saver",
+    description: "Waited until they could afford it - intentional financial planning",
+    indicators: [
+      "saved up for it",
+      "waited until I had the money",
+      "budgeted for it",
+    ],
+    reflectionGuidance: "Great financial discipline! You planned for this purchase.",
+  },
+  "#deliberate-deal-hunter": {
+    id: "#deliberate-deal-hunter",
+    name: "Deliberate Deal Hunter",
+    description: "Patiently tracked prices and waited for the right deal",
+    indicators: [
+      "waited for a sale",
+      "tracked the price",
+      "used a price alert",
+    ],
+    reflectionGuidance: "Smart shopping - you maximized value by being patient.",
+  },
+  "#deliberate-researcher": {
+    id: "#deliberate-researcher",
+    name: "Deliberate Researcher",
+    description: "Did thorough research to find the right product",
+    indicators: [
+      "researched options",
+      "read reviews",
+      "compared features",
+    ],
+    reflectionGuidance: "Thoughtful approach - you made an informed decision.",
+  },
+  "#deliberate-pause-tester": {
+    id: "#deliberate-pause-tester",
+    name: "Deliberate Pause Tester",
+    description: "Let the purchase sit to see if they still wanted it",
+    indicators: [
+      "gave it time",
+      "let the excitement pass",
+      "still wanted it",
+    ],
+    reflectionGuidance: "Great self-awareness - testing your desire before buying.",
+  },
+  "#deliberate-low-priority": {
+    id: "#deliberate-low-priority",
+    name: "Deliberate Low Priority",
+    description: "Finally got around to a purchase that was on the back burner",
+    indicators: [
+      "kept putting it off",
+      "finally had time",
+      "was on my list for a while",
+    ],
+    reflectionGuidance: "Sometimes things just take a while to bubble up - that's okay.",
   },
 };
 

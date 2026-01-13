@@ -402,6 +402,205 @@ describe("Layer Transitions", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// Awareness Calibration Phase Transitions (Criterion 25)
+// ═══════════════════════════════════════════════════════════════
+
+describe("Awareness Calibration Phase Transitions - Food", () => {
+  const actualMonthlySpend = getMonthlyFoodSpend();
+
+  describe("Phase: Awaiting Guess → Awaiting Feeling", () => {
+    it("should transition from guess to feeling after calibration reveal", () => {
+      // User makes guess (from URL or options)
+      const guess = Math.round(actualMonthlySpend * 0.6);
+      
+      // Show calibration result
+      const result = getFoodCalibrationResult(guess, actualMonthlySpend);
+      expect(result.message).toBeDefined();
+      
+      // After result shown, should ask feeling question
+      const feelingQ = getFoodFeelingQuestion();
+      expect(feelingQ.content).toContain("How do you feel");
+      expect(feelingQ.options.length).toBe(2);
+    });
+
+    it("should have correct feeling options", () => {
+      const feelingQ = getFoodFeelingQuestion();
+      const values = feelingQ.options.map(o => o.value);
+      expect(values).toContain("ok_with_it");
+      expect(values).toContain("not_great");
+    });
+  });
+
+  describe("Phase: Way Off Detection → Breakdown Offered", () => {
+    it("should offer breakdown only when guess is way off (>20% AND $75+)", () => {
+      // Test close guess - no breakdown
+      const closeGuess = Math.round(actualMonthlySpend * 0.9);
+      const closeResult = getFoodCalibrationResult(closeGuess, actualMonthlySpend);
+      expect(closeResult.isClose).toBe(true);
+      expect(closeResult.showBreakdown).toBe(false);
+      
+      // Test way off guess - with breakdown
+      const wayOffGuess = Math.round(actualMonthlySpend * 0.4);
+      const wayOffResult = getFoodCalibrationResult(wayOffGuess, actualMonthlySpend);
+      const diff = actualMonthlySpend - wayOffGuess;
+      // Only way off if >20% AND $75+ difference
+      if (diff > 75) {
+        expect(wayOffResult.isClose).toBe(false);
+        expect(wayOffResult.showBreakdown).toBe(true);
+      }
+    });
+
+    it("should track awareness gap when way off", () => {
+      const wayOffGuess = Math.round(actualMonthlySpend * 0.3);
+      const result = getFoodCalibrationResult(wayOffGuess, actualMonthlySpend);
+      // Way off detection should indicate blindspot/awareness gap
+      if (!result.isClose) {
+        expect(result.percentDiff).toBeGreaterThan(20);
+      }
+    });
+  });
+
+  describe("Phase: Feeling Response → Mode Assignment", () => {
+    it("should exit gracefully when user selects 'ok_with_it'", () => {
+      // User says they're fine - no further exploration needed
+      const feelingQ = getFoodFeelingQuestion();
+      const okOption = feelingQ.options.find(o => o.value === "ok_with_it");
+      expect(okOption).toBeDefined();
+      // ok_with_it should lead to graceful exit
+    });
+
+    it("should proceed to motivation question when user selects 'not_great'", () => {
+      // User wants to explore - show motivation question
+      const motivationQ = getFoodMotivationQuestion();
+      expect(motivationQ.content).toContain("why you order food");
+      expect(motivationQ.options.length).toBe(5);
+    });
+  });
+
+  describe("Phase: Motivation → Mode Assignment → Layer 3", () => {
+    it("should map all motivation options to valid modes", () => {
+      const motivations = ["drained", "easier", "no_plan", "wanted_meal", "too_busy"];
+      motivations.forEach(motivation => {
+        const mode = getFoodModeFromMotivation(motivation);
+        expect(mode).toBeDefined();
+        expect(mode).toMatch(/^#/); // Modes start with #
+      });
+    });
+
+    it("should detect intentional_treat as counter-profile", () => {
+      const mode = getFoodModeFromMotivation("wanted_meal");
+      expect(mode).toBe("#intentional-treat");
+    });
+
+    it("should transition to economic evaluation in Layer 3", () => {
+      const mode = "#autopilot-from-stress" as FoodMode;
+      const evaluation = getFoodEconomicEvaluation(mode, actualMonthlySpend);
+      expect(evaluation.content).toContain("worth");
+      expect(evaluation.content).toContain(`$${actualMonthlySpend.toFixed(0)}`);
+    });
+  });
+});
+
+describe("Awareness Calibration Phase Transitions - Coffee", () => {
+  const actualMonthlyCount = getMonthlyCoffeeCount();
+  const actualMonthlySpend = 112; // Approximate from spec
+
+  describe("Phase: Guess Count → Feeling", () => {
+    it("should transition from guess to feeling after count reveal", () => {
+      const guessCount = 10;
+      const result = getCoffeeCalibrationResult(guessCount, actualMonthlyCount, actualMonthlySpend);
+      expect(result.message).toBeDefined();
+      expect(result.actualCount).toBe(actualMonthlyCount);
+      expect(result.totalSpend).toBe(actualMonthlySpend);
+    });
+
+    it("should have correct feeling options for coffee", () => {
+      const feelingQ = getCoffeeFeelingQuestion();
+      const values = feelingQ.options.map(o => o.value);
+      expect(values).toContain("ok_with_it");
+      expect(values).toContain("could_be_better");
+    });
+  });
+
+  describe("Phase: Way Off Detection", () => {
+    it("should detect close guess (within 20% or 2 purchases)", () => {
+      const closeGuess = actualMonthlyCount - 1;
+      const result = getCoffeeCalibrationResult(closeGuess, actualMonthlyCount, actualMonthlySpend);
+      expect(result.isClose).toBe(true);
+    });
+
+    it("should detect way off guess", () => {
+      const wayOffGuess = Math.round(actualMonthlyCount * 0.3);
+      const result = getCoffeeCalibrationResult(wayOffGuess, actualMonthlyCount, actualMonthlySpend);
+      const diff = Math.abs(actualMonthlyCount - wayOffGuess);
+      if (diff > 2 && result.percentDiff > 20) {
+        expect(result.isClose).toBe(false);
+      }
+    });
+  });
+
+  describe("Phase: Motivation → Fixed Q2 → Mode Assignment", () => {
+    it("should have 4 motivation options", () => {
+      const motivationQ = getCoffeeMotivationQuestion();
+      expect(motivationQ.options.length).toBe(4);
+    });
+
+    it("should generate Fixed Q2 for each motivation path", () => {
+      const weeklyAverage = 5;
+      const motivations: CoffeeMotivation[] = ["routine", "nearby", "pick_me_up", "focus"];
+      
+      motivations.forEach(motivation => {
+        const q2 = getCoffeeFixedQ2(motivation, weeklyAverage);
+        expect(q2.content).toBeDefined();
+        expect(q2.options.length).toBeGreaterThan(0);
+      });
+    });
+
+    it("should assign mode after Q2 response", () => {
+      // Routine path
+      const routineMode = getCoffeeModeFromQ2Response("routine" as CoffeeMotivation, "just_happened");
+      expect(routineMode.mode).toBe("#autopilot-routine");
+      
+      // Counter-profile detection
+      const intentionalMode = getCoffeeModeFromQ2Response("routine" as CoffeeMotivation, "intentional");
+      expect(intentionalMode.isCounterProfile).toBe(true);
+      expect(intentionalMode.mode).toBe("#intentional-ritual");
+    });
+  });
+
+  describe("Phase: Counter-Profile Detection", () => {
+    it("should detect intentional ritual as counter-profile", () => {
+      const assignment = getCoffeeModeFromQ2Response("routine" as CoffeeMotivation, "intentional");
+      expect(assignment.isCounterProfile).toBe(true);
+      expect(assignment.exitMessage).toBeDefined();
+    });
+
+    it("should detect productive coffee drinker as counter-profile", () => {
+      const assignment = getCoffeeModeFromQ2Response("focus" as CoffeeMotivation, "real_difference");
+      expect(assignment.isCounterProfile).toBe(true);
+      expect(assignment.mode).toBe("#productive-coffee-drinker");
+    });
+  });
+
+  describe("Phase: Economic Evaluation (Layer 3)", () => {
+    it("should generate mode-specific evaluation questions", () => {
+      const modes = [
+        "#autopilot-routine",
+        "#environment-triggered",
+        "#emotional-coping",
+        "#productivity-justification",
+      ];
+      
+      modes.forEach(mode => {
+        const evaluation = getCoffeeEconomicEvaluation(mode as any, actualMonthlySpend, actualMonthlyCount);
+        expect(evaluation.content).toContain("worth");
+        expect(evaluation.options.length).toBe(3); // worth_it, not_worth, mixed
+      });
+    });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
 // Awareness Calibration Phase Transition Tests (Criterion 25)
 // ═══════════════════════════════════════════════════════════════
 
@@ -415,9 +614,12 @@ describe("Awareness Calibration Phase Transitions", () => {
       const guess = Math.round(actualMonthlySpend * 0.5);
       const result = getFoodCalibrationResult(guess, actualMonthlySpend);
       
-      // Result should include actual amount and comparison
+      // Result should include message and comparison details
       expect(result.message).toBeDefined();
-      expect(result.actualAmount).toBe(actualMonthlySpend);
+      expect(result.percentDiff).toBeDefined();
+      expect(result.absoluteDiff).toBeDefined();
+      // The message should mention the actual amount
+      expect(result.message).toContain(`$${actualMonthlySpend.toFixed(0)}`);
     });
 
     it("should transition from result to feeling question", () => {

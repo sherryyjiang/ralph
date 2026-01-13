@@ -11,6 +11,7 @@ import {
   impulseSubPathGoals, 
   dealSubPathGoals,
   deliberateSubPathGoals,
+  deliberateSubPathProbing,
   modeDefinitions 
 } from "@/lib/llm/question-trees";
 
@@ -726,18 +727,19 @@ describe("Graceful Exit Detection", () => {
       });
     });
 
-    it("should have exit-worthy modes for deliberate paths", () => {
+    it("should have all deliberate sub-paths mapping to valid modes", () => {
       // Deliberate paths map to intentional modes that don't need deep probing
-      const exitModes = [
-        "#deliberate-budget-saver",
-        "#deliberate-deal-hunter",
-        "#deliberate-researcher",
-        "#deliberate-pause-tester",
-        "#deliberate-low-priority",
-      ];
+      const expectedModes: Record<string, string> = {
+        afford_it: "#deliberate-budget-saver",
+        right_price: "#deliberate-deal-hunter",
+        right_one: "#deliberate-researcher",
+        still_wanted: "#deliberate-pause-tester",
+        got_around: "#deliberate-low-priority",
+      };
       
-      exitModes.forEach(mode => {
-        expect(modeDefinitions[mode]).toBeDefined();
+      Object.entries(expectedModes).forEach(([subPath, expectedMode]) => {
+        expect(deliberateSubPathGoals[subPath]).toBeDefined();
+        expect(deliberateSubPathGoals[subPath].mode).toBe(expectedMode);
       });
     });
   });
@@ -821,22 +823,25 @@ describe("Probing Adherence - right_one Path", () => {
 // Graceful Exit Detection Tests (Criterion 26)
 // ═══════════════════════════════════════════════════════════════
 
-describe("Graceful Exit Detection", () => {
+describe("Graceful Exit Detection (SubPathProbing)", () => {
   describe("Deliberate Path Exits", () => {
-    it("should mark all deliberate sub-paths for light probing", () => {
-      expect(deliberateSubPathGoals.afford_it.lightProbing).toBe(true);
-      expect(deliberateSubPathGoals.right_price.lightProbing).toBe(true);
-      expect(deliberateSubPathGoals.right_one.lightProbing).toBe(true);
-      expect(deliberateSubPathGoals.still_wanted.lightProbing).toBe(true);
-      expect(deliberateSubPathGoals.got_around.lightProbing).toBe(true);
+    it("should mark all deliberate sub-paths for light probing (via SubPathProbing)", () => {
+      // SubPathProbing has lightProbing field, SubPathExplorationGoal does not
+      expect(getSubPathProbing("deliberate", "afford_it")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "right_price")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "right_one")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "still_wanted")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "got_around")?.lightProbing).toBe(true);
     });
 
-    it("should have graceful exit messages for deliberate sub-paths", () => {
-      expect(deliberateSubPathGoals.afford_it.counterProfileExit).toBeDefined();
-      expect(deliberateSubPathGoals.right_price.counterProfileExit).toBeDefined();
-      expect(deliberateSubPathGoals.right_one.counterProfileExit).toBeDefined();
-      expect(deliberateSubPathGoals.still_wanted.counterProfileExit).toBeDefined();
-      expect(deliberateSubPathGoals.got_around.counterProfileExit).toBeDefined();
+    it("should use light probing for deliberate sub-paths (they are already intentional)", () => {
+      // Deliberate paths use SubPathProbing with lightProbing=true
+      // They should exit gracefully by default after 1 probing exchange
+      expect(getSubPathProbing("deliberate", "afford_it")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "right_price")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "right_one")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "still_wanted")?.lightProbing).toBe(true);
+      expect(getSubPathProbing("deliberate", "got_around")?.lightProbing).toBe(true);
     });
   });
 

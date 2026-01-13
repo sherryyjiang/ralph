@@ -111,15 +111,17 @@ describe("Shopping Fixed Question 2 options (prompt helpers)", () => {
     const options = getFixedQuestion2Options("shopping", "impulse");
     expect(options).toHaveLength(5);
   });
+});
 
+describe("Shopping Fixed Question 2 options (question-trees)", () => {
   it("deliberate should include the 'other' option", () => {
-    const options = getFixedQuestion2Options("shopping", "deliberate") ?? [];
+    const options = getTreeFixedQuestion2Options("shopping", "deliberate") ?? [];
     const values = options.map((o) => o.value);
     expect(values).toContain("other");
   });
 
   it("deliberate should have exactly 6 options", () => {
-    const options = getFixedQuestion2Options("shopping", "deliberate");
+    const options = getTreeFixedQuestion2Options("shopping", "deliberate");
     expect(options).toHaveLength(6);
   });
 });
@@ -768,13 +770,14 @@ describe("Question Tree Routing - Shopping Paths", () => {
       expect(dealSubPathGoals.free_shipping).toBeDefined();
     });
 
-    it("should route deliberate to 5 sub-paths", () => {
-      expect(Object.keys(deliberateSubPathGoals).length).toBe(5);
+    it("should route deliberate to 6 sub-paths", () => {
+      expect(Object.keys(deliberateSubPathGoals).length).toBe(6);
       expect(deliberateSubPathGoals.afford_it).toBeDefined();
       expect(deliberateSubPathGoals.right_price).toBeDefined();
       expect(deliberateSubPathGoals.right_one).toBeDefined();
       expect(deliberateSubPathGoals.still_wanted).toBeDefined();
       expect(deliberateSubPathGoals.got_around).toBeDefined();
+      expect(deliberateSubPathGoals.other).toBeDefined();
     });
   });
 
@@ -810,6 +813,16 @@ describe("Question Tree Routing - Shopping Paths", () => {
       expect(deliberateSubPathGoals.right_one.mode).toBe("#deliberate-researcher");
       expect(deliberateSubPathGoals.still_wanted.mode).toBe("#deliberate-pause-tester");
       expect(deliberateSubPathGoals.got_around.mode).toBe("#deliberate-low-priority");
+      expect(deliberateSubPathGoals.other.mode).toBe("");
+      expect(deliberateSubPathGoals.other.possibleModes).toEqual(
+        expect.arrayContaining([
+          "#deliberate-budget-saver",
+          "#deliberate-deal-hunter",
+          "#deliberate-researcher",
+          "#deliberate-pause-tester",
+          "#deliberate-low-priority",
+        ]),
+      );
     });
   });
 
@@ -880,7 +893,7 @@ describe("Graceful Exit Detection", () => {
     it("should exit gracefully for all deliberate sub-paths (no further probing needed)", () => {
       // All deliberate sub-paths are intentional and should have light probing
       // The presence of a mode indicates we can exit after light exploration
-      Object.values(deliberateSubPathGoals).forEach(goal => {
+      Object.values(deliberateSubPathGoals).filter((goal) => goal.subPath !== "other").forEach(goal => {
         expect(goal.mode).toBeDefined();
         expect(goal.mode.startsWith("#deliberate")).toBe(true);
       });

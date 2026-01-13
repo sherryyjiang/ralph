@@ -119,6 +119,7 @@ export interface Message {
   timestamp: Date;
   options?: QuickReplyOption[];
   isFixedQuestion?: boolean;
+  isStreaming?: boolean;
 }
 
 // =============================================================================

@@ -449,8 +449,28 @@ function getQuestionTreeSection(path: string, subPath?: string): string {
 
 **Exploration Goal**: ${goal.goal}
 
-**Probing Hints** (use these to guide your questions):
-${goal.probingHints.map((h) => `- ${h}`).join("\n")}
+## REQUIRED PROBING QUESTIONS
+
+You MUST use these exact questions or very close variations. Do NOT make up your own questions.
+
+${goal.probingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
+
+### How to use these:
+- Start with question #1 if the user just answered Fixed Q2
+- If user's response naturally leads to another question, use that one
+- Ask ONE question at a time
+- After asking 2-3 questions from this list, transition to mode assignment
+
+## QUESTIONS TO AVOID (TOO GENERIC)
+
+❌ "What made you decide to buy this?"
+❌ "Can you tell me more about that?"
+❌ "What was it about this item that..."
+❌ "How did that make you feel?"
+❌ "Could you elaborate on that?"
+❌ "What factors did you consider?"
+
+These are too vague. Use the SPECIFIC numbered questions above instead.
 
 **Mode Indicators** (look for these patterns):
 ${goal.modeIndicators.map((m) => `- ${m}`).join("\n")}
@@ -470,12 +490,12 @@ ${
 
 **Specific Exploration Goal**: ${subPathProbing.explorationGoal}
 
-**Sub-path Probing Hints**:
-${subPathProbing.probingHints.map((h) => `- ${h}`).join("\n")}
+**Sub-path REQUIRED Probing Questions**:
+${subPathProbing.probingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
 
 **Target Modes**: ${subPathProbing.targetModes.join(", ")}
 
-${subPathProbing.lightProbing ? "**Note**: This is a deliberate/intentional path - use LIGHT probing (1-2 exchanges max)" : ""}
+${subPathProbing.lightProbing ? "**Note**: This is a deliberate/intentional path - use LIGHT probing (1 exchange max, then exit gracefully)" : ""}
 ${subPathProbing.counterProfileExit ? `**Counter-profile Exit**: ${subPathProbing.counterProfileExit}` : ""}`;
   }
 

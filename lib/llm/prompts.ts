@@ -82,8 +82,18 @@ export function buildSystemPrompt({
 - Probing Turn: ${probingTurn + 1} of ${effectiveMaxTurns}
 ${shouldTransitionNow ? "- READY TO TRANSITION: Assign mode and move to Layer 3" : ""}
 
-### Probing Question Hints:
+### REQUIRED Probing Questions (YOU MUST USE ONE OF THESE - DO NOT MAKE UP YOUR OWN):
 ${subPathProbing.probingHints.map((h) => `- "${h}"`).join("\n")}
+
+### Acceptable Variations:
+You may slightly adapt the question wording for natural flow, but MUST keep the core meaning.
+
+### PROHIBITED - Do NOT ask generic questions like:
+- "Can you tell me more about that?" ❌
+- "What factors did you consider?" ❌
+- "How did that make you feel?" ❌
+- "What was going through your mind?" ❌
+- "Can you elaborate on that?" ❌
 
 ### Target Modes:
 ${subPathProbing.targetModes.map((m) => `- ${m}`).join("\n")}

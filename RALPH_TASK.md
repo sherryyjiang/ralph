@@ -9,25 +9,40 @@ Complete the remaining phases to align shopping check-in flow with spec.
 
 ## Code Files
 
-### ✅ SAFE TO READ (Small Files)
-- `lib/llm/question-trees/shopping.ts` (~233 lines) - Shopping Q1/Q2 logic
-- `lib/llm/question-trees/reflection.ts` (~138 lines) - Layer 3 reflection
-- `lib/llm/question-trees/modes.ts` (~55 lines) - Mode definitions
-- `lib/llm/question-trees/types.ts` (~68 lines) - Shared types
-- `lib/llm/prompts.ts` - LLM prompt construction (check size with `wc -l`)
+### ✅ SAFE TO READ (Small Files < 300 lines)
+
+**Question Tree Modules:**
+- `lib/llm/question-trees/shopping.ts` (233 lines) - Shopping Q1/Q2 logic
+- `lib/llm/question-trees/reflection.ts` (137 lines) - Layer 3 reflection
+- `lib/llm/question-trees/modes.ts` (55 lines) - Mode definitions
+- `lib/llm/question-trees/types.ts` (68 lines) - Shared types
+
+**Prompt Modules:**
+- `lib/llm/prompts/fixed-questions.ts` (96 lines) - Q1/Q2 options
+- `lib/llm/prompts/layer2-probing.ts` (111 lines) - Probing logic
+- `lib/llm/prompts/layer3-reflection.ts` (275 lines) - Reflection prompts
+- `lib/llm/prompts/system-prompts.ts` (78 lines) - Base prompts
 
 ### ⛔ NEVER READ (Will Cause Context Rotation)
-- `lib/llm/question-trees.ts` (2071 lines) - Use split modules above instead
-- `app/check-in/[sessionId]/page.tsx` (1363 lines) - Use grep to find specific sections
+- `lib/llm/question-trees.ts` (2071 lines) - Use modules above
+- `lib/llm/prompts.ts` (839 lines) - Use modules above
+- `app/check-in/[sessionId]/page.tsx` (1363 lines) - Use grep
+- `__tests__/shopping-flow.test.ts` (1337 lines) - Use grep
+- `lib/hooks/use-check-in-session.ts` (642 lines) - Use grep
+- `app/api/chat/route.ts` (640 lines) - Use grep
 - `RALPH_ITERATION_3.md` (904 lines) - All info is in this file
 - `docs/question-trees/*.md` - All info is in this file
 
 ### 📍 FOR LARGE FILES: Use Targeted Reading
 ```bash
-# Find function location
+# Step 1: Check size
+wc -l path/to/file.ts
+
+# Step 2: Find function location
 grep -n "functionName" path/to/file.tsx
-# Read just that section (e.g., lines 150-200)
-# Use read_file with offset=150, limit=50
+
+# Step 3: Read just that section (lines 445-500)
+# Use read_file with offset=445, limit=55
 ```
 
 ## Success Criteria

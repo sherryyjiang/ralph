@@ -19,16 +19,25 @@
 2. Phase G: Probing turn limits (criteria 28-35)
 3. Phase H: Testing (criteria 36-42)
 
-### Code Structure
-Code has been split into smaller modules to avoid context issues:
-- `lib/llm/question-trees/shopping.ts` - Shopping logic
-- `lib/llm/question-trees/reflection.ts` - Layer 3 reflection
-- `lib/llm/question-trees/modes.ts` - Mode definitions
-- `lib/llm/question-trees/types.ts` - Shared types
+### Code Structure (Modular - Avoids Context Rotation)
+
+**Question Tree Modules:**
+- `lib/llm/question-trees/shopping.ts` (233 lines)
+- `lib/llm/question-trees/reflection.ts` (137 lines)
+- `lib/llm/question-trees/modes.ts` (55 lines)
+- `lib/llm/question-trees/types.ts` (68 lines)
+
+**Prompt Modules (NEW):**
+- `lib/llm/prompts/fixed-questions.ts` (96 lines)
+- `lib/llm/prompts/layer2-probing.ts` (111 lines)
+- `lib/llm/prompts/layer3-reflection.ts` (275 lines)
+- `lib/llm/prompts/system-prompts.ts` (78 lines)
+- `lib/llm/prompts/category-prompts.ts` (137 lines)
 
 ### Session History
 - Previous sessions completed phases A-E
 - Tests passing: 147 tests in shopping-flow.test.ts
+- Context rotation fix: Split large files, updated guardrails
 
 ### 2026-01-13 18:07:08
 **Session 1 started** (model: gpt-5.2-high)

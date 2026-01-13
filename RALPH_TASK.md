@@ -37,9 +37,9 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 10. [x] Maintenance Q2: question = "Did you get the same thing or switched it up?", options = same_thing, switched_up, upgraded
 
 ### Phase C: Fix Mode Definitions (Flat, No Hierarchy)
-11. [ ] Remove `#visual-impulse-driven` as a mode - it's only an exploration TAG
-12. [ ] Remove `#trend-susceptibility-driven` as a mode - it's only an exploration TAG
-13. [ ] Ensure all modes are flat: `#scroll-triggered`, `#in-store-wanderer`, `#aesthetic-driven`, etc.
+11. [x] Remove `#visual-impulse-driven` as a mode - it's only an exploration TAG
+12. [x] Remove `#trend-susceptibility-driven` as a mode - it's only an exploration TAG
+13. [x] Ensure all modes are flat: `#scroll-triggered`, `#in-store-wanderer`, `#aesthetic-driven`, etc.
 14. [ ] Update `targetModes` in all SubPathProbing to list only actual modes
 
 ### Phase D: Add Counter-Profiles

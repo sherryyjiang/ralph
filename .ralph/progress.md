@@ -3,8 +3,8 @@
 ## Task: Fix Shopping Question Tree Logic - Iteration 3
 
 ### Current Status
-- **Phase**: Phase B (Fix Fixed Q2 Options and Labels)
-- **Last Criterion Completed**: 10 (Maintenance Q2 matches spec)
+- **Phase**: Phase C (Fix Mode Definitions - Flat, No Hierarchy)
+- **Last Criterion Completed**: 13 (Verified mode definitions are flat; tags are not treated as modes)
 - **Verification**: `pnpm test shopping-flow` passing (131 tests)
 
 ---

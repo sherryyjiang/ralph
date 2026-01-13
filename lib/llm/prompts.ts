@@ -457,7 +457,6 @@ const BEHAVIORAL_EXCAVATION_ENTRY_QUESTIONS: Record<string, string> = {
   "#reward-driven-spender": "can you think of another time you bought something to celebrate or reward yourself?",
   "#comfort-driven-spender": "can you think of another time you shopped because you were stressed or needed a pick-me-up?",
   "#routine-treat-spender": "can you think of another time you treated yourself as part of your regular routine?",
-  "#visual-impulse-driven": "can you think of another time something just caught your eye and you went for it?",
   "#scroll-triggered": "can you think of another time something just caught your eye while scrolling and you went for it?",
   "#in-store-wanderer": "can you think of another time something just caught your eye in a store and you went for it?",
   "#aesthetic-driven": "can you think of another time something visually appealing made you want to buy it?",
@@ -626,7 +625,6 @@ export const behavioralExcavationEntryQuestions: Record<string, string> = {
   "#reward-driven-spender": "Can you think of another time you bought something to celebrate or reward yourself?",
   "#comfort-driven-spender": "Can you think of another time you shopped because you were stressed or needed a pick-me-up?",
   "#routine-treat-spender": "Can you think of another time you treated yourself as part of your regular routine?",
-  "#visual-impulse-driven": "Can you think of another time something just caught your eye and you went for it?",
   "#scroll-triggered": "Can you think of another time something just caught your eye online and you went for it?",
   "#in-store-wanderer": "Can you think of another time something just caught your eye in a store and you went for it?",
   "#aesthetic-driven": "Can you think of another time you bought something because it looked really appealing?",
@@ -649,7 +647,6 @@ export const behavioralExcavationEntryQuestions: Record<string, string> = {
 export const emotionalReflectionContext: Record<string, string> = {
   "#comfort-driven-spender": "spending money shopping because you're stressed",
   "#routine-treat-spender": "spending money on these regular treats",
-  "#visual-impulse-driven": "buying things just because they caught your eye",
   "#scroll-triggered": "buying things you saw while scrolling",
   "#deal-driven": "buying things because they were on sale",
   "#deal-hunter": "buying things because they were on sale",

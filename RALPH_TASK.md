@@ -51,7 +51,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 ### Phase E: Add Layer 3 Reflection Logic
 19. [x] Implement reflection option routing (problem, feel, worth, different, done)
 20. [x] Add mode-based entry questions for Behavioral Excavation
-21. [ ] Add mode-aware question adaptation for Emotional Reflection
+21. [x] Add mode-aware question adaptation for Emotional Reflection
 22. [ ] Add mode-aware question adaptation for Cost Comparison
 23. [ ] Add probing hints for each reflection path
 24. [ ] Implement graceful exit messages

@@ -305,6 +305,18 @@ Use the SPECIFIC numbered questions instead.`
 3. COMFORT: "does that sit okay with you or is there something about it that bugs you?"
 4. ROOT CAUSE (if it bugs them): "if it doesn't feel great, what do you think is behind that?"
 5. BARRIERS (if pattern persists): "you said it bugs you but it keeps happening — what do you think gets in the way?"`;
+
+    // Mode-aware emotional reflection adaptation (per shopping-check-in spec)
+    const emotionalModeContext: Record<string, string> = {
+      "#comfort-driven-spender": "spending money shopping because you're stressed",
+      "#routine-treat-spender": "spending money on these regular treats",
+      "#aesthetic-driven": "buying things just because they caught your eye",
+      "#deal-driven": "buying things because they were on sale",
+    };
+    const emotionalModePhrase = session.mode ? emotionalModeContext[session.mode] : undefined;
+    const modeAdaptedSitWellQuestion = emotionalModePhrase
+      ? `does ${emotionalModePhrase} sit well with you?`
+      : "does this sit well with you?";
     
     // Reflection path-specific instructions
     const reflectionInstructions: Record<string, string> = {
@@ -326,7 +338,10 @@ ${behavioralProbingHints}
 
 **Goal**: Surface gut reactions and help the user name their feelings about the spending.
 
-**Entry**: "Looking at this purchase, how does that land for you?"
+**Entry**: "you spent $${transaction.amount.toFixed(2)} at ${transaction.merchant} — how does that land for you?"
+
+**Mode-aware adaptation** (keep structure, incorporate mode context when helpful):
+- Default: "${modeAdaptedSitWellQuestion}"
 
 **Guidelines**:
 - Validate whatever they're feeling first

@@ -4,8 +4,9 @@ import { useEffect, useMemo, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
-import { getTransactionById } from "@/lib/data/synthetic-transactions";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
+import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount } from "@/lib/data/synthetic-transactions";
+import { getFoodAwarenessCalibration, getCoffeeFrequencyCalibration } from "@/lib/llm/question-trees";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // FIXED QUESTIONS - Shopping Check-In (Layer 1)

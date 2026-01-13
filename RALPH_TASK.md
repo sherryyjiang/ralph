@@ -32,7 +32,7 @@ Align shopping check-in flow precisely with `docs/question-trees/shopping-check-
 ### Phase B: Fix Fixed Q2 Options and Labels
 6. [x] Impulse Q2: question = "What made you go for it?", options = price_felt_right, treating_myself, caught_eye, trending, other
 7. [x] Deliberate Q2: question = "What were you waiting for?", options = afford_it, right_price, right_one, still_wanted, got_around, other
-8. [ ] Deal Q2: question = "Tell me more about the deal, discount or limited event?", options = limited_edition, sale_discount, free_shipping
+8. [x] Deal Q2: question = "Tell me more about the deal, discount or limited event?", options = limited_edition, sale_discount, free_shipping
 9. [ ] Gift Q2: question = "Who was it for?", options = family, friend, partner, coworker, other
 10. [ ] Maintenance Q2: question = "Did you get the same thing or switched it up?", options = same_thing, switched_up, upgraded
 

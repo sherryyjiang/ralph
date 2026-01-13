@@ -255,9 +255,9 @@ export function getFixedQuestion2Options(category: TransactionCategory, path: st
       { id: "other", label: "Other/Custom", emoji: "📝", value: "other", color: "white" },
     ],
     deal: [
-      { id: "limited_edition", label: "Limited edition or drop running out", emoji: "⚡", value: "limited_edition", color: "yellow" },
-      { id: "sale_discount", label: "Good sale, deal, or discount", emoji: "💸", value: "sale_discount", color: "yellow" },
-      { id: "free_shipping", label: "Hit free shipping threshold or bonus", emoji: "📦", value: "free_shipping", color: "yellow" },
+      { id: "limited_edition", label: "Limited edition or drop that is running out", emoji: "⚡", value: "limited_edition", color: "yellow" },
+      { id: "sale_discount", label: "It was a good sale, deal or discount", emoji: "💸", value: "sale_discount", color: "yellow" },
+      { id: "free_shipping", label: "Hit free shipping threshold or got a bonus/sample with purchase", emoji: "📦", value: "free_shipping", color: "yellow" },
     ],
     gift: [
       { id: "family", label: "Family member", emoji: "👨‍👩‍👧", value: "family", color: "white" },

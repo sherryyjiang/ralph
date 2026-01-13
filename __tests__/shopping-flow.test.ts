@@ -111,6 +111,18 @@ describe("Shopping Fixed Question 2 options (prompt helpers)", () => {
     const options = getFixedQuestion2Options("shopping", "impulse");
     expect(options).toHaveLength(5);
   });
+
+  it("deal should have exactly 3 options", () => {
+    const options = getFixedQuestion2Options("shopping", "deal");
+    expect(options).toHaveLength(3);
+  });
+
+  it("deal should include the 3 required deal sub-paths", () => {
+    const options = getFixedQuestion2Options("shopping", "deal") ?? [];
+    expect(options.map((o) => o.value).sort()).toEqual(
+      ["limited_edition", "sale_discount", "free_shipping"].sort()
+    );
+  });
 });
 
 describe("Shopping Fixed Question 2 options (question-trees)", () => {
@@ -123,6 +135,18 @@ describe("Shopping Fixed Question 2 options (question-trees)", () => {
   it("deliberate should have exactly 6 options", () => {
     const options = getTreeFixedQuestion2Options("shopping", "deliberate");
     expect(options).toHaveLength(6);
+  });
+
+  it("deal should have exactly 3 options", () => {
+    const options = getTreeFixedQuestion2Options("shopping", "deal");
+    expect(options).toHaveLength(3);
+  });
+
+  it("deal should include the 3 required deal sub-paths", () => {
+    const options = getTreeFixedQuestion2Options("shopping", "deal") ?? [];
+    expect(options.map((o) => o.value).sort()).toEqual(
+      ["limited_edition", "sale_discount", "free_shipping"].sort()
+    );
   });
 });
 
@@ -770,13 +794,14 @@ describe("Question Tree Routing - Shopping Paths", () => {
       expect(dealSubPathGoals.free_shipping).toBeDefined();
     });
 
-    it("should route deliberate to 5 sub-paths", () => {
-      expect(Object.keys(deliberateSubPathGoals).length).toBe(5);
+    it("should route deliberate to 6 sub-paths", () => {
+      expect(Object.keys(deliberateSubPathGoals).length).toBe(6);
       expect(deliberateSubPathGoals.afford_it).toBeDefined();
       expect(deliberateSubPathGoals.right_price).toBeDefined();
       expect(deliberateSubPathGoals.right_one).toBeDefined();
       expect(deliberateSubPathGoals.still_wanted).toBeDefined();
       expect(deliberateSubPathGoals.got_around).toBeDefined();
+      expect(deliberateSubPathGoals.other).toBeDefined();
     });
   });
 

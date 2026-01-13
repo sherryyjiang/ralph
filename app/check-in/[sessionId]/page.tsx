@@ -120,11 +120,11 @@ const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: Quick
     ],
   },
   deal: {
-    question: "Tell me more about the deal, discount, or event?",
+    question: "Tell me more about the deal, discount or limited event?",
     options: [
-      { id: "limited_edition", label: "Limited edition or drop running out", emoji: "⚡", value: "limited_edition", color: "yellow" },
-      { id: "sale_discount", label: "Good sale, deal, or discount", emoji: "💸", value: "sale_discount", color: "yellow" },
-      { id: "free_shipping", label: "Hit free shipping threshold or bonus", emoji: "📦", value: "free_shipping", color: "yellow" },
+      { id: "limited_edition", label: "Limited edition or drop that is running out", emoji: "⚡", value: "limited_edition", color: "yellow" },
+      { id: "sale_discount", label: "It was a good sale, deal or discount", emoji: "💸", value: "sale_discount", color: "yellow" },
+      { id: "free_shipping", label: "Hit free shipping threshold or got a bonus/sample with purchase", emoji: "📦", value: "free_shipping", color: "yellow" },
     ],
   },
   gift: {

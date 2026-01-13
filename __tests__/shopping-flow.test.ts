@@ -680,7 +680,7 @@ describe("Mode Definitions", () => {
     expect(modeDefinitions["#reward-driven-spender"]).toBeDefined();
     expect(modeDefinitions["#comfort-driven-spender"]).toBeDefined();
     expect(modeDefinitions["#routine-treat-spender"]).toBeDefined();
-    expect(modeDefinitions["#visual-impulse-driven"]).toBeDefined();
+    expect(modeDefinitions["#visual-impulse-driven"]).toBeUndefined();
     expect(modeDefinitions["#trend-susceptibility-driven"]).toBeDefined();
   });
 

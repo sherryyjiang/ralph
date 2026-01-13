@@ -260,10 +260,21 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     }
   }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading]);
 
-  // Handle free-form text input
+  // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {
     addUserMessage(content);
     setLoading(true);
+
+    // Increment probing depth for Layer 2 exchanges
+    const newProbingDepth = currentLayer === 2 ? probingDepth + 1 : probingDepth;
+    if (currentLayer === 2) {
+      incrementProbingDepth();
+    }
+
+    // Determine if we should request mode assignment
+    // Trigger after MIN_PROBING_DEPTH exchanges, or force at MAX_PROBING_DEPTH
+    const shouldRequestModeAssignment = currentLayer === 2 && newProbingDepth >= MIN_PROBING_DEPTH;
+    const forceModeAssignment = currentLayer === 2 && newProbingDepth >= MAX_PROBING_DEPTH;
 
     try {
       const response = await fetch("/api/chat", {
@@ -279,19 +290,28 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
             status: "in_progress",
             currentLayer,
             path: currentPath,
+            mode: currentMode,
             messages,
-            metadata: { tags: [] },
+            metadata: { 
+              tags: [],
+              probingDepth: newProbingDepth,
+            },
           },
+          // Signal to API that we want mode assignment
+          requestModeAssignment: shouldRequestModeAssignment,
+          forceModeAssignment,
         }),
       });
 
       const data = await response.json();
       setLoading(false);
 
-      if (data.shouldTransition && currentLayer === 2) {
-        setLayer(3);
+      // Handle mode assignment from LLM response
+      if (data.assignedMode && currentLayer === 2) {
+        setMode(data.assignedMode);
       }
 
+      // Handle graceful exit (counter-profile detected)
       if (data.exitGracefully) {
         addAssistantMessage(
           data.message,
@@ -301,19 +321,43 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         return;
       }
 
+      // Handle transition to Layer 3 after probing
+      if (data.shouldTransition && currentLayer === 2) {
+        // Store mode if provided
+        if (data.assignedMode) {
+          setMode(data.assignedMode);
+        }
+        setLayer(3);
+        
+        // Show transition message with Layer 3 options
+        addAssistantMessage(
+          data.message || "I think I understand the pattern here. Would you like to explore any of these questions?",
+          LAYER_3_REFLECTION_OPTIONS,
+          false
+        );
+        return;
+      }
+
+      // For Layer 3 reflection responses
+      if (currentLayer === 3) {
+        addAssistantMessage(
+          data.message,
+          data.options || [{ id: "close", label: "Thanks for the reflection!", emoji: "✨", value: "close", color: "white" }],
+          false
+        );
+        return;
+      }
+
+      // Continue probing in Layer 2 (mode not yet assigned, or more exploration needed)
       addAssistantMessage(data.message, data.options, false);
 
     } catch {
       setLoading(false);
-      // Fallback response
+      // Fallback: transition to Layer 3 if in Layer 2
       if (currentLayer === 2) {
         addAssistantMessage(
           "Thanks for sharing! How would you like to explore this further?",
-          [
-            { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
-            { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
-            { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
-          ],
+          LAYER_3_REFLECTION_OPTIONS,
           false
         );
         setLayer(3);
@@ -325,7 +369,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         );
       }
     }
-  }, [messages, transaction, sessionId, currentLayer, currentPath, addUserMessage, addAssistantMessage, setLoading, setLayer]);
+  }, [messages, transaction, sessionId, currentLayer, currentPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setLayer, setMode, incrementProbingDepth]);
 
   // Handle special actions
   const handleOptionSelectWrapper = useCallback((value: string) => {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { buildSystemPrompt, explorationGoals } from "@/lib/llm/prompts";
+import { buildSystemPrompt, explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
 import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
 
 // =============================================================================
@@ -8,6 +8,10 @@ import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/ty
 // =============================================================================
 
 const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "gemini-2.5-flash";
+
+// Min/max probing exchanges before mode assignment
+const MIN_PROBING_DEPTH = 2;
+const MAX_PROBING_DEPTH = 4;
 
 function getClient(): GoogleGenAI {
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -27,6 +31,7 @@ interface ChatRequest {
   session: CheckInSession;
   stream?: boolean;
   probingDepth?: number; // 0-3, tracks Layer 2 probing exchanges
+  requestModeAssignment?: boolean; // Trigger mode assignment
 }
 
 // =============================================================================

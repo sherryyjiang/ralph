@@ -240,7 +240,7 @@ describe('Layer 2 Probing', () => {
     const prompt = getLayer2ProbingPrompt('impulse', userResponse);
 
     expect(prompt).toContain(userResponse);
-    expect(prompt).toContain('continue exploring');
+    expect(prompt.toLowerCase()).toContain('continue exploring');
   });
 
   it('getModeAssignmentPrompt includes conversation history', () => {

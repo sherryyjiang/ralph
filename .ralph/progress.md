@@ -828,3 +828,6 @@ Summary of verification:
   - Added deliberate `other` sub-path probing + exploration goal for routing
   - Updated tests to expect 6 deliberate sub-paths and verify `other` presence
 - Verified with `pnpm test shopping-flow` (127 tests passing)
+
+### 2026-01-13 17:52:35
+**Session 1 started** (model: gpt-5.2-high)

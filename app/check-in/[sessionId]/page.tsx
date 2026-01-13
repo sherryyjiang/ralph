@@ -8,7 +8,17 @@ import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount } from "
 import { 
   getFoodAwarenessCalibration, 
   getCoffeeFrequencyCalibration,
+  getCoffeeCalibrationResult,
+  getCoffeeFeelingQuestion,
+  getCoffeeMotivationQuestion,
+  getCoffeeFixedQ2,
+  getCoffeeModeFromQ2Response,
+  coffeeModeExplorations,
+  getCoffeeEconomicEvaluation,
+  type CoffeeMotivation,
+  type CoffeeMode,
 } from "@/lib/llm/question-trees";
+import { getMonthlyCoffeeSpend } from "@/lib/data/synthetic-transactions";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
@@ -231,7 +241,6 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     currentPath,
     currentMode,
     probingDepth,
-    session,
     startSession,
     addAssistantMessage,
     addUserMessage,
@@ -320,11 +329,11 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           });
       }
     } else if (transaction.category === "food") {
-      // Food Check-In: Awareness Calibration
+      // Food Check-In: Full flow per PEEK_QUESTION_TREES.md spec
+      const actualMonthlySpend = getMonthlyFoodSpend();
+      
       if (currentLayer === 1) {
         // User just made their guess - calculate and reveal actual
-        const actualMonthlySpend = getMonthlyFoodSpend();
-        
         // Parse the guess from the value (low = 40%, medium = 70%, high = 100%+)
         let userGuessAmount: number;
         switch (value) {
@@ -340,67 +349,226 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
             break;
         }
         
+        // Store guess and actual in session metadata
+        setUserGuess(userGuessAmount);
+        setActualAmount(actualMonthlySpend);
+        
         // Calculate the difference
         const difference = actualMonthlySpend - userGuessAmount;
-        const percentDiff = Math.round((difference / userGuessAmount) * 100);
+        const percentDiff = userGuessAmount > 0 ? Math.round((difference / userGuessAmount) * 100) : 0;
+        const isWayOff = percentDiff > 20 && difference > 75;
         
-        // Transition to Layer 2 with reveal message and mode question
-        setLayer(2);
+        // Store blindspot tag if way off
+        if (isWayOff) {
+          addTag("#awareness-gap");
+        }
         
         setTimeout(() => {
           let revealMessage: string;
           
           if (difference <= 0 || percentDiff < 10) {
             // User guessed accurately or overestimated
-            revealMessage = `Nice awareness! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month. You know your spending pretty well! 🎯\n\nWhen you think about ordering food, what usually drives the decision?`;
-          } else if (percentDiff < 30) {
-            // Slightly underestimated
-            revealMessage = `Pretty close! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — about $${difference.toFixed(0)} more than you guessed. Not a huge gap!\n\nWhen you think about ordering food, what usually drives the decision?`;
+            revealMessage = `Nice awareness! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month. You know your spending pretty well! 🎯`;
+          } else if (percentDiff < 20) {
+            // Close
+            revealMessage = `Pretty close! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — about $${difference.toFixed(0)} more than you guessed.`;
           } else {
-            // Significantly underestimated
-            revealMessage = `Interesting! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — that's $${difference.toFixed(0)} more than you thought (${percentDiff}% higher). 📊\n\nNo judgment here — let's explore what's driving this. When you order food, what's usually going on?`;
+            // Way off
+            revealMessage = `Interesting! You've actually spent $${actualMonthlySpend.toFixed(0)} on food delivery this month — that's $${difference.toFixed(0)} more than you thought (${percentDiff}% higher). 📊`;
           }
           
-          // Food mode assignment options
-          const modeOptions: QuickReplyOption[] = [
-            { id: "stress", label: "Tired or stressed, don't want to cook", emoji: "😓", value: "stress", color: "yellow" as const },
-            { id: "convenience", label: "Short on time, need something fast", emoji: "⏰", value: "convenience", color: "white" as const },
-            { id: "planning", label: "Didn't plan meals, nothing in the fridge", emoji: "🤷", value: "planning", color: "white" as const },
-            { id: "craving", label: "Craving something specific", emoji: "🍕", value: "craving", color: "white" as const },
-            { id: "social", label: "Eating with others, easier to order", emoji: "👥", value: "social", color: "white" as const },
+          // Ask "How do you feel about this number?" per spec
+          revealMessage += "\n\nHow do you feel about that number?";
+          
+          // Feeling response options
+          const feelingOptions: QuickReplyOption[] = [
+            { id: "ok_with_it", label: "I'm okay with it", emoji: "👍", value: "ok_with_it", color: "white" as const },
+            { id: "not_great", label: "Not great, honestly", emoji: "😬", value: "not_great", color: "yellow" as const },
           ];
           
-          addAssistantMessage(revealMessage, modeOptions, true);
+          addAssistantMessage(revealMessage, feelingOptions, true);
         }, 800);
       } else if (currentLayer === 2) {
-        // User selected their food mode - assign it and transition to Layer 3
-        const foodMode = value as FoodMode;
-        setMode(`#food-${foodMode}`);
-        setLayer(3);
-        
-        // Generate mode-specific acknowledgment
-        let acknowledgment: string;
-        switch (foodMode) {
-          case "stress":
-            acknowledgment = "That makes sense — cooking when you're drained can feel like one thing too many. It sounds like food delivery has become a way to take care of yourself on tough days. 💆";
-            break;
-          case "convenience":
-            acknowledgment = "Time is precious! When life gets busy, delivery can be a lifesaver. It's totally understandable to prioritize convenience.";
-            break;
-          case "planning":
-            acknowledgment = "Meal planning is one of those things that sounds simple but isn't always easy to keep up with. You're definitely not alone in that!";
-            break;
-          default:
-            acknowledgment = "Got it! That's helpful context for understanding your food delivery patterns.";
+        // Check which phase of Layer 2 we're in
+        if (value === "ok_with_it") {
+          // User is fine with their spending - light reflection and exit
+          setTimeout(() => {
+            addAssistantMessage(
+              "Got it — sounds like it's working for you! We can always revisit if anything changes. 🙌",
+              [{ id: "done", label: "Thanks for the check-in!", emoji: "✨", value: "done", color: "white" as const }],
+              false
+            );
+          }, 500);
+        } else if (value === "not_great") {
+          // User wants to explore - show mode assignment question
+          setTimeout(() => {
+            const modeOptions: QuickReplyOption[] = [
+              { id: "autopilot_stress", label: "I'm usually too drained to cook", emoji: "😓", value: "autopilot_stress", color: "yellow" as const },
+              { id: "convenience", label: "It's just easier to order", emoji: "📱", value: "convenience", color: "white" as const },
+              { id: "no_planning", label: "I keep meaning to cook but never plan", emoji: "🤷", value: "no_planning", color: "white" as const },
+              { id: "too_busy", label: "I'm too busy to plan", emoji: "⏰", value: "too_busy", color: "white" as const },
+              { id: "intentional_treat", label: "I actually wanted that specific meal", emoji: "🍕", value: "intentional_treat", color: "white" as const },
+            ];
+            
+            addAssistantMessage(
+              "When you think about why you order food, what feels most true?",
+              modeOptions,
+              true
+            );
+          }, 500);
+        } else if (value === "intentional_treat") {
+          // Counter-profile: Intentional treat - graceful exit
+          setMode("#intentional-treat");
+          setTimeout(() => {
+            addAssistantMessage(
+              "Nice — sounds like you knew what you wanted! Nothing wrong with treating yourself intentionally. Enjoy! 🍕",
+              [{ id: "done", label: "Thanks!", emoji: "✨", value: "done", color: "white" as const }],
+              false
+            );
+          }, 500);
+        } else {
+          // User selected a mode - map to proper mode ID and transition to Layer 3
+          let modeId: CheckInMode;
+          let modeLabel: string;
+          let benefitWord: string;
+          
+          switch (value) {
+            case "autopilot_stress":
+              modeId = "#autopilot-from-stress";
+              modeLabel = "Stress-Driven Orderer";
+              benefitWord = "relief";
+              break;
+            case "convenience":
+              modeId = "#convenience-driven";
+              modeLabel = "Convenience Orderer";
+              benefitWord = "ease";
+              break;
+            case "no_planning":
+            case "too_busy":
+              modeId = "#lack-of-pre-planning";
+              modeLabel = "Last-Minute Planner";
+              benefitWord = "not having to plan";
+              break;
+            default:
+              modeId = "#convenience-driven";
+              modeLabel = "Convenience Orderer";
+              benefitWord = "convenience";
+          }
+          
+          setMode(modeId);
+          setLayer(3);
+          
+          // Layer 3: Economic Evaluation - "Is the benefit worth the cost?"
+          setTimeout(() => {
+            const worthOptions: QuickReplyOption[] = [
+              { id: "worth_yes", label: "Yeah, I think so", emoji: "👍", value: "worth_yes", color: "white" as const },
+              { id: "worth_no", label: "Probably not", emoji: "🤔", value: "worth_no", color: "yellow" as const },
+            ];
+            
+            addAssistantMessage(
+              `That makes sense — I noticed a **${modeLabel}** pattern. No judgment here!\n\nHere's a question to sit with: Is the ${benefitWord} worth the $${actualMonthlySpend.toFixed(0)} you spent this month?`,
+              worthOptions,
+              true
+            );
+          }, 500);
         }
-        
-        setTimeout(() => {
-          addAssistantMessage(
-            `${acknowledgment}\n\nWould you like to explore this further?`,
-            LAYER_3_REFLECTION_OPTIONS,
-            false
-          );
-        }, 500);
+      } else if (currentLayer === 3) {
+        // Layer 3: Handle economic evaluation response
+        if (value === "worth_yes") {
+          // User says it's worth it - exit gracefully
+          setTimeout(() => {
+            addAssistantMessage(
+              "Got it — sounds like it's working for you. We can always revisit if anything changes! 🙌",
+              [{ id: "done", label: "Thanks for the reflection!", emoji: "✨", value: "done", color: "white" as const }],
+              false
+            );
+          }, 500);
+        } else if (value === "worth_no") {
+          // User says not worth it - explore change
+          setTimeout(() => {
+            const changeOptions: QuickReplyOption[] = [
+              { id: "barrier", label: "What gets in the way of changing", emoji: "🚧", value: "barrier", color: "white" as const },
+              { id: "redirect", label: "Where I'd rather that money go", emoji: "💸", value: "redirect", color: "white" as const },
+              { id: "one_thing", label: "One thing I could try", emoji: "💡", value: "one_thing", color: "white" as const },
+              { id: "not_now", label: "Not ready to think about it", emoji: "⏸️", value: "not_now", color: "white" as const },
+            ];
+            
+            addAssistantMessage(
+              "That's honest — and it's a good place to start. Would you like to explore what might help?",
+              changeOptions,
+              true
+            );
+          }, 500);
+        } else if (value === "not_now") {
+          // User not ready - respect boundary
+          setTimeout(() => {
+            addAssistantMessage(
+              "Totally fair. Sometimes just noticing is enough for now. I'm here whenever you want to explore more. 💚",
+              [{ id: "done", label: "Thanks!", emoji: "✨", value: "done", color: "white" as const }],
+              false
+            );
+          }, 500);
+        } else {
+          // User wants to explore barriers/alternatives - use LLM
+          setLoading(true);
+          let explorationPrompt: string;
+          
+          switch (value) {
+            case "barrier":
+              explorationPrompt = "barrier exploration - what gets in the way of cooking more";
+              break;
+            case "redirect":
+              explorationPrompt = "opportunity cost - where they'd rather the money go";
+              break;
+            case "one_thing":
+              explorationPrompt = "change enablement - one small thing they could try";
+              break;
+            default:
+              explorationPrompt = "general reflection on food spending";
+          }
+          
+          fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messages: [...messages, { id: `user_${Date.now()}`, role: "user", content: displayText, timestamp: new Date() }],
+              transaction,
+              session: {
+                id: sessionId,
+                transactionId: transaction.id,
+                type: transaction.category,
+                status: "in_progress",
+                currentLayer: 3,
+                mode: currentMode,
+                messages,
+                metadata: { 
+                  tags: [],
+                  userGuess: actualMonthlySpend * 0.7, // approximate
+                  actualAmount: actualMonthlySpend,
+                },
+              },
+              foodReflectionType: explorationPrompt,
+            }),
+          })
+            .then(res => res.json())
+            .then(data => {
+              setLoading(false);
+              addAssistantMessage(
+                data.message || "That's a great thing to explore. What feels like the biggest barrier for you?",
+                [{ id: "done", label: "Thanks for the reflection!", emoji: "✨", value: "done", color: "white" as const }],
+                false
+              );
+            })
+            .catch(() => {
+              setLoading(false);
+              addAssistantMessage(
+                "Thanks for sharing that. Every bit of awareness helps! 💚",
+                [{ id: "done", label: "Thanks for the reflection!", emoji: "✨", value: "done", color: "white" as const }],
+                false
+              );
+            });
+          return; // Don't fall through to other handlers
+        }
       }
     } else if (transaction.category === "coffee") {
       // Coffee Check-In: Frequency Calibration
@@ -458,7 +626,66 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         }, 800);
       }
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuessCount, setActualCount]);
+    
+    // Layer 3: Handle reflection path selection
+    if (currentLayer === 3 && ["problem", "feel", "worth", "different"].includes(value)) {
+      setLoading(true);
+      
+      // Call API with reflection context
+      fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...messages, { id: `user_${Date.now()}`, role: "user", content: displayText, timestamp: new Date() }],
+          transaction,
+          session: {
+            id: sessionId,
+            transactionId: transaction.id,
+            type: transaction.category,
+            status: "in_progress",
+            currentLayer: 3,
+            path: currentPath,
+            mode: currentMode,
+            messages,
+            metadata: { tags: [], reflectionPath: value },
+          },
+          reflectionPath: value,
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          setLoading(false);
+          addAssistantMessage(
+            data.message || "That's a great question to explore. What comes to mind when you think about it?",
+            data.options || [{ id: "close", label: "Thanks for the reflection!", emoji: "✨", value: "close", color: "white" }],
+            false
+          );
+        })
+        .catch(() => {
+          setLoading(false);
+          // Fallback reflection response based on selection
+          let fallbackMessage: string;
+          switch (value) {
+            case "problem":
+              fallbackMessage = "Let's explore this together. When you think about this pattern, does it feel like something you want to change, or is it working for you right now?";
+              break;
+            case "feel":
+              fallbackMessage = "That's a good place to start. How does this spending pattern make you feel when you think about it?";
+              break;
+            case "worth":
+              fallbackMessage = "When you think about what this money could have gone toward instead, what comes to mind?";
+              break;
+            default:
+              fallbackMessage = "What's on your mind? I'm here to explore whatever feels relevant to you.";
+          }
+          addAssistantMessage(
+            fallbackMessage,
+            [{ id: "close", label: "Thanks for the reflection!", emoji: "✨", value: "close", color: "white" }],
+            false
+          );
+        });
+    }
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuessCount, setActualCount]);
 
   // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {

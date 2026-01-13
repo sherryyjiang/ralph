@@ -56,7 +56,7 @@ Build a mock-up chat application that helps users understand their spending beha
 27. [x] Implement graceful exits and counter-profile handling
 
 ### Phase 8: Testing & Polish
-28. [ ] Write integration tests for complete check-in flows
+28. [x] Write integration tests for complete check-in flows
 29. [ ] Test mode detection accuracy
 30. [ ] Ensure mobile responsiveness
 31. [ ] Final UI polish and error states

@@ -282,6 +282,35 @@ const LAYER_3_REFLECTION_OPTIONS: QuickReplyOption[] = [
   { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
 ];
 
+// Graceful exit messages for deliberate paths
+const DELIBERATE_EXIT_MESSAGES: Record<string, { message: string; mode: CheckInMode }> = {
+  afford_it: {
+    message: "That's really thoughtful — waiting until the timing was right financially shows solid awareness of your budget.\n\nI'm saving this as one of your spending patterns in Magnets. 🧲\n\nIs there anything else about this purchase you'd like to explore?",
+    mode: "#deliberate-budget-saver",
+  },
+  right_price: {
+    message: "Nice! Being patient for the right deal takes discipline. That kind of intentional waiting usually pays off.\n\nI'm noting this pattern in your Magnets. 🧲\n\nAnything else on your mind about this purchase?",
+    mode: "#deliberate-deal-hunter",
+  },
+  right_one: {
+    message: "It sounds like you really put thought into this — doing your research and finding exactly what works for you. That's a great way to shop!\n\nSaving this to your Magnets. 🧲\n\nIs there anything else you'd like to explore about this purchase?",
+    mode: "#deliberate-researcher",
+  },
+  still_wanted: {
+    message: "That's a smart approach — giving yourself time to make sure it wasn't just a passing want. The fact that you still wanted it says something!\n\nI'm adding this to your Magnets. 🧲\n\nAnything else you're curious about?",
+    mode: "#deliberate-pause-tester",
+  },
+  got_around: {
+    message: "Got it — sometimes things just take a while to bubble up the priority list. At least it's done now!\n\nNoting this in your Magnets. 🧲\n\nAnything else about this purchase?",
+    mode: "#deliberate-low-priority",
+  },
+};
+
+// Exit options for graceful exits (freeform + done)
+const GRACEFUL_EXIT_OPTIONS: QuickReplyOption[] = [
+  { id: "done", label: "I'm good for now", emoji: "✓", value: "done", color: "white" },
+];
+
 function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGuess, initialGuessCount }: CheckInChatProps) {
   const {
     session,
@@ -398,6 +427,11 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         // Get calibration result message
         const calibration = getCoffeeCalibrationResult(initialGuessCount, actualMonthlyCount, actualMonthlySpend);
         const feelingQ = getCoffeeFeelingQuestion();
+        
+        // Store blindspot tag if way off (per spec: breakdown only offered if way off)
+        if (!calibration.isClose) {
+          addTag("#awareness-gap");
+        }
         
         // Set calibration phase to awaiting_feeling (guess already done)
         setCalibrationPhase("feeling_asked");
@@ -851,20 +885,33 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           }, 500);
           
         } else if (value === "could_be_better") {
-          // User wants to explore - offer breakdown first
-          setCalibrationPhase("breakdown_offered");
-          setTimeout(() => {
-            const breakdownOptions: QuickReplyOption[] = [
-              { id: "show_coffee_breakdown", label: "Yes, show me", emoji: "📊", value: "show_coffee_breakdown", color: "white" as const },
-              { id: "skip_coffee_breakdown", label: "No, I'd rather move on", emoji: "➡️", value: "skip_coffee_breakdown", color: "white" as const },
-            ];
-            
-            addAssistantMessage(
-              "Would you like to see what's behind these purchases?",
-              breakdownOptions,
-              true
-            );
-          }, 500);
+          // User wants to explore - check if they were "way off" to offer breakdown
+          // Per spec: only offer breakdown if way off (stored as #awareness-gap tag)
+          const isWayOff = session.metadata.tags.includes("#awareness-gap");
+          
+          if (isWayOff) {
+            // Guess was way off - offer breakdown first
+            setCalibrationPhase("breakdown_offered");
+            setTimeout(() => {
+              const breakdownOptions: QuickReplyOption[] = [
+                { id: "show_coffee_breakdown", label: "Yes, show me", emoji: "📊", value: "show_coffee_breakdown", color: "white" as const },
+                { id: "skip_coffee_breakdown", label: "No, I'd rather move on", emoji: "➡️", value: "skip_coffee_breakdown", color: "white" as const },
+              ];
+              
+              addAssistantMessage(
+                "Would you like to see what's behind these purchases?",
+                breakdownOptions,
+                true
+              );
+            }, 500);
+          } else {
+            // Not way off - skip breakdown and go straight to motivation question
+            setCalibrationPhase("layer_2_ready");
+            setTimeout(() => {
+              const motivationQ = getCoffeeMotivationQuestion();
+              addAssistantMessage(motivationQ.content, motivationQ.options, true);
+            }, 500);
+          }
           
         } else if (value === "show_coffee_breakdown") {
           // User wants to see coffee breakdown

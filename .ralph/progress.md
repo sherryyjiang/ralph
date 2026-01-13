@@ -4,8 +4,8 @@
 
 ### Current Status
 - **Phase**: Phase B (Fix Fixed Q2 Options and Labels)
-- **Last Criterion Completed**: 8 (Deal Q2 question + option labels aligned to spec)
-- **Verification**: `pnpm test shopping-flow` passing (127 tests)
+- **Last Criterion Completed**: 9 (Gift Q2 includes `other`)
+- **Verification**: `pnpm test shopping-flow` passing (131 tests)
 
 ---
 

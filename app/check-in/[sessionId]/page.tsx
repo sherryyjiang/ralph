@@ -138,7 +138,7 @@ const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: Quick
     ],
   },
   maintenance: {
-    question: "Did you get the same thing or switch it up?",
+    question: "Did you get the same thing or switched it up?",
     options: [
       { id: "same_thing", label: "Got the same thing", emoji: "🔁", value: "same_thing", color: "white" },
       { id: "switched_up", label: "Switched it up", emoji: "🔄", value: "switched_up", color: "white" },

@@ -1973,6 +1973,7 @@ export function getFixedQuestion2Options(
           { id: "friend", label: "Friend", value: "friend", color: "white" as const },
           { id: "partner", label: "Partner", value: "partner", color: "white" as const },
           { id: "coworker", label: "Coworker", value: "coworker", color: "white" as const },
+          { id: "other", label: "Someone else", value: "other", color: "white" as const },
         ];
       case "maintenance":
         return [

@@ -949,8 +949,9 @@ export type CoffeeMode =
   | "#environment-triggered"
   | "#emotional-coping"
   | "#productivity-justification"
-  | "#intentional-ritual"       // Counter-profile
-  | "#productive-coffee-drinker"; // Counter-profile
+  | "#intentional-ritual"         // Counter-profile
+  | "#productive-coffee-drinker"  // Counter-profile
+  | "#social-ritual";             // Social coffee runs
 
 export type CoffeeMotivation = "routine" | "nearby" | "pick_me_up" | "focus";
 
@@ -1680,7 +1681,7 @@ export function getCoffeeModeFromMotivation(motivation: string): CoffeeMode | nu
     pick_me_up: "#emotional-coping",
     focus: "#productivity-justification",
     treat: "#intentional-ritual",
-    social: "#social-ritual",
+    social: "#intentional-ritual", // Social coffee is intentional
   };
   return modeMap[motivation] || null;
 }

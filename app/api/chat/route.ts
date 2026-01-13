@@ -305,7 +305,32 @@ Use the SPECIFIC numbered questions instead.`
 2. USAGE/OUTCOME: "what usually happens with the stuff that slides through — do you end up using it?"
 3. COMFORT: "does that sit okay with you or is there something about it that bugs you?"
 4. ROOT CAUSE (if it bugs them): "if it doesn't feel great, what do you think is behind that?"
-5. BARRIERS (if pattern persists): "you said it bugs you but it keeps happening — what do you think gets in the way?"`;
+5. BARRIERS (if pattern persists): "you said it bugs you but it keeps happening — what do you think gets in the way?"
+6. CONTEXT HOOKS (use info from Layer 2):
+   - Merchant: "does this happen more at ${transaction.merchant} specifically?"
+   - Timing: "is this usually more of a weekday thing or weekend thing?"`;
+
+    // Emotional reflection probing hints (spec: shopping-check-in.md)
+    const emotionalProbingHints = `
+### Probing Question Hints:
+- NAMING THE FEELING:
+  - "is it more of a 'meh' or does it actually bother you?"
+  - "if you had to name what you're feeling, what would it be?"
+- TENSION EXPLORATION:
+  - "what is it about this that's creating the tension?"
+  - "is it the amount, the frequency, or something else?"
+- VALUES ALIGNMENT:
+  - "does this feel like it lines up with how you want to spend?"`;
+
+    // Open-ended reflection guidance (spec: shopping-check-in.md)
+    const openEndedProbingHints = `
+### How to handle "different":
+- Start with: "what's on your mind?" or "what are you curious about?"
+- Listen for cues and route your next question accordingly:
+  - Frequency/pattern → use Behavioral Excavation style questions
+  - Feelings/tension → use Emotional Reflection style questions
+  - Value/worth/regret → use Cost Comparison style questions
+- If it's novel, answer directly (briefly) and offer a next step.`;
 
     // Mode-aware emotional reflection adaptation (per shopping-check-in spec)
     const emotionalModeContext: Record<string, string> = {
@@ -349,6 +374,8 @@ ${behavioralProbingHints}
 **Mode-aware adaptation** (keep structure, incorporate mode context when helpful):
 - Default: "${modeAdaptedSitWellQuestion}"
 
+${emotionalProbingHints}
+
 **Guidelines**:
 - Validate whatever they're feeling first
 - Explore the emotion BEHIND the purchase AND how they feel NOW
@@ -373,6 +400,16 @@ ${costComparisonModeQuestion ? `**Mode-aware adaptation** (use when helpful for 
 - Keep it neutral (no shame, no lecturing)
 - Ask about value in THEIR terms (joy, utility, alignment with goals)
 - Explore opportunity cost gently: "what else could that money have gone toward?"`,
+
+      different: `## OPEN-ENDED PATH ("I have a different question")
+
+**Goal**: Let the user drive. Meet them where they are.
+
+${openEndedProbingHints}
+
+**Guidelines**:
+- Follow their lead, stay warm and concise
+- If their question maps to another path, smoothly pivot and ask ONE specific question`,
     };
     
     return (

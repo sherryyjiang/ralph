@@ -68,7 +68,7 @@ Read individual subfiles as needed rather than entire large files.
 20. [x] Add mode-based entry questions for Behavioral Excavation
 21. [x] Add mode-aware question adaptation for Emotional Reflection
 22. [x] Add mode-aware question adaptation for Cost Comparison
-23. [ ] Add probing hints for each reflection path
+23. [x] Add probing hints for each reflection path
 24. [ ] Implement graceful exit messages
 
 ### Phase F: Update prompts.ts to Align

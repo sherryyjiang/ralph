@@ -3,9 +3,9 @@
 ## Task: Peek Check-In Chat App
 
 ### Current Status
-- **Phase**: Phase 5 - Food Check-In
-- **Last Criterion Completed**: 17 (shopping flow tests)
-- **Next Up**: Criteria 18-20 (Food Check-In)
+- **Phase**: COMPLETE ✅
+- **Last Criterion Completed**: 31 (Final UI polish and error states)
+- **All 31 criteria complete!**
 
 ---
 

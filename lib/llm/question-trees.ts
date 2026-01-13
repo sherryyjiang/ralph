@@ -810,6 +810,7 @@ export function getFoodEconomicEvaluation(mode: FoodMode, monthlySpend: number):
     "#convenience-driven": "the ease and convenience",
     "#lack-of-pre-planning": "not having to plan",
     "#intentional-treat": "enjoying the meals you really wanted",
+    "#social-eating": "the social experience of sharing meals",
   };
 
   const benefit = benefitMap[mode] || "convenience";
@@ -1664,3 +1665,72 @@ export const modeDefinitions: Record<string, ModeDefinition> = {
     reflectionGuidance: "Consider if the 'free' thing actually cost you more than you realize.",
   },
 };
+
+// ═══════════════════════════════════════════════════════════════
+// Helper Functions for Tests
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Map coffee motivation to mode (simple mapping for tests)
+ */
+export function getCoffeeModeFromMotivation(motivation: string): CoffeeMode | null {
+  const modeMap: Record<string, CoffeeMode> = {
+    routine: "#autopilot-routine",
+    nearby: "#environment-triggered",
+    pick_me_up: "#emotional-coping",
+    focus: "#productivity-justification",
+    treat: "#intentional-ritual",
+    social: "#social-ritual",
+  };
+  return modeMap[motivation] || null;
+}
+
+/**
+ * Get Fixed Question 2 options for a given category and path
+ */
+export function getFixedQuestion2Options(
+  category: string,
+  path: string
+): QuickReplyOption[] | null {
+  if (category === "shopping") {
+    switch (path) {
+      case "impulse":
+        return impulseSubPathGoals ? Object.keys(impulseSubPathGoals).map((key) => ({
+          id: key,
+          label: key.replace(/_/g, " "),
+          value: key,
+          color: "yellow" as const,
+        })) : null;
+      case "deliberate":
+        return deliberateSubPathGoals ? Object.keys(deliberateSubPathGoals).map((key) => ({
+          id: key,
+          label: key.replace(/_/g, " "),
+          value: key,
+          color: "white" as const,
+        })) : null;
+      case "deal":
+        return dealSubPathGoals ? Object.keys(dealSubPathGoals).map((key) => ({
+          id: key,
+          label: key.replace(/_/g, " "),
+          value: key,
+          color: "yellow" as const,
+        })) : null;
+      case "gift":
+        return [
+          { id: "family", label: "Family member", value: "family", color: "white" as const },
+          { id: "friend", label: "Friend", value: "friend", color: "white" as const },
+          { id: "partner", label: "Partner", value: "partner", color: "white" as const },
+          { id: "coworker", label: "Coworker", value: "coworker", color: "white" as const },
+        ];
+      case "maintenance":
+        return [
+          { id: "same_thing", label: "Got the same thing", value: "same_thing", color: "white" as const },
+          { id: "switched_up", label: "Switched it up", value: "switched_up", color: "white" as const },
+          { id: "upgraded", label: "Upgraded", value: "upgraded", color: "white" as const },
+        ];
+      default:
+        return null;
+    }
+  }
+  return null;
+}

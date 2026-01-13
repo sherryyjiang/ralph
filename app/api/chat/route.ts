@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chat, streamChat } from "@/lib/llm/client";
-import { buildSystemPrompt } from "@/lib/llm/prompts";
-import { explorationGoals } from "@/lib/llm/prompts";
+import { getSystemPrompt } from "@/lib/llm/prompts";
+import { shoppingExplorationGoals } from "@/lib/llm/question-trees";
 import type { Message, Transaction, CheckInSession } from "@/lib/types";
 
 // =============================================================================
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get exploration goal for current path
-    const pathGoal = session.path ? explorationGoals[session.path] : null;
+    const pathGoal = session.path ? shoppingExplorationGoals[session.path] : null;
     
     // Build question tree section for context
     const questionTreeSection = pathGoal
@@ -55,30 +55,19 @@ export async function POST(request: NextRequest) {
 **Goal:** ${pathGoal.goal}
 
 **Probing Hints:**
-${pathGoal.probingHints.map((h) => `- ${h}`).join("\n")}
+${pathGoal.probingHints.map((h: string) => `- ${h}`).join("\n")}
 
 **Mode Indicators:**
-${pathGoal.modeIndicators.map((m) => `- ${m}`).join("\n")}
+${Object.entries(pathGoal.modeIndicators)
+  .map(([mode, indicators]) => `- ${mode}: ${(indicators as string[]).join(", ")}`)
+  .join("\n")}
 
 **Counter-Profile Patterns (graceful exit if detected):**
-${pathGoal.counterProfilePatterns.map((p) => `- ${p}`).join("\n")}`
+${pathGoal.counterProfilePatterns.map((p: string) => `- ${p}`).join("\n")}`
       : "";
 
     // Build system prompt
-    const systemPrompt = buildSystemPrompt({
-      transaction: {
-        ...transaction,
-        date: new Date(transaction.date), // Ensure date is Date object
-      },
-      session: {
-        ...session,
-        messages: messages.map((m) => ({
-          ...m,
-          timestamp: new Date(m.timestamp),
-        })),
-      },
-      questionTreeSection,
-    });
+    const systemPrompt = getSystemPrompt(transaction.category, session.path);
 
     // Handle streaming response
     if (stream) {

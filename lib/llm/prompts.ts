@@ -4,8 +4,71 @@
  * Wraps question-tree data for use in the check-in flow.
  */
 
-import type { TransactionCategory, QuickReplyOption } from "@/lib/types";
-import { getShoppingFixedQuestion1 } from "./question-trees";
+import type { TransactionCategory, QuickReplyOption, Transaction, CheckInSession } from "@/lib/types";
+import { getShoppingFixedQuestion1, shoppingExplorationGoals } from "./question-trees";
+
+// =============================================================================
+// Exploration Goals (re-exported for API route)
+// =============================================================================
+
+export interface ExplorationGoal {
+  goal: string;
+  probingHints: string[];
+  modeIndicators: string[];
+  counterProfilePatterns: string[];
+}
+
+/**
+ * Exploration goals mapped by path, with flattened mode indicators
+ */
+export const explorationGoals: Record<string, ExplorationGoal> = Object.fromEntries(
+  Object.entries(shoppingExplorationGoals).map(([key, value]) => [
+    key,
+    {
+      goal: value.goal,
+      probingHints: value.probingHints,
+      modeIndicators: Object.entries(value.modeIndicators).flatMap(([mode, indicators]) => 
+        indicators.map((i: string) => `${mode}: ${i}`)
+      ),
+      counterProfilePatterns: value.counterProfilePatterns,
+    },
+  ])
+);
+
+// =============================================================================
+// Build System Prompt (for API route)
+// =============================================================================
+
+interface BuildSystemPromptParams {
+  transaction: Transaction;
+  session: CheckInSession;
+  questionTreeSection?: string;
+}
+
+export function buildSystemPrompt({ transaction, session, questionTreeSection }: BuildSystemPromptParams): string {
+  const basePrompt = `You are a friendly, empathetic financial coach helping users understand their spending patterns.
+Your tone is warm but not judgmental - like a supportive friend who happens to be good with money.
+Keep responses concise (2-3 sentences max).
+Never lecture or moralize. Ask curious questions.
+If the user seems defensive, validate their feelings first.
+
+## Current Context
+- Transaction: $${transaction.amount.toFixed(2)} at ${transaction.merchant}
+- Category: ${transaction.category}
+- Check-in Layer: ${session.currentLayer}
+- Path: ${session.path || "not yet determined"}
+${session.mode ? `- Assigned Mode: ${session.mode}` : ""}
+
+${questionTreeSection ? `## Question Tree Context\n${questionTreeSection}` : ""}
+
+## Response Format
+For Layer 2 (probing): Respond with a conversational message only.
+For Layer 3 transition: Respond with JSON: { "message": "...", "shouldTransition": true, "assignedMode": "#mode-id" }
+For Layer 3 reflection: Respond with a conversational message that helps the user explore their question.
+When done: Include { "exitGracefully": true } in your JSON response.`;
+
+  return basePrompt;
+}
 
 // =============================================================================
 // Fixed Question 1 Options by Category
@@ -128,8 +191,15 @@ export function getModeAssignmentPrompt(
   conversationHistory: string[],
   path: string
 ): string {
-  return `Based on this conversation:
+  // Get the exploration goal for context
+  const goalContext = explorationGoals[path] 
+    ? `Path context: ${explorationGoals[path].goal}` 
+    : "";
+    
+  return `Based on this conversation (path: ${path}):
 ${conversationHistory.join("\n")}
+
+${goalContext}
 
 Determine if the user matches one of these spending modes:
 - #comfort-driven-spender

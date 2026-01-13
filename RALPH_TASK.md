@@ -35,7 +35,7 @@ Build a mock-up chat application that helps users understand their spending beha
 ### Phase 4: Shopping Check-In (Most Complex)
 13. [x] Implement Layer 1 Fixed Question 1: "When you bought this, were you..."
 14. [x] Implement Layer 1 Fixed Question 2 for all paths (impulse, deliberate, deal, gift, maintenance)
-15. [ ] Implement Layer 2 LLM probing with mode-specific exploration goals
+15. [x] Implement Layer 2 LLM probing with mode-specific exploration goals
 16. [ ] Implement mode assignment after probing
 17. [ ] Write tests for shopping flow in `__tests__/shopping-flow.test.ts`
 

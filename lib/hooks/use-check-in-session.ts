@@ -24,6 +24,7 @@ export interface CheckInState {
   session: CheckInSession;
   isLoading: boolean;
   error: string | null;
+  probingExchangeCount: number; // Track Layer 2 exchanges
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -50,6 +51,7 @@ export type CheckInAction =
   | { type: "SET_USER_GUESS_COUNT"; payload: number }
   | { type: "SET_ACTUAL_COUNT"; payload: number }
   | { type: "ADD_TAG"; payload: string }
+  | { type: "INCREMENT_PROBING_DEPTH" }
   | { type: "COMPLETE_SESSION" }
   | { type: "DISMISS_SESSION" };
 
@@ -354,6 +356,18 @@ function checkInReducer(state: CheckInState, action: CheckInAction): CheckInStat
         },
       };
 
+    case "INCREMENT_PROBING_DEPTH":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            probingDepth: (state.session.metadata.probingDepth || 0) + 1,
+          },
+        },
+      };
+
     case "COMPLETE_SESSION":
       return {
         ...state,
@@ -501,6 +515,10 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     dispatch({ type: "ADD_TAG", payload: tag });
   }, []);
 
+  const incrementProbingDepth = useCallback(() => {
+    dispatch({ type: "INCREMENT_PROBING_DEPTH" });
+  }, []);
+
   const completeSession = useCallback(() => {
     dispatch({ type: "COMPLETE_SESSION" });
   }, []);
@@ -520,6 +538,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     currentSubPath: state.session.subPath,
     currentMode: state.session.mode,
     status: state.session.status,
+    probingDepth: state.session.metadata.probingDepth || 0,
 
     // Actions
     startSession,
@@ -539,6 +558,7 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     setUserGuessCount,
     setActualCount,
     addTag,
+    incrementProbingDepth,
     completeSession,
     dismissSession,
   };

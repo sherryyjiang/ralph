@@ -9,16 +9,20 @@ interface ChatContainerProps {
   messages: Message[];
   transaction: Transaction;
   isLoading?: boolean;
+  error?: string | null;
   onSendMessage: (content: string) => void;
   onOptionSelect: (value: string) => void;
+  onRetry?: () => void;
 }
 
 export function ChatContainer({
   messages,
   transaction,
   isLoading,
+  error,
   onSendMessage,
   onOptionSelect,
+  onRetry,
 }: ChatContainerProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,6 +55,9 @@ export function ChatContainer({
 
         {/* Loading indicator */}
         {isLoading && <LoadingIndicator />}
+
+        {/* Error display */}
+        {error && <ErrorDisplay error={error} onRetry={onRetry} />}
 
         {/* Scroll anchor */}
         <div ref={messagesEndRef} />
@@ -102,6 +109,51 @@ function LoadingIndicator() {
           <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--peek-text-muted)] [animation-delay:0ms]" />
           <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--peek-text-muted)] [animation-delay:150ms]" />
           <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--peek-text-muted)] [animation-delay:300ms]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Error display component
+function ErrorDisplay({ error, onRetry }: { error: string; onRetry?: () => void }) {
+  return (
+    <div className="flex justify-start">
+      <div className="rounded-2xl rounded-bl-md bg-red-900/30 border border-red-500/30 px-4 py-3 max-w-[85%]">
+        <p className="text-sm text-red-300">{error}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+          >
+            Try again
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Error display with retry button
+function ErrorDisplay({ error, onRetry }: { error: string; onRetry?: () => void }) {
+  return (
+    <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-red-900/50 border border-red-500/30 px-4 py-3">
+        <div className="flex items-start gap-2">
+          <span className="text-red-400 text-lg">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm text-red-200">
+              Something went wrong: {error}
+            </p>
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                className="mt-2 text-sm text-red-300 hover:text-red-100 underline underline-offset-2"
+              >
+                Try again
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

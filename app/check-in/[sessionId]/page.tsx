@@ -169,11 +169,13 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     isLoading,
     currentLayer,
     currentPath,
+    currentMode,
     startSession,
     addAssistantMessage,
     addUserMessage,
     setPath,
     setSubPath,
+    setMode,
     setLayer,
     setLoading,
     completeSession,
@@ -268,59 +270,72 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     }
   }, [messages, addUserMessage, addAssistantMessage, transaction.category, currentLayer, currentPath, setPath, setSubPath, setLayer]);
 
-  // Handle free-form text input with streaming
+  // Handle free-form text input
   const handleSendMessage = useCallback(async (content: string) => {
-    // Prevent duplicate calls while streaming
-    if (isStreamingRef.current) return;
-    
-    // Add user message
     addUserMessage(content);
-    
-    // Start streaming message placeholder
-    isStreamingRef.current = true;
-    startStreamingMessage();
+    setLoading(true);
 
-    // Build messages array including the new user message
-    const allMessages = [
-      ...messages,
-      {
-        id: `msg_${Date.now()}`,
-        role: "user" as const,
-        content,
-        timestamp: new Date(),
-      },
-    ];
+    try {
+      // Call the chat API
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages,
+          transaction,
+          session: {
+            id: sessionId,
+            transactionId: transaction.id,
+            type: transaction.category,
+            status: "in_progress",
+            currentLayer,
+            path: currentPath,
+            messages,
+            metadata: { tags: [] },
+          },
+        }),
+      });
 
-    // Call the streaming API
-    const response = await sendMessage(allMessages, true);
-
-    // Check for errors
-    if (!response) {
-      // If no response and no streaming content, show fallback
-      isStreamingRef.current = false;
-      
-      // Fallback to non-streaming for error case
-      if (currentLayer === 2) {
-        finishStreamingMessage([
-          { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
-          { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
-          { id: "done", label: "I'm good for now", emoji: "✅", value: "done", color: "white" },
-        ]);
-        setLayer(3);
-      } else if (currentLayer === 3) {
-        finishStreamingMessage([
-          { id: "close", label: "Close", emoji: "✨", value: "close", color: "white" },
-        ]);
+      if (!response.ok) {
+        throw new Error("Failed to get response");
       }
-      return;
-    }
 
-    // Handle layer transitions based on current state
-    if (currentLayer === 2) {
-      // After Layer 2 probing, offer Layer 3 options
-      setTimeout(() => {
+      const data = await response.json();
+      setLoading(false);
+
+      // Handle the response
+      if (data.shouldTransition && currentLayer === 2) {
+        setLayer(3);
+      }
+
+      if (data.exitGracefully) {
         addAssistantMessage(
-          "How would you like to explore this further?",
+          data.message,
+          [{ id: "close", label: "Thanks for the chat!", emoji: "✨", value: "close", color: "white" }],
+          false
+        );
+        return;
+      }
+
+      // Parse options if they exist
+      const options = data.options?.map((opt: { id: string; label: string; value: string; emoji?: string; color?: "yellow" | "white" }) => ({
+        id: opt.id,
+        label: opt.label,
+        value: opt.value,
+        emoji: opt.emoji,
+        color: opt.color || "white",
+      }));
+
+      addAssistantMessage(data.message, options, false);
+
+    } catch (error) {
+      setLoading(false);
+      console.error("Chat API error:", error);
+      
+      // Fallback response
+      if (currentLayer === 2) {
+        addAssistantMessage(
+          "Thanks for sharing that! Understanding these patterns is the first step to making choices that align with your values. How would you like to explore this further?",
           [
             { id: "problem", label: "Is this a problem?", emoji: "🤔", value: "problem", color: "white" },
             { id: "feel", label: "How do I feel about this?", emoji: "💭", value: "feel", color: "white" },
@@ -329,9 +344,15 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           false
         );
         setLayer(3);
-      }, 500);
+      } else if (currentLayer === 3) {
+        addAssistantMessage(
+          "Great reflection! Remember, the goal isn't to judge yourself, but to understand your patterns so you can make more intentional choices. See you next time! 👋",
+          [{ id: "close", label: "Close", emoji: "✨", value: "close", color: "white" }],
+          false
+        );
+      }
     }
-  }, [messages, sendMessage, currentLayer, addUserMessage, startStreamingMessage, finishStreamingMessage, addAssistantMessage, setLayer]);
+  }, [messages, transaction, sessionId, currentLayer, currentPath, addUserMessage, addAssistantMessage, setLoading, setLayer]);
 
   // Handle special actions
   const handleOptionSelectWrapper = useCallback((value: string) => {

@@ -94,6 +94,7 @@ export interface CheckInSession {
     actualAmount?: number;
     userGuessCount?: number;
     actualCount?: number;
+    probingDepth?: number; // Tracks number of Layer 2 probing exchanges (0-3)
   };
 }
 

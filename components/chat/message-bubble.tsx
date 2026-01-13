@@ -11,6 +11,7 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, onOptionSelect, isLatest }: MessageBubbleProps) {
   const isAssistant = message.role === "assistant";
+  const isStreaming = message.isStreaming;
 
   return (
     <div
@@ -23,13 +24,25 @@ export function MessageBubble({ message, onOptionSelect, isLatest }: MessageBubb
             : "bg-[var(--peek-accent-orange)] text-white rounded-br-md"
         }`}
       >
-        {/* Message content */}
+        {/* Message content with streaming cursor */}
         <p className="text-sm leading-relaxed whitespace-pre-wrap">
           {message.content}
+          {isStreaming && (
+            <span className="inline-block w-2 h-4 ml-0.5 bg-[var(--peek-accent-orange)] animate-pulse" />
+          )}
         </p>
 
-        {/* Quick reply options (only for assistant messages with options) */}
-        {isAssistant && message.options && message.options.length > 0 && isLatest && (
+        {/* Show loading dots if streaming and no content yet */}
+        {isStreaming && !message.content && (
+          <div className="flex items-center gap-1">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--peek-text-muted)] [animation-delay:0ms]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--peek-text-muted)] [animation-delay:150ms]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--peek-text-muted)] [animation-delay:300ms]" />
+          </div>
+        )}
+
+        {/* Quick reply options (only for assistant messages with options, not while streaming) */}
+        {isAssistant && !isStreaming && message.options && message.options.length > 0 && isLatest && (
           <div className="mt-4 space-y-2">
             {message.options.map((option) => (
               <QuickReply
@@ -41,14 +54,16 @@ export function MessageBubble({ message, onOptionSelect, isLatest }: MessageBubb
           </div>
         )}
 
-        {/* Timestamp */}
-        <div
-          className={`mt-1.5 text-xs ${
-            isAssistant ? "text-[var(--peek-text-muted)]" : "text-white/70"
-          }`}
-        >
-          {formatTime(message.timestamp)}
-        </div>
+        {/* Timestamp (hide while streaming) */}
+        {!isStreaming && (
+          <div
+            className={`mt-1.5 text-xs ${
+              isAssistant ? "text-[var(--peek-text-muted)]" : "text-white/70"
+            }`}
+          >
+            {formatTime(message.timestamp)}
+          </div>
+        )}
       </div>
     </div>
   );

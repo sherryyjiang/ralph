@@ -204,6 +204,341 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
 };
 
 // =============================================================================
+// Sub-Path Specific Probing Goals (Layer 2)
+// =============================================================================
+
+export interface SubPathProbing {
+  subPath: string;
+  explorationGoal: string;
+  probingHints: string[];
+  targetModes: string[];
+  modeSignals: Record<string, string[]>;
+  counterProfileExit?: string;
+  lightProbing?: boolean; // For deliberate paths that need less exploration
+}
+
+/**
+ * Impulse sub-path probing details (Fixed Q2 responses for impulse path)
+ */
+export const impulseSubPathProbing: Record<string, SubPathProbing> = {
+  price_felt_right: {
+    subPath: "price_felt_right",
+    explorationGoal: "Understand their internal price threshold around 'reasonable' to justify purchases",
+    probingHints: [
+      "What price did you get it for?",
+      "What price would've made you pause?",
+      "Do things under $X usually feel like a no-brainer for you?",
+    ],
+    targetModes: ["#intuitive-threshold-spender"],
+    modeSignals: {
+      "#intuitive-threshold-spender": [
+        "saw it, wanted it, bought it",
+        "the price felt right",
+        "clear mental threshold around price",
+        "low cognitive load purchases - don't think about it as much",
+      ],
+    },
+  },
+  treating_myself: {
+    subPath: "treating_myself",
+    explorationGoal: "What triggered the need for reward/treat? Is it tied to an event, emotion, or habit?",
+    probingHints: [
+      "What were you treating yourself for?",
+      "Was it tied to something or more of a random mood?",
+      "Do you just enjoy shopping as a fun activity?",
+    ],
+    targetModes: ["#reward-driven-spender", "#comfort-driven-spender", "#routine-treat-spender"],
+    modeSignals: {
+      "#reward-driven-spender": [
+        "I hit my goal",
+        "finished a hard week",
+        "got a promotion",
+        "I earned this",
+      ],
+      "#comfort-driven-spender": [
+        "rough week",
+        "felt down",
+        "needed a pick-me-up",
+        "retail therapy",
+      ],
+      "#routine-treat-spender": [
+        "I always do this on Fridays",
+        "it's just my thing",
+        "no specific reason",
+        "regular self-treating as habit",
+      ],
+    },
+  },
+  caught_eye: {
+    subPath: "caught_eye",
+    explorationGoal: "Where/how did they encounter it? Is this a pattern (scroll, in-store, etc)?",
+    probingHints: [
+      "Where did you see it?",
+      "What caught your eye about it?",
+      "Is this similar to things you already own?",
+      "How many similar items do you have?",
+      "Is trying new stuff kind of the fun part for you?",
+    ],
+    targetModes: ["#visual-impulse-driven", "#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector"],
+    modeSignals: {
+      "#scroll-triggered": [
+        "I was scrolling and saw it",
+        "it came up in my feed",
+        "saw it on Instagram/TikTok",
+      ],
+      "#in-store-wanderer": [
+        "I was just walking by",
+        "it was right there",
+        "browsing in store",
+      ],
+      "#aesthetic-driven": [
+        "it was so pretty",
+        "I loved the packaging",
+        "the color got me",
+      ],
+      "#duplicate-collector": [
+        "I have like 5 of these already",
+        "adding to my collection",
+      ],
+    },
+  },
+  trending: {
+    subPath: "trending",
+    explorationGoal: "How susceptible are they to trends, especially trend-following that leads to purchases that don't fit them?",
+    probingHints: [
+      "Where have you been seeing it?",
+      "Do you feel like it's you or more of a trend buy?",
+    ],
+    targetModes: ["#trend-susceptibility-driven", "#social-media-influenced", "#friend-peer-influenced"],
+    modeSignals: {
+      "#social-media-influenced": [
+        "I saw it on TikTok",
+        "everyone's posting about it",
+        "a creator I follow had it",
+      ],
+      "#friend-peer-influenced": [
+        "my friend got one",
+        "everyone at work has it",
+        "someone recommended it",
+      ],
+    },
+    counterProfileExit: "If user confirms 'it's me' when asked if it's them or a trend buy, exit gracefully - this is intentional",
+  },
+};
+
+/**
+ * Deliberate sub-path probing details (lighter probing since intentional)
+ */
+export const deliberateSubPathProbing: Record<string, SubPathProbing> = {
+  afford_it: {
+    subPath: "afford_it",
+    explorationGoal: "Were they saving toward a goal or waiting for cash flow to clear?",
+    probingHints: ["What changed that made it feel okay to buy?"],
+    targetModes: ["#deliberate-budget-saver"],
+    modeSignals: {
+      "#deliberate-budget-saver": ["saved up for it", "budgeted for it", "waited until I could afford it"],
+    },
+    lightProbing: true,
+  },
+  right_price: {
+    subPath: "right_price",
+    explorationGoal: "Understand their deal-seeking patience—how do they track prices or find deals?",
+    probingHints: ["What deal did you find?"],
+    targetModes: ["#deliberate-deal-hunter"],
+    modeSignals: {
+      "#deliberate-deal-hunter": ["tracked the price", "waited for a sale", "used a price alert"],
+    },
+    lightProbing: true,
+  },
+  right_one: {
+    subPath: "right_one",
+    explorationGoal: "Understand their research/standards process—what made this the 'right' one?",
+    probingHints: ["Where did you go for your research?", "Where did you end up finding it?"],
+    targetModes: ["#deliberate-researcher"],
+    modeSignals: {
+      "#deliberate-researcher": ["did my research", "compared options", "read reviews"],
+    },
+    lightProbing: true,
+  },
+  still_wanted: {
+    subPath: "still_wanted",
+    explorationGoal: "Validate their intentional pause—how long did they sit with it? Did the desire persist?",
+    probingHints: ["How long was it on your radar?"],
+    targetModes: ["#deliberate-pause-tester"],
+    modeSignals: {
+      "#deliberate-pause-tester": ["sat on it for a while", "wanted to make sure", "waited to see if I still wanted it"],
+    },
+    lightProbing: true,
+  },
+  got_around: {
+    subPath: "got_around",
+    explorationGoal: "Understand what was creating the delay—friction, low priority, or just life?",
+    probingHints: ["What finally made you do it?"],
+    targetModes: ["#deliberate-low-priority"],
+    modeSignals: {
+      "#deliberate-low-priority": ["just got around to it", "finally had time", "was on my list for a while"],
+    },
+    lightProbing: true,
+  },
+};
+
+/**
+ * Deal sub-path probing details
+ */
+export const dealSubPathProbing: Record<string, SubPathProbing> = {
+  limited_edition: {
+    subPath: "limited_edition",
+    explorationGoal: "Susceptibility to FOMO—do they buy because something is special, or does 'running out' create urgency that overrides judgment?",
+    probingHints: [
+      "Tell me more about the limited edition event or drop",
+      "Would you have bought it if it wasn't running out?",
+      "First one or adding to the collection?",
+      "What would've happened if you missed it?",
+    ],
+    targetModes: ["#scarcity-driven"],
+    modeSignals: {
+      "#scarcity-driven": [
+        "didn't want to miss it",
+        "it's limited edition",
+        "they were running out",
+        "FOMO",
+      ],
+    },
+  },
+  sale_discount: {
+    subPath: "sale_discount",
+    explorationGoal: "Do they buy things they already wanted at a better price, or does the deal itself create the want?",
+    probingHints: [
+      "Were you already looking for this before the sale?",
+      "Would you have bought it at full price?",
+    ],
+    targetModes: ["#deal-driven"],
+    modeSignals: {
+      "#deal-driven": [
+        "couldn't pass up the deal",
+        "it was such a good price",
+        "I love a good sale",
+      ],
+    },
+    counterProfileExit: "If they confirm they would have bought at full price, exit gracefully - this is intentional deal-hunting",
+  },
+  free_shipping: {
+    subPath: "free_shipping",
+    explorationGoal: "Did they add items just to hit the threshold, or were they already buying enough?",
+    probingHints: [
+      "What else was in your cart?",
+      "Did you add anything extra to hit the threshold?",
+    ],
+    targetModes: ["#threshold-spending-driven"],
+    modeSignals: {
+      "#threshold-spending-driven": [
+        "added something to get free shipping",
+        "wanted the bonus",
+        "hit the threshold",
+      ],
+    },
+    counterProfileExit: "If they were already over the threshold, exit gracefully - this is fine",
+  },
+};
+
+/**
+ * Gift sub-path probing (light probing)
+ */
+export const giftSubPathProbing: Record<string, SubPathProbing> = {
+  family: {
+    subPath: "family",
+    explorationGoal: "Light exploration of gift-giving patterns",
+    probingHints: ["Special occasion or just because?", "How did you know they'd like it?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {
+      "#planned-gift": ["knew what I wanted to get", "planned it out"],
+      "#spontaneous-gift": ["saw it and thought of them", "it just felt right"],
+    },
+    lightProbing: true,
+  },
+  friend: {
+    subPath: "friend",
+    explorationGoal: "Light exploration of gift-giving patterns",
+    probingHints: ["Special occasion or just because?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {},
+    lightProbing: true,
+  },
+  partner: {
+    subPath: "partner",
+    explorationGoal: "Light exploration of gift-giving patterns",
+    probingHints: ["Special occasion or just because?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {},
+    lightProbing: true,
+  },
+  coworker: {
+    subPath: "coworker",
+    explorationGoal: "Light exploration of gift-giving patterns",
+    probingHints: ["Special occasion or just because?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {},
+    lightProbing: true,
+  },
+};
+
+/**
+ * Maintenance sub-path probing (light probing)
+ */
+export const maintenanceSubPathProbing: Record<string, SubPathProbing> = {
+  same_thing: {
+    subPath: "same_thing",
+    explorationGoal: "Validate loyalty to the product",
+    probingHints: ["How long have you been using that?"],
+    targetModes: ["#loyal-repurchaser"],
+    modeSignals: {
+      "#loyal-repurchaser": ["it works", "always buy the same", "stick with what I know"],
+    },
+    lightProbing: true,
+  },
+  switched_up: {
+    subPath: "switched_up",
+    explorationGoal: "Understand what prompted the switch",
+    probingHints: ["What made you switch?"],
+    targetModes: ["#brand-switcher"],
+    modeSignals: {
+      "#brand-switcher": ["wanted to try something new", "heard good things about this one"],
+    },
+    lightProbing: true,
+  },
+  upgraded: {
+    subPath: "upgraded",
+    explorationGoal: "Understand the upgrade motivation",
+    probingHints: ["What made you want to upgrade?"],
+    targetModes: ["#upgrader"],
+    modeSignals: {
+      "#upgrader": ["wanted something better", "old one wasn't cutting it"],
+    },
+    lightProbing: true,
+  },
+};
+
+/**
+ * Get probing details for a given path and sub-path
+ */
+export function getSubPathProbing(path: string, subPath: string): SubPathProbing | undefined {
+  switch (path) {
+    case "impulse":
+      return impulseSubPathProbing[subPath];
+    case "deliberate":
+      return deliberateSubPathProbing[subPath];
+    case "deal":
+      return dealSubPathProbing[subPath];
+    case "gift":
+      return giftSubPathProbing[subPath];
+    case "maintenance":
+      return maintenanceSubPathProbing[subPath];
+    default:
+      return undefined;
+  }
+}
+
+// =============================================================================
 // Food Check-In Questions
 // =============================================================================
 

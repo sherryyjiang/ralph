@@ -5,7 +5,12 @@
  */
 
 import type { TransactionCategory, QuickReplyOption, Transaction, CheckInSession } from "@/lib/types";
-import { getShoppingFixedQuestion1, shoppingExplorationGoals } from "./question-trees";
+import { 
+  getShoppingFixedQuestion1, 
+  shoppingExplorationGoals,
+  getSubPathProbing,
+  type SubPathProbing,
+} from "./question-trees";
 
 // =============================================================================
 // Exploration Goals (re-exported for API route)
@@ -34,6 +39,9 @@ export const explorationGoals: Record<string, ExplorationGoal> = Object.fromEntr
     },
   ])
 );
+
+// Re-export for use in API route
+export { getSubPathProbing, type SubPathProbing };
 
 // =============================================================================
 // Build System Prompt (for API route)

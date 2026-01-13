@@ -12,22 +12,24 @@ import { explorationGoals } from "@/lib/llm/prompts";
 
 describe("Mode Detection Coverage", () => {
   describe("Shopping Modes", () => {
-    it("should detect comfort-driven-spender from impulse path", () => {
+    it("should include impulse exploration tags in indicators", () => {
       const indicators = explorationGoals.impulse.modeIndicators;
-      const hasComfort = indicators.some(i => i.toLowerCase().includes("comfort"));
-      expect(hasComfort).toBe(true);
+      expect(indicators.some(i => i.includes("#price-sensitivity-driven"))).toBe(true);
+      expect(indicators.some(i => i.includes("#self-reward-driven"))).toBe(true);
+      expect(indicators.some(i => i.includes("#visual-impulse-driven"))).toBe(true);
+      expect(indicators.some(i => i.includes("#trend-susceptibility-driven"))).toBe(true);
     });
 
-    it("should detect deal-hunter from deal path", () => {
+    it("should include deal exploration tags in indicators", () => {
       const indicators = explorationGoals.deal.modeIndicators;
-      const hasDeal = indicators.some(i => i.toLowerCase().includes("deal") || i.toLowerCase().includes("discount"));
-      expect(hasDeal).toBe(true);
+      expect(indicators.some(i => i.includes("#deal-driven"))).toBe(true);
+      expect(indicators.some(i => i.includes("#scarcity-driven"))).toBe(true);
+      expect(indicators.some(i => i.includes("#threshold-spending-driven"))).toBe(true);
     });
 
-    it("should detect intentional-planner from deliberate path", () => {
+    it("should include deliberate exploration tags in indicators", () => {
       const indicators = explorationGoals.deliberate.modeIndicators;
-      const hasIntentional = indicators.some(i => i.toLowerCase().includes("intentional") || i.toLowerCase().includes("research"));
-      expect(hasIntentional).toBe(true);
+      expect(indicators.some(i => i.includes("#deliberate-purchase"))).toBe(true);
     });
   });
 

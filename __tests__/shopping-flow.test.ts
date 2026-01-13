@@ -148,19 +148,24 @@ describe("Path Routing Logic", () => {
 // ═══════════════════════════════════════════════════════════════
 
 describe("Mode Indicators", () => {
-  it("should include comfort-driven-spender for impulse path", () => {
+  it("should include exploration tags for impulse path", () => {
     const impulseIndicators = explorationGoals.impulse.modeIndicators.join(" ");
-    expect(impulseIndicators).toContain("comfort");
+    expect(impulseIndicators).toContain("#price-sensitivity-driven");
+    expect(impulseIndicators).toContain("#self-reward-driven");
+    expect(impulseIndicators).toContain("#visual-impulse-driven");
+    expect(impulseIndicators).toContain("#trend-susceptibility-driven");
   });
 
-  it("should include deal-hunter for deal path", () => {
+  it("should include exploration tags for deal path", () => {
     const dealIndicators = explorationGoals.deal.modeIndicators.join(" ");
-    expect(dealIndicators).toContain("deal");
+    expect(dealIndicators).toContain("#deal-driven");
+    expect(dealIndicators).toContain("#scarcity-driven");
+    expect(dealIndicators).toContain("#threshold-spending-driven");
   });
 
-  it("should include intentional-planner for deliberate path", () => {
+  it("should include exploration tags for deliberate path", () => {
     const deliberateIndicators = explorationGoals.deliberate.modeIndicators.join(" ");
-    expect(deliberateIndicators).toContain("intentional");
+    expect(deliberateIndicators).toContain("#deliberate-purchase");
   });
 });
 

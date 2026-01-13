@@ -4,7 +4,7 @@
 
 ### Current Status
 - **Phase**: Phase B (Fix Fixed Q2 Options and Labels)
-- **Last Criterion Completed**: 7 (Deliberate Q2: add `other` option end-to-end)
+- **Last Criterion Completed**: 8 (Deal Q2 question + option labels aligned to spec)
 - **Verification**: `pnpm test shopping-flow` passing (127 tests)
 
 ---
@@ -820,3 +820,11 @@ Summary of verification:
 
 ### 2026-01-13 16:44:44
 **Session 4 started** (model: gpt-5.2-high)
+
+### 2026-01-13 16:45:30
+**Iteration 3 (Shopping Question Tree Logic) - Progress**
+- Completed criterion #7: Deliberate Fixed Q2 includes `other`
+  - Added `other` option to deliberate Fixed Q2 (prompt helpers + UI options)
+  - Added deliberate `other` sub-path probing + exploration goal for routing
+  - Updated tests to expect 6 deliberate sub-paths and verify `other` presence
+- Verified with `pnpm test shopping-flow` (127 tests passing)

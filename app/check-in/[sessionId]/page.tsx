@@ -9,7 +9,7 @@ import {
   getFoodAwarenessCalibration, 
   getCoffeeFrequencyCalibration,
 } from "@/lib/llm/question-trees";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING
@@ -231,6 +231,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     currentPath,
     currentMode,
     probingDepth,
+    session,
     startSession,
     addAssistantMessage,
     addUserMessage,
@@ -240,11 +241,8 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setLayer,
     setLoading,
     setError,
-    setUserGuess,
-    setActualAmount,
     setUserGuessCount,
     setActualCount,
-    addTag,
     incrementProbingDepth,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
@@ -460,7 +458,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         }, 800);
       }
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount]);
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuessCount, setActualCount]);
 
   // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {

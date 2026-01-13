@@ -842,22 +842,450 @@ export function getCoffeeFrequencyCalibration(
         id: "few",
         label: `${Math.max(1, Math.round(actualMonthlyCount * 0.3))} or fewer times`,
         emoji: "🔢",
-        value: "few",
+        value: String(Math.max(1, Math.round(actualMonthlyCount * 0.3))),
         color: "white",
       },
       {
         id: "some",
         label: `About ${Math.round(actualMonthlyCount * 0.6)}-${Math.round(actualMonthlyCount * 0.8)} times`,
         emoji: "🔢",
-        value: "some",
+        value: String(Math.round(actualMonthlyCount * 0.7)),
         color: "white",
       },
       {
         id: "many",
         label: `More than ${Math.round(actualMonthlyCount * 0.9)} times`,
         emoji: "🔢",
-        value: "many",
+        value: String(Math.round(actualMonthlyCount)),
         color: "yellow",
+      },
+    ],
+  };
+}
+
+/**
+ * Get the calibration result message for coffee based on guess vs actual
+ */
+export interface CoffeeCalibrationResult {
+  isClose: boolean;
+  percentDiff: number;
+  absoluteDiff: number;
+  message: string;
+  actualCount: number;
+  totalSpend: number;
+}
+
+export function getCoffeeCalibrationResult(
+  guessedCount: number,
+  actualCount: number,
+  totalSpend: number
+): CoffeeCalibrationResult {
+  const diff = actualCount - guessedCount;
+  const percentDiff = actualCount > 0 ? Math.abs(diff / actualCount) * 100 : 0;
+  const isClose = percentDiff <= 20 || Math.abs(diff) <= 2;
+
+  if (isClose) {
+    return {
+      isClose: true,
+      percentDiff,
+      absoluteDiff: Math.abs(diff),
+      message: `Pretty close! You made **${actualCount} purchases** this month, totaling **$${totalSpend.toFixed(0)}**. Nice awareness! 🎯`,
+      actualCount,
+      totalSpend,
+    };
+  } else {
+    const direction = diff > 0 ? "more" : "fewer";
+    return {
+      isClose: false,
+      percentDiff,
+      absoluteDiff: Math.abs(diff),
+      message: `Actually, you made **${actualCount} purchases** this month — that's ${Math.abs(diff)} ${direction} than you guessed, totaling **$${totalSpend.toFixed(0)}**. 📊`,
+      actualCount,
+      totalSpend,
+    };
+  }
+}
+
+/**
+ * "How do you feel about that number?" - after calibration reveal
+ */
+export function getCoffeeFeelingQuestion(): FixedQuestionResponse {
+  return {
+    content: "How do you feel about that number?",
+    options: [
+      {
+        id: "ok_with_it",
+        label: "I'm ok with it",
+        emoji: "👍",
+        value: "ok_with_it",
+        color: "white",
+      },
+      {
+        id: "could_be_better",
+        label: "Feel like it could be better",
+        emoji: "🤔",
+        value: "could_be_better",
+        color: "yellow",
+      },
+    ],
+  };
+}
+
+// =============================================================================
+// Coffee/Treats Layer 2: Mode Assignment (Fixed Questions)
+// =============================================================================
+
+export type CoffeeMode =
+  | "#autopilot-routine"
+  | "#environment-triggered"
+  | "#emotional-coping"
+  | "#productivity-justification"
+  | "#intentional-ritual"       // Counter-profile
+  | "#productive-coffee-drinker"; // Counter-profile
+
+export type CoffeeMotivation = "routine" | "nearby" | "pick_me_up" | "focus";
+
+/**
+ * Coffee motivation question: "What's the main reason you buy these?"
+ */
+export function getCoffeeMotivationQuestion(): FixedQuestionResponse {
+  return {
+    content: "What's the main reason you buy these?",
+    options: [
+      {
+        id: "routine",
+        label: "It's become a routine",
+        emoji: "🔁",
+        value: "routine",
+        color: "white",
+      },
+      {
+        id: "nearby",
+        label: "When I happen to be nearby",
+        emoji: "📍",
+        value: "nearby",
+        color: "white",
+      },
+      {
+        id: "pick_me_up",
+        label: "When I need a pick-me-up or break",
+        emoji: "☕",
+        value: "pick_me_up",
+        color: "yellow",
+      },
+      {
+        id: "focus",
+        label: "Helps me focus or get things done",
+        emoji: "🎯",
+        value: "focus",
+        color: "white",
+      },
+    ],
+  };
+}
+
+/**
+ * Coffee Fixed Q2 for each motivation path
+ */
+export function getCoffeeFixedQ2(motivation: CoffeeMotivation, weeklyAverage: number): FixedQuestionResponse {
+  switch (motivation) {
+    case "routine":
+      return {
+        content: `You've averaged about ${weeklyAverage} times a week — was that intentional or did it just kind of happen?`,
+        options: [
+          {
+            id: "just_happened",
+            label: "Just sort of happened",
+            emoji: "🤷",
+            value: "just_happened",
+            color: "yellow",
+          },
+          {
+            id: "intentional",
+            label: "Yeah, intentional",
+            emoji: "✅",
+            value: "intentional",
+            color: "white",
+          },
+        ],
+      };
+    
+    case "nearby":
+      return {
+        content: "Where does this usually happen?",
+        options: [
+          {
+            id: "near_work",
+            label: "Near work / on commute",
+            emoji: "🏢",
+            value: "near_work",
+            color: "white",
+          },
+          {
+            id: "near_home",
+            label: "Near home",
+            emoji: "🏠",
+            value: "near_home",
+            color: "white",
+          },
+          {
+            id: "out_and_about",
+            label: "When I'm out doing other things",
+            emoji: "🚶",
+            value: "out_and_about",
+            color: "white",
+          },
+        ],
+      };
+    
+    case "pick_me_up":
+      return {
+        content: "What's usually going on?",
+        options: [
+          {
+            id: "work_heavy",
+            label: "Work felt like a lot",
+            emoji: "💼",
+            value: "work_heavy",
+            color: "yellow",
+          },
+          {
+            id: "bored_stuck",
+            label: "Bored or stuck, needed change of scenery",
+            emoji: "😐",
+            value: "bored_stuck",
+            color: "yellow",
+          },
+          {
+            id: "stressed_anxious",
+            label: "Stressed or anxious",
+            emoji: "😰",
+            value: "stressed_anxious",
+            color: "yellow",
+          },
+          {
+            id: "step_away",
+            label: "Just needed to step away",
+            emoji: "🚪",
+            value: "step_away",
+            color: "white",
+          },
+        ],
+      };
+    
+    case "focus":
+      return {
+        content: "You said it helps you focus — does it?",
+        options: [
+          {
+            id: "real_difference",
+            label: "Yeah, I notice a real difference",
+            emoji: "✨",
+            value: "real_difference",
+            color: "white",
+          },
+          {
+            id: "half_time",
+            label: "Half the time",
+            emoji: "🤔",
+            value: "half_time",
+            color: "yellow",
+          },
+          {
+            id: "hard_to_say",
+            label: "Think so? Hard to say",
+            emoji: "❓",
+            value: "hard_to_say",
+            color: "yellow",
+          },
+          {
+            id: "probably_not",
+            label: "Honestly, probably not",
+            emoji: "😅",
+            value: "probably_not",
+            color: "yellow",
+          },
+          {
+            id: "ritual",
+            label: "It's more about the ritual",
+            emoji: "☕",
+            value: "ritual",
+            color: "white",
+          },
+        ],
+      };
+  }
+}
+
+/**
+ * Map coffee Q2 responses to modes
+ */
+export interface CoffeeModeAssignment {
+  mode: CoffeeMode;
+  isCounterProfile: boolean;
+  exitMessage?: string;
+}
+
+export function getCoffeeModeFromQ2Response(
+  motivation: CoffeeMotivation,
+  q2Response: string
+): CoffeeModeAssignment {
+  switch (motivation) {
+    case "routine":
+      if (q2Response === "intentional") {
+        return {
+          mode: "#intentional-ritual",
+          isCounterProfile: true,
+          exitMessage: "Sounds like you've got it dialed in! Nothing wrong with an intentional daily ritual. ☕✨",
+        };
+      }
+      return { mode: "#autopilot-routine", isCounterProfile: false };
+    
+    case "nearby":
+      // All responses lead to #environment-triggered
+      return { mode: "#environment-triggered", isCounterProfile: false };
+    
+    case "pick_me_up":
+      // All responses lead to #emotional-coping
+      return { mode: "#emotional-coping", isCounterProfile: false };
+    
+    case "focus":
+      if (q2Response === "real_difference") {
+        return {
+          mode: "#productive-coffee-drinker",
+          isCounterProfile: true,
+          exitMessage: "Sounds like it's working for you! If coffee genuinely helps your productivity, that's a worthwhile investment. ☕💪",
+        };
+      }
+      return { mode: "#productivity-justification", isCounterProfile: false };
+  }
+}
+
+// =============================================================================
+// Coffee/Treats Mode Definitions and Exploration
+// =============================================================================
+
+export interface CoffeeModeExploration {
+  mode: CoffeeMode;
+  name: string;
+  description: string;
+  keySignals: string[];
+  reflectionGuidance: string;
+  isCounterProfile?: boolean;
+}
+
+export const coffeeModeExplorations: Record<CoffeeMode, CoffeeModeExploration> = {
+  "#autopilot-routine": {
+    mode: "#autopilot-routine",
+    name: "Autopilot Routine",
+    description: "Habit formed without conscious decision—it just accumulated over time",
+    keySignals: [
+      "just sort of happened",
+      "didn't realize",
+      "not sure when it started",
+    ],
+    reflectionGuidance: "The habit snuck up on you. Consider if this routine is serving you or running on autopilot.",
+  },
+  "#environment-triggered": {
+    mode: "#environment-triggered",
+    name: "Environment Triggered",
+    description: "Purchases driven by physical proximity—environment makes the decision",
+    keySignals: [
+      "near work / on commute",
+      "it's right there",
+      "I walk past it",
+    ],
+    reflectionGuidance: "Your environment is making spending decisions for you. Consider if you can change the path or the pattern.",
+  },
+  "#emotional-coping": {
+    mode: "#emotional-coping",
+    name: "Emotional Coping",
+    description: "Coffee/treat is response to emotional states (stress, anxiety, boredom)",
+    keySignals: [
+      "stressed or anxious",
+      "needed a break",
+      "rough day",
+      "bored, stuck",
+    ],
+    reflectionGuidance: "You're using coffee runs to manage emotions. Consider if there are other ways to get the relief you're looking for.",
+  },
+  "#productivity-justification": {
+    mode: "#productivity-justification",
+    name: "Productivity Justification",
+    description: "Claims productivity benefits, though outcome may or may not be real",
+    keySignals: [
+      "half the time",
+      "think so? hard to say",
+      "maybe it's placebo",
+    ],
+    reflectionGuidance: "The productivity claim might be more hope than reality. Consider testing whether you actually work better with or without it.",
+  },
+  "#intentional-ritual": {
+    mode: "#intentional-ritual",
+    name: "Intentional Ritual",
+    description: "Consciously chose to have this as a regular treat",
+    keySignals: [
+      "intentional",
+      "I like having this",
+      "planned treat",
+    ],
+    reflectionGuidance: "You've made a conscious choice—that's the key difference. Enjoy it!",
+    isCounterProfile: true,
+  },
+  "#productive-coffee-drinker": {
+    mode: "#productive-coffee-drinker",
+    name: "Productive Coffee Drinker",
+    description: "Actually gets productive work done with coffee",
+    keySignals: [
+      "real difference",
+      "actually works better",
+      "measurable productivity",
+    ],
+    reflectionGuidance: "If it genuinely helps, it's a tool—not a habit. Keep monitoring the tradeoff.",
+    isCounterProfile: true,
+  },
+};
+
+/**
+ * Get mode-specific economic evaluation for coffee
+ */
+export function getCoffeeEconomicEvaluation(mode: CoffeeMode, monthlySpend: number, monthlyCount: number): FixedQuestionResponse {
+  const perVisit = monthlyCount > 0 ? monthlySpend / monthlyCount : 0;
+  
+  const benefitMap: Record<CoffeeMode, string> = {
+    "#autopilot-routine": "the daily ritual you didn't consciously choose",
+    "#environment-triggered": "the convenience of grabbing something nearby",
+    "#emotional-coping": "the mood boost and break from stress",
+    "#productivity-justification": "the productivity you think you're getting",
+    "#intentional-ritual": "your intentional daily treat",
+    "#productive-coffee-drinker": "the real productivity boost",
+  };
+
+  const benefit = benefitMap[mode] || "coffee and treats";
+
+  return {
+    content: `At $${perVisit.toFixed(0)} per visit, ${monthlyCount} times a month, that's $${monthlySpend.toFixed(0)}/month. Is ${benefit} worth it to you?`,
+    options: [
+      {
+        id: "worth_it",
+        label: "Yeah, it's worth it to me",
+        emoji: "✅",
+        value: "worth_it",
+        color: "white",
+      },
+      {
+        id: "not_worth",
+        label: "Honestly, probably not",
+        emoji: "🤔",
+        value: "not_worth",
+        color: "yellow",
+      },
+      {
+        id: "mixed",
+        label: "Some of it is, some isn't",
+        emoji: "⚖️",
+        value: "mixed",
+        color: "white",
       },
     ],
   };

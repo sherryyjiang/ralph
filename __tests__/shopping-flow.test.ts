@@ -213,3 +213,148 @@ describe("Coffee Check-In Options", () => {
     expect(guess5?.label).toContain("5");
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Sub-Path Exploration Goal Tests (Layer 2 Probing)
+// ═══════════════════════════════════════════════════════════════
+
+describe("Impulse Sub-Path Exploration Goals", () => {
+  it("should have exploration goals for all impulse sub-paths", () => {
+    expect(impulseSubPathGoals.price_felt_right).toBeDefined();
+    expect(impulseSubPathGoals.treating_myself).toBeDefined();
+    expect(impulseSubPathGoals.caught_eye).toBeDefined();
+    expect(impulseSubPathGoals.trending).toBeDefined();
+  });
+
+  it("price_felt_right should target intuitive-threshold-spender mode", () => {
+    const goal = impulseSubPathGoals.price_felt_right;
+    expect(goal.mode).toBe("#intuitive-threshold-spender");
+  });
+
+  it("treating_myself should branch to multiple possible modes", () => {
+    const goal = impulseSubPathGoals.treating_myself;
+    expect(goal.possibleModes).toBeDefined();
+    expect(goal.possibleModes?.length).toBe(3);
+    expect(goal.possibleModes).toContain("#reward-driven-spender");
+    expect(goal.possibleModes).toContain("#comfort-driven-spender");
+    expect(goal.possibleModes).toContain("#routine-treat-spender");
+  });
+
+  it("caught_eye should have probing hints about where item was seen", () => {
+    const goal = impulseSubPathGoals.caught_eye;
+    const hints = goal.probingHints.join(" ");
+    expect(hints).toContain("Where did you see it");
+  });
+
+  it("trending should explore trend susceptibility", () => {
+    const goal = impulseSubPathGoals.trending;
+    expect(goal.explorationGoal).toContain("susceptible");
+  });
+});
+
+describe("Deal Sub-Path Exploration Goals", () => {
+  it("should have exploration goals for all deal sub-paths", () => {
+    expect(dealSubPathGoals.limited_edition).toBeDefined();
+    expect(dealSubPathGoals.sale_discount).toBeDefined();
+    expect(dealSubPathGoals.free_shipping).toBeDefined();
+  });
+
+  it("limited_edition should explore FOMO susceptibility", () => {
+    const goal = dealSubPathGoals.limited_edition;
+    expect(goal.explorationGoal).toContain("FOMO");
+    expect(goal.mode).toBe("#scarcity-driven");
+  });
+
+  it("sale_discount should ask about full price buying", () => {
+    const goal = dealSubPathGoals.sale_discount;
+    const hints = goal.probingHints.join(" ");
+    expect(hints).toContain("full price");
+  });
+
+  it("free_shipping should explore threshold spending patterns", () => {
+    const goal = dealSubPathGoals.free_shipping;
+    expect(goal.explorationGoal).toContain("threshold");
+    expect(goal.mode).toBe("#threshold-spending-driven");
+  });
+});
+
+describe("Deliberate Sub-Path Exploration Goals", () => {
+  it("should have exploration goals for all deliberate sub-paths", () => {
+    expect(deliberateSubPathGoals.afford_it).toBeDefined();
+    expect(deliberateSubPathGoals.right_price).toBeDefined();
+    expect(deliberateSubPathGoals.right_one).toBeDefined();
+    expect(deliberateSubPathGoals.still_wanted).toBeDefined();
+    expect(deliberateSubPathGoals.got_around).toBeDefined();
+  });
+
+  it("right_one should target deliberate-researcher mode", () => {
+    const goal = deliberateSubPathGoals.right_one;
+    expect(goal.mode).toBe("#deliberate-researcher");
+  });
+
+  it("still_wanted should validate intentional pause", () => {
+    const goal = deliberateSubPathGoals.still_wanted;
+    expect(goal.explorationGoal).toContain("pause");
+    expect(goal.mode).toBe("#deliberate-pause-tester");
+  });
+});
+
+describe("getSubPathExplorationGoal helper", () => {
+  it("should return impulse sub-path goals for impulse path", () => {
+    const goal = getSubPathExplorationGoal("impulse", "price_felt_right");
+    expect(goal).toBeDefined();
+    expect(goal?.mode).toBe("#intuitive-threshold-spender");
+  });
+
+  it("should return deal sub-path goals for deal path", () => {
+    const goal = getSubPathExplorationGoal("deal", "limited_edition");
+    expect(goal).toBeDefined();
+    expect(goal?.mode).toBe("#scarcity-driven");
+  });
+
+  it("should return deliberate sub-path goals for deliberate path", () => {
+    const goal = getSubPathExplorationGoal("deliberate", "right_one");
+    expect(goal).toBeDefined();
+    expect(goal?.mode).toBe("#deliberate-researcher");
+  });
+
+  it("should return undefined for unknown paths", () => {
+    const goal = getSubPathExplorationGoal("unknown", "test");
+    expect(goal).toBeUndefined();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Mode Definition Tests
+// ═══════════════════════════════════════════════════════════════
+
+describe("Mode Definitions", () => {
+  it("should have definitions for all impulse modes", () => {
+    expect(modeDefinitions["#intuitive-threshold-spender"]).toBeDefined();
+    expect(modeDefinitions["#reward-driven-spender"]).toBeDefined();
+    expect(modeDefinitions["#comfort-driven-spender"]).toBeDefined();
+    expect(modeDefinitions["#routine-treat-spender"]).toBeDefined();
+    expect(modeDefinitions["#visual-impulse-driven"]).toBeDefined();
+    expect(modeDefinitions["#trend-susceptibility-driven"]).toBeDefined();
+  });
+
+  it("should have definitions for deal modes", () => {
+    expect(modeDefinitions["#scarcity-driven"]).toBeDefined();
+    expect(modeDefinitions["#deal-driven"]).toBeDefined();
+    expect(modeDefinitions["#threshold-spending-driven"]).toBeDefined();
+  });
+
+  it("should have reflection guidance for each mode", () => {
+    Object.values(modeDefinitions).forEach(mode => {
+      expect(mode.reflectionGuidance).toBeDefined();
+      expect(mode.reflectionGuidance.length).toBeGreaterThan(10);
+    });
+  });
+
+  it("should have key indicators for each mode", () => {
+    Object.values(modeDefinitions).forEach(mode => {
+      expect(mode.indicators).toBeDefined();
+      expect(mode.indicators.length).toBeGreaterThan(0);
+    });
+  });
+});

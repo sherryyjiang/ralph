@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
+import { useChatAPI } from "@/lib/hooks/use-chat-api";
 import { getTransactionById } from "@/lib/data/synthetic-transactions";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
 
@@ -256,14 +257,44 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         setSubPath(subPath);
         setLayer(2);
         
-        // For now, show a placeholder for LLM probing (to be implemented in Phase 3)
-        setTimeout(() => {
-          addAssistantMessage(
-            "Thanks for sharing! I'm curious to understand more about what was going on when you made this purchase. Can you tell me a bit about the context—what were you doing, how were you feeling?",
-            undefined,
-            false
-          );
-        }, 500);
+        // Call LLM API for Layer 2 probing
+        setLoading(true);
+        fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [...messages, { id: `user_${Date.now()}`, role: "user", content: displayText, timestamp: new Date() }],
+            transaction,
+            session: {
+              id: sessionId,
+              transactionId: transaction.id,
+              type: transaction.category,
+              status: "in_progress",
+              currentLayer: 2,
+              path: currentPath,
+              subPath: subPath,
+              messages: messages,
+              metadata: { tags: [] },
+            },
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            setLoading(false);
+            addAssistantMessage(
+              data.message || "Thanks for sharing! I'm curious to understand more about what was going on when you made this purchase. Can you tell me a bit about the context—what were you doing, how were you feeling?",
+              data.options,
+              false
+            );
+          })
+          .catch(() => {
+            setLoading(false);
+            addAssistantMessage(
+              "Thanks for sharing! I'm curious to understand more about what was going on when you made this purchase. Can you tell me a bit about the context—what were you doing, how were you feeling?",
+              undefined,
+              false
+            );
+          });
       }
     }
     

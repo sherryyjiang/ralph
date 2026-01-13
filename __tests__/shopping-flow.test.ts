@@ -4,7 +4,7 @@
  * Tests for Layer 1 fixed questions, path routing, and mode assignment logic.
  */
 
-import { getFixedQuestion1Options, explorationGoals } from "@/lib/llm/prompts";
+import { getFixedQuestion1Options, getFixedQuestion2Options, explorationGoals } from "@/lib/llm/prompts";
 import { 
   getFixedQuestion2Options as getTreeFixedQuestion2Options,
   SHOPPING_Q2_QUESTIONS,
@@ -93,6 +93,23 @@ describe("Shopping Fixed Question 2 question text mapping", () => {
     expect(getShoppingFixedQuestion2Text("maintenance")).toBe(
       "Did you get the same thing or switched it up?"
     );
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Fixed Question 2 Options Tests (Prompt Helpers)
+// ═══════════════════════════════════════════════════════════════
+
+describe("Shopping Fixed Question 2 options (prompt helpers)", () => {
+  it("impulse should include the 'other' option", () => {
+    const options = getFixedQuestion2Options("shopping", "impulse") ?? [];
+    const values = options.map((o) => o.value);
+    expect(values).toContain("other");
+  });
+
+  it("impulse should have exactly 5 options", () => {
+    const options = getFixedQuestion2Options("shopping", "impulse");
+    expect(options).toHaveLength(5);
   });
 });
 

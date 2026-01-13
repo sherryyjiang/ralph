@@ -1376,6 +1376,8 @@ export interface SubPathExplorationGoal {
   probingHints: string[];
   keySignals: string[];
   possibleModes?: string[];  // For paths that branch to multiple modes
+  lightProbing?: boolean;     // For deliberate paths: skip deep probing, exit gracefully
+  counterProfileExit?: string; // Graceful exit message for deliberate/intentional behavior
 }
 
 /**

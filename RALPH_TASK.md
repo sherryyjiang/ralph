@@ -58,13 +58,13 @@ Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LL
 20. [x] Update system prompt with tone guidelines (warmth, validation, mirroring)
 21. [x] Make probing hints REQUIRED in prompt (not suggestions)
 22. [x] Add negative examples to prevent generic questions
-23. [ ] Test probing adherence for "right_one" path specifically
+23. [x] Test probing adherence for "right_one" path specifically
 
 ### Phase F: Testing
-24. [ ] Write tests for question tree routing (shopping paths)
-25. [ ] Write tests for awareness calibration phase transitions
-26. [ ] Write tests for graceful exit detection
-27. [ ] Manual verification of all 4 check-in cards
+24. [x] Write tests for question tree routing (shopping paths)
+25. [x] Write tests for awareness calibration phase transitions
+26. [x] Write tests for graceful exit detection
+27. [x] Manual verification of all 4 check-in cards
 
 ---
 

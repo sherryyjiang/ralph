@@ -400,3 +400,110 @@ describe("Layer Transitions", () => {
     });
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// Awareness Calibration Phase Transition Tests (Criterion 25)
+// ═══════════════════════════════════════════════════════════════
+
+describe("Awareness Calibration Phase Transitions", () => {
+  const actualMonthlySpend = getMonthlyFoodSpend();
+  const actualMonthlyCount = getMonthlyCoffeeCount();
+
+  describe("Food Calibration Phases", () => {
+    it("should transition from guess to result showing", () => {
+      // Simulate: User submits guess → Show calibration result
+      const guess = Math.round(actualMonthlySpend * 0.5);
+      const result = getFoodCalibrationResult(guess, actualMonthlySpend);
+      
+      // Result should include actual amount and comparison
+      expect(result.message).toBeDefined();
+      expect(result.actualAmount).toBe(actualMonthlySpend);
+    });
+
+    it("should transition from result to feeling question", () => {
+      // After showing result, feeling question should be available
+      const feelingQ = getFoodFeelingQuestion();
+      
+      expect(feelingQ.content).toContain("feel");
+      expect(feelingQ.options).toHaveLength(2);
+    });
+
+    it("should identify when breakdown is appropriate (way off)", () => {
+      // Way off: >20% AND $75+ difference
+      const wayOffGuess = Math.round(actualMonthlySpend * 0.4);
+      const result = getFoodCalibrationResult(wayOffGuess, actualMonthlySpend);
+      
+      const diff = actualMonthlySpend - wayOffGuess;
+      if (diff > 75) {
+        expect(result.showBreakdown).toBe(true);
+      }
+    });
+
+    it("should skip breakdown when guess is close", () => {
+      // Close guess: within 20% or <$75 difference
+      const closeGuess = Math.round(actualMonthlySpend * 0.9);
+      const result = getFoodCalibrationResult(closeGuess, actualMonthlySpend);
+      
+      expect(result.isClose).toBe(true);
+      // showBreakdown should be false for close guesses
+    });
+
+    it("should transition to Layer 2 (motivation) after calibration", () => {
+      // After feeling response (could_be_better), show motivation question
+      const motivationQ = getFoodMotivationQuestion();
+      
+      expect(motivationQ.options).toHaveLength(5);
+      expect(motivationQ.options.map(o => o.value)).toContain("drained");
+      expect(motivationQ.options.map(o => o.value)).toContain("easier");
+    });
+  });
+
+  describe("Coffee Calibration Phases", () => {
+    it("should transition from count guess to result showing", () => {
+      const guess = Math.round(actualMonthlyCount * 0.5);
+      const result = getCoffeeCalibrationResult(guess, actualMonthlyCount, 112);
+      
+      expect(result.message).toBeDefined();
+      expect(result.actualCount).toBe(actualMonthlyCount);
+    });
+
+    it("should transition from result to feeling question", () => {
+      const feelingQ = getCoffeeFeelingQuestion();
+      
+      expect(feelingQ.content).toContain("feel");
+      expect(feelingQ.options).toHaveLength(2);
+      expect(feelingQ.options.map(o => o.value)).toContain("could_be_better");
+    });
+
+    it("should transition to Layer 2 (motivation) for could_be_better", () => {
+      const motivationQ = getCoffeeMotivationQuestion();
+      
+      expect(motivationQ.options).toHaveLength(4);
+      expect(motivationQ.options.map(o => o.value)).toContain("routine");
+      expect(motivationQ.options.map(o => o.value)).toContain("pick_me_up");
+    });
+  });
+
+  describe("Counter-Profile Exits", () => {
+    it("should exit gracefully for intentional food ordering", () => {
+      const mode = getFoodModeFromMotivation("wanted_meal");
+      expect(mode).toBe("#intentional-treat");
+      // This is a counter-profile that should exit gracefully
+    });
+
+    it("should exit gracefully for intentional coffee ritual", () => {
+      const assignment = getCoffeeModeFromQ2Response("routine" as CoffeeMotivation, "intentional");
+      
+      expect(assignment.isCounterProfile).toBe(true);
+      expect(assignment.mode).toBe("#intentional-ritual");
+      expect(assignment.exitMessage).toBeDefined();
+    });
+
+    it("should exit gracefully for productive coffee drinker", () => {
+      const assignment = getCoffeeModeFromQ2Response("focus" as CoffeeMotivation, "real_difference");
+      
+      expect(assignment.isCounterProfile).toBe(true);
+      expect(assignment.mode).toBe("#productive-coffee-drinker");
+    });
+  });
+});

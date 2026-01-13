@@ -706,8 +706,8 @@ export function getFoodMotivationQuestion(): FixedQuestionResponse {
 /**
  * Map food motivation response to mode
  */
-export function getFoodModeFromMotivation(motivation: string): FoodMode | null {
-  const modeMap: Record<string, FoodMode> = {
+export function getFoodModeFromMotivation(motivation: string): string | null {
+  const modeMap: Record<string, string> = {
     // Original keys from question tree
     drained: "#autopilot-from-stress",
     easier: "#convenience-driven",
@@ -950,8 +950,7 @@ export type CoffeeMode =
   | "#emotional-coping"
   | "#productivity-justification"
   | "#intentional-ritual"         // Counter-profile
-  | "#productive-coffee-drinker"  // Counter-profile
-  | "#social-ritual";             // Social coffee runs
+  | "#productive-coffee-drinker"; // Counter-profile
 
 export type CoffeeMotivation = "routine" | "nearby" | "pick_me_up" | "focus";
 
@@ -1253,6 +1252,18 @@ export const coffeeModeExplorations: Record<CoffeeMode, CoffeeModeExploration> =
     ],
     reflectionGuidance: "If it genuinely helps, it's a tool—not a habit. Keep monitoring the tradeoff.",
     isCounterProfile: true,
+  },
+  "#social-ritual": {
+    mode: "#social-ritual",
+    name: "Social Ritual",
+    description: "Coffee runs are about social connection and shared time",
+    keySignals: [
+      "meeting someone",
+      "catch up with",
+      "social",
+      "with friends",
+    ],
+    reflectionGuidance: "The coffee is secondary to the connection. Consider if the social benefit justifies the spend.",
   },
 };
 

@@ -97,10 +97,13 @@ export type FoodMode =
  * Coffee/Treats check-in modes
  */
 export type CoffeeMode = 
-  | "autopilot"    // Routine without thinking
-  | "environment"  // Triggered by location/context
-  | "emotional"    // Emotional coping mechanism
-  | "productivity"; // Justification for productivity
+  | "#autopilot-routine"
+  | "#environment-triggered"
+  | "#emotional-coping"
+  | "#productivity-justification"
+  | "#intentional-ritual"         // Counter-profile
+  | "#productive-coffee-drinker"  // Counter-profile
+  | "#social-ritual";             // Social coffee runs
 
 export type CheckInPath = ShoppingPath;
 export type CheckInMode = string; // e.g., "#comfort-driven-spender"

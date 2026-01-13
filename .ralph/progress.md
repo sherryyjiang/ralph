@@ -72,7 +72,25 @@
 - Mode assignment after probing
 - 26 tests passing in shopping-flow.test.ts
 
-**Starting Phase 5-8**: Food, Coffee, Reflection, Polish
+**Phase 5 Complete** ✅
+- Food awareness calibration (guess vs actual spending)
+- Mode assignment (stress, convenience, planning)
+- Economic evaluation reflection
+
+**Phase 6 Complete** ✅ 
+- Coffee frequency calibration (guess vs actual count)
+- Fixed question flows for motivation paths
+- Mode-specific reflection questions
+
+**Phase 7 In Progress** 🔄
+- Layer 3 reflection options defined (problem, feel, worth)
+- API route handles reflection prompts
+- Some undefined helper functions need cleanup
+
+**Remaining Work**:
+- Clean up undefined coffee helper functions
+- Complete Phase 7 reflection path handling
+- Phase 8 testing and polish
 
 ### 2026-01-13 12:34:03
 **Session 3 ended** - 🔄 Context rotation (token limit reached)

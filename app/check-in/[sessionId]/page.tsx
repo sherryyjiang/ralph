@@ -255,6 +255,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     currentPath,
     currentMode,
     probingDepth,
+    coffeeMotivation,
     startSession,
     addAssistantMessage,
     addUserMessage,

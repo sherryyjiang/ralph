@@ -23,7 +23,7 @@ Build a mock-up chat application that helps users understand their spending beha
 ### Phase 2: Chat Infrastructure
 5. [x] Create chat components: `chat-container.tsx`, `message-bubble.tsx`, `quick-reply.tsx`
 6. [x] Create check-in session state management with useReducer
-7. [ ] Create `/check-in/[sessionId]/page.tsx` for chat interface
+7. [x] Create `/check-in/[sessionId]/page.tsx` for chat interface
 8. [ ] Connect transaction tap to check-in flow
 
 ### Phase 3: Gemini Integration

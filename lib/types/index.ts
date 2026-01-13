@@ -39,6 +39,24 @@ export type ShoppingPath =
   | "maintenance"; // "Restocking/replacing"
 
 /**
+ * Sub-paths for impulse shopping (Fixed Question 2 responses)
+ */
+export type ImpulseSubPath = 
+  | "saw_got_excited"    // [YELLOW] "I saw it and got excited"
+  | "friend_recommended" // [WHITE] "A friend recommended it"
+  | "better_deal"        // [YELLOW] "Found a better deal than expected"
+  | "retail_therapy"     // [YELLOW] "Retail therapy moment";
+
+/**
+ * Sub-paths for deal/scarcity shopping (Fixed Question 2 responses)
+ */
+export type DealSubPath = 
+  | "flash_sale"         // [YELLOW] "Flash sale / limited time"
+  | "coupons"            // [WHITE] "I had coupons / cashback"
+  | "price_drop"         // "Price dropped on wishlist item"
+  | "bulk_discount";     // "Bulk discount opportunity"
+
+/**
  * Food check-in modes assigned after probing
  */
 export type FoodMode = 
@@ -65,12 +83,17 @@ export interface CheckInSession {
   status: CheckInStatus;
   currentLayer: CheckInLayer;
   path?: CheckInPath;
+  subPath?: ImpulseSubPath | DealSubPath;
   mode?: CheckInMode;
   messages: Message[];
   metadata: {
     startedAt?: Date;
     completedAt?: Date;
     tags: string[];
+    userGuess?: number;
+    actualAmount?: number;
+    userGuessCount?: number;
+    actualCount?: number;
   };
 }
 

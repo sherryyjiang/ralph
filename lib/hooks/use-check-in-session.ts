@@ -1,75 +1,276 @@
-"use client";
+// Check-In Session State Management with useReducer
+// Manages the full lifecycle of a check-in conversation
 
 import { useReducer, useCallback } from "react";
-import {
+import type {
   CheckInSession,
+  CheckInStatus,
+  CheckInLayer,
+  CheckInMode,
   Message,
-  ChatState,
-  ChatAction,
-  Transaction,
   QuickReplyOption,
+  ShoppingPath,
+  ImpulseSubPath,
+  DealSubPath,
+  Transaction,
+  TransactionCategory,
 } from "@/lib/types";
 
-// Initial state
-const initialState: ChatState = {
-  messages: [],
-  isLoading: false,
-  error: null,
-  session: null,
-};
+// ═══════════════════════════════════════════════════════════════
+// STATE TYPES
+// ═══════════════════════════════════════════════════════════════
 
-// Reducer function
-function chatReducer(state: ChatState, action: ChatAction): ChatState {
+export interface CheckInState {
+  session: CheckInSession;
+  isLoading: boolean;
+  error: string | null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTION TYPES
+// ═══════════════════════════════════════════════════════════════
+
+export type CheckInAction =
+  | { type: "START_SESSION" }
+  | { type: "ADD_MESSAGE"; payload: Message }
+  | { type: "ADD_ASSISTANT_MESSAGE"; payload: { content: string; options?: QuickReplyOption[]; isFixedQuestion?: boolean } }
+  | { type: "ADD_USER_MESSAGE"; payload: { content: string } }
+  | { type: "SET_PATH"; payload: ShoppingPath }
+  | { type: "SET_SUB_PATH"; payload: ImpulseSubPath | DealSubPath }
+  | { type: "SET_MODE"; payload: CheckInMode }
+  | { type: "SET_LAYER"; payload: CheckInLayer }
+  | { type: "SET_STATUS"; payload: CheckInStatus }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_ERROR"; payload: string | null }
+  | { type: "SET_USER_GUESS"; payload: number }
+  | { type: "SET_ACTUAL_AMOUNT"; payload: number }
+  | { type: "SET_USER_GUESS_COUNT"; payload: number }
+  | { type: "SET_ACTUAL_COUNT"; payload: number }
+  | { type: "ADD_TAG"; payload: string }
+  | { type: "COMPLETE_SESSION" }
+  | { type: "DISMISS_SESSION" };
+
+// ═══════════════════════════════════════════════════════════════
+// REDUCER
+// ═══════════════════════════════════════════════════════════════
+
+function generateMessageId(): string {
+  return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
+function checkInReducer(state: CheckInState, action: CheckInAction): CheckInState {
   switch (action.type) {
+    case "START_SESSION":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          status: "in_progress",
+          metadata: {
+            ...state.session.metadata,
+            startedAt: new Date(),
+          },
+        },
+      };
+
     case "ADD_MESSAGE":
       return {
         ...state,
-        messages: [...state.messages, action.payload],
+        session: {
+          ...state.session,
+          messages: [...state.session.messages, action.payload],
+        },
       };
+
+    case "ADD_ASSISTANT_MESSAGE":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          messages: [
+            ...state.session.messages,
+            {
+              id: generateMessageId(),
+              role: "assistant",
+              content: action.payload.content,
+              timestamp: new Date(),
+              options: action.payload.options,
+              isFixedQuestion: action.payload.isFixedQuestion,
+            },
+          ],
+        },
+      };
+
+    case "ADD_USER_MESSAGE":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          messages: [
+            ...state.session.messages,
+            {
+              id: generateMessageId(),
+              role: "user",
+              content: action.payload.content,
+              timestamp: new Date(),
+            },
+          ],
+        },
+      };
+
+    case "SET_PATH":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          path: action.payload,
+        },
+      };
+
+    case "SET_SUB_PATH":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          subPath: action.payload,
+        },
+      };
+
+    case "SET_MODE":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          mode: action.payload,
+        },
+      };
+
+    case "SET_LAYER":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          currentLayer: action.payload,
+        },
+      };
+
+    case "SET_STATUS":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          status: action.payload,
+        },
+      };
+
     case "SET_LOADING":
       return {
         ...state,
         isLoading: action.payload,
       };
+
     case "SET_ERROR":
       return {
         ...state,
         error: action.payload,
-        isLoading: false,
       };
-    case "UPDATE_SESSION":
+
+    case "SET_USER_GUESS":
       return {
         ...state,
-        session: state.session
-          ? { ...state.session, ...action.payload }
-          : null,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            userGuess: action.payload,
+          },
+        },
       };
-    case "RESET":
-      return initialState;
+
+    case "SET_ACTUAL_AMOUNT":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            actualAmount: action.payload,
+          },
+        },
+      };
+
+    case "SET_USER_GUESS_COUNT":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            userGuessCount: action.payload,
+          },
+        },
+      };
+
+    case "SET_ACTUAL_COUNT":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            actualCount: action.payload,
+          },
+        },
+      };
+
+    case "ADD_TAG":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          metadata: {
+            ...state.session.metadata,
+            tags: [...state.session.metadata.tags, action.payload],
+          },
+        },
+      };
+
+    case "COMPLETE_SESSION":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          status: "completed",
+          metadata: {
+            ...state.session.metadata,
+            completedAt: new Date(),
+          },
+        },
+      };
+
+    case "DISMISS_SESSION":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          status: "dismissed",
+          metadata: {
+            ...state.session.metadata,
+            completedAt: new Date(),
+          },
+        },
+      };
+
     default:
       return state;
   }
 }
 
-// Helper to create a message
-function createMessage(
-  role: Message["role"],
-  content: string,
-  options?: QuickReplyOption[],
-  isFixedQuestion?: boolean
-): Message {
-  return {
-    id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-    role,
-    content,
-    timestamp: new Date(),
-    options,
-    isFixedQuestion,
-  };
-}
+// ═══════════════════════════════════════════════════════════════
+// HOOK
+// ═══════════════════════════════════════════════════════════════
 
-// Helper to create initial session
-function createSession(
+function createInitialSession(
   sessionId: string,
   transaction: Transaction
 ): CheckInSession {
@@ -77,62 +278,69 @@ function createSession(
     id: sessionId,
     transactionId: transaction.id,
     type: transaction.category,
-    status: "in_progress",
+    status: "pending",
     currentLayer: 1,
     messages: [],
     metadata: {
-      startedAt: new Date(),
       tags: [],
     },
   };
 }
 
-export interface UseCheckInSessionReturn {
-  state: ChatState;
-  initSession: (sessionId: string, transaction: Transaction) => void;
-  addUserMessage: (content: string) => void;
-  addAssistantMessage: (
-    content: string,
-    options?: QuickReplyOption[],
-    isFixedQuestion?: boolean
-  ) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  updateSession: (updates: Partial<CheckInSession>) => void;
-  advanceLayer: () => void;
-  setPath: (path: string) => void;
-  setMode: (mode: string) => void;
-  completeSession: () => void;
-  reset: () => void;
+function createInitialState(
+  sessionId: string,
+  transaction: Transaction
+): CheckInState {
+  return {
+    session: createInitialSession(sessionId, transaction),
+    isLoading: false,
+    error: null,
+  };
 }
 
-export function useCheckInSession(): UseCheckInSessionReturn {
-  const [state, dispatch] = useReducer(chatReducer, initialState);
+export function useCheckInSession(sessionId: string, transaction: Transaction) {
+  const [state, dispatch] = useReducer(
+    checkInReducer,
+    createInitialState(sessionId, transaction)
+  );
 
-  const initSession = useCallback(
-    (sessionId: string, transaction: Transaction) => {
-      const session = createSession(sessionId, transaction);
-      dispatch({ type: "UPDATE_SESSION", payload: session });
+  // ═══════════════════════════════════════════════════════════
+  // ACTION DISPATCHERS
+  // ═══════════════════════════════════════════════════════════
+
+  const startSession = useCallback(() => {
+    dispatch({ type: "START_SESSION" });
+  }, []);
+
+  const addAssistantMessage = useCallback(
+    (content: string, options?: QuickReplyOption[], isFixedQuestion?: boolean) => {
+      dispatch({
+        type: "ADD_ASSISTANT_MESSAGE",
+        payload: { content, options, isFixedQuestion },
+      });
     },
     []
   );
 
   const addUserMessage = useCallback((content: string) => {
-    const message = createMessage("user", content);
-    dispatch({ type: "ADD_MESSAGE", payload: message });
+    dispatch({ type: "ADD_USER_MESSAGE", payload: { content } });
   }, []);
 
-  const addAssistantMessage = useCallback(
-    (
-      content: string,
-      options?: QuickReplyOption[],
-      isFixedQuestion?: boolean
-    ) => {
-      const message = createMessage("assistant", content, options, isFixedQuestion);
-      dispatch({ type: "ADD_MESSAGE", payload: message });
-    },
-    []
-  );
+  const setPath = useCallback((path: ShoppingPath) => {
+    dispatch({ type: "SET_PATH", payload: path });
+  }, []);
+
+  const setSubPath = useCallback((subPath: ImpulseSubPath | DealSubPath) => {
+    dispatch({ type: "SET_SUB_PATH", payload: subPath });
+  }, []);
+
+  const setMode = useCallback((mode: CheckInMode) => {
+    dispatch({ type: "SET_MODE", payload: mode });
+  }, []);
+
+  const setLayer = useCallback((layer: CheckInLayer) => {
+    dispatch({ type: "SET_LAYER", payload: layer });
+  }, []);
 
   const setLoading = useCallback((loading: boolean) => {
     dispatch({ type: "SET_LOADING", payload: loading });
@@ -142,60 +350,77 @@ export function useCheckInSession(): UseCheckInSessionReturn {
     dispatch({ type: "SET_ERROR", payload: error });
   }, []);
 
-  const updateSession = useCallback((updates: Partial<CheckInSession>) => {
-    dispatch({ type: "UPDATE_SESSION", payload: updates });
+  const setUserGuess = useCallback((guess: number) => {
+    dispatch({ type: "SET_USER_GUESS", payload: guess });
   }, []);
 
-  const advanceLayer = useCallback(() => {
-    if (state.session && state.session.currentLayer < 3) {
-      dispatch({
-        type: "UPDATE_SESSION",
-        payload: { currentLayer: (state.session.currentLayer + 1) as 1 | 2 | 3 },
-      });
-    }
-  }, [state.session]);
-
-  const setPath = useCallback((path: string) => {
-    dispatch({
-      type: "UPDATE_SESSION",
-      payload: { path: path as CheckInSession["path"] },
-    });
+  const setActualAmount = useCallback((amount: number) => {
+    dispatch({ type: "SET_ACTUAL_AMOUNT", payload: amount });
   }, []);
 
-  const setMode = useCallback((mode: string) => {
-    dispatch({ type: "UPDATE_SESSION", payload: { mode } });
+  const setUserGuessCount = useCallback((count: number) => {
+    dispatch({ type: "SET_USER_GUESS_COUNT", payload: count });
+  }, []);
+
+  const setActualCount = useCallback((count: number) => {
+    dispatch({ type: "SET_ACTUAL_COUNT", payload: count });
+  }, []);
+
+  const addTag = useCallback((tag: string) => {
+    dispatch({ type: "ADD_TAG", payload: tag });
   }, []);
 
   const completeSession = useCallback(() => {
-    dispatch({
-      type: "UPDATE_SESSION",
-      payload: {
-        status: "completed",
-        metadata: {
-          ...state.session?.metadata,
-          completedAt: new Date(),
-          tags: state.session?.metadata?.tags || [],
-        },
-      },
-    });
-  }, [state.session?.metadata]);
+    dispatch({ type: "COMPLETE_SESSION" });
+  }, []);
 
-  const reset = useCallback(() => {
-    dispatch({ type: "RESET" });
+  const dismissSession = useCallback(() => {
+    dispatch({ type: "DISMISS_SESSION" });
   }, []);
 
   return {
-    state,
-    initSession,
-    addUserMessage,
+    // State
+    session: state.session,
+    messages: state.session.messages,
+    isLoading: state.isLoading,
+    error: state.error,
+    currentLayer: state.session.currentLayer,
+    currentPath: state.session.path,
+    currentSubPath: state.session.subPath,
+    currentMode: state.session.mode,
+    status: state.session.status,
+
+    // Actions
+    startSession,
     addAssistantMessage,
+    addUserMessage,
+    setPath,
+    setSubPath,
+    setMode,
+    setLayer,
     setLoading,
     setError,
-    updateSession,
-    advanceLayer,
-    setPath,
-    setMode,
+    setUserGuess,
+    setActualAmount,
+    setUserGuessCount,
+    setActualCount,
+    addTag,
     completeSession,
-    reset,
+    dismissSession,
   };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+export function getCheckInTypeLabel(category: TransactionCategory): string {
+  switch (category) {
+    case "shopping":
+      return "Shopping Check-In";
+    case "food":
+      return "Food Check-In";
+    case "coffee":
+      return "Coffee & Treats Check-In";
+  }
 }

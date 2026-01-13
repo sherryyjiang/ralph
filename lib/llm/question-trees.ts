@@ -1660,26 +1660,6 @@ export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
     lightProbing: true,
     counterProfileExit: "Got it — sometimes things just take a while to bubble up the priority list. At least it's done now!",
   },
-  other: {
-    subPath: "other",
-    // Open-ended branch: mode is determined by probing.
-    mode: "",
-    explorationGoal: "Open-ended: understand what they were waiting on when none of the fixed reasons fit",
-    probingHints: [
-      "What was the main thing you were waiting on?",
-      "What changed that made it feel like the right time to buy?",
-      "Was it more about budget, finding the right option, or just having the bandwidth?",
-    ],
-    keySignals: [],
-    possibleModes: [
-      "#deliberate-budget-saver",
-      "#deliberate-deal-hunter",
-      "#deliberate-researcher",
-      "#deliberate-pause-tester",
-      "#deliberate-low-priority",
-    ],
-    lightProbing: true,
-  },
 };
 
 /**

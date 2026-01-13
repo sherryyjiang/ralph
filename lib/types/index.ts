@@ -58,8 +58,7 @@ export type DeliberateSubPath =
   | "right_price"        // [WHITE] "Waiting for the right price/deal" → #deliberate-deal-hunter
   | "right_one"          // [WHITE] "Waiting for the right one" → #deliberate-researcher
   | "still_wanted"       // [WHITE] "Letting it sit to see if I still wanted it" → #deliberate-pause-tester
-  | "got_around"         // [WHITE] "Finally got around to it" → #deliberate-low-priority
-  | "other";             // [WHITE] Other/Custom → open exploration
+  | "got_around";        // [WHITE] "Finally got around to it" → #deliberate-low-priority
 
 /**
  * Sub-paths for deal/scarcity shopping (Fixed Question 2 responses)

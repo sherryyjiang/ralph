@@ -770,14 +770,13 @@ describe("Question Tree Routing - Shopping Paths", () => {
       expect(dealSubPathGoals.free_shipping).toBeDefined();
     });
 
-    it("should route deliberate to 6 sub-paths", () => {
-      expect(Object.keys(deliberateSubPathGoals).length).toBe(6);
+    it("should route deliberate to 5 sub-paths", () => {
+      expect(Object.keys(deliberateSubPathGoals).length).toBe(5);
       expect(deliberateSubPathGoals.afford_it).toBeDefined();
       expect(deliberateSubPathGoals.right_price).toBeDefined();
       expect(deliberateSubPathGoals.right_one).toBeDefined();
       expect(deliberateSubPathGoals.still_wanted).toBeDefined();
       expect(deliberateSubPathGoals.got_around).toBeDefined();
-      expect(deliberateSubPathGoals.other).toBeDefined();
     });
   });
 
@@ -813,16 +812,6 @@ describe("Question Tree Routing - Shopping Paths", () => {
       expect(deliberateSubPathGoals.right_one.mode).toBe("#deliberate-researcher");
       expect(deliberateSubPathGoals.still_wanted.mode).toBe("#deliberate-pause-tester");
       expect(deliberateSubPathGoals.got_around.mode).toBe("#deliberate-low-priority");
-      expect(deliberateSubPathGoals.other.mode).toBe("");
-      expect(deliberateSubPathGoals.other.possibleModes).toEqual(
-        expect.arrayContaining([
-          "#deliberate-budget-saver",
-          "#deliberate-deal-hunter",
-          "#deliberate-researcher",
-          "#deliberate-pause-tester",
-          "#deliberate-low-priority",
-        ]),
-      );
     });
   });
 

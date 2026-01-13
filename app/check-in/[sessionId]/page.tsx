@@ -706,7 +706,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           setTimeout(() => {
             addAssistantMessage(
               "Got it — sounds like it's working for you. We can always revisit if anything changes! 🙌",
-              [{ id: "done", label: "Thanks for the reflection!", emoji: "✨", value: "done", color: "white" as const }],
+              [{ id: "done", label: "Close", emoji: "✕", value: "done", color: "white" as const }],
               false
             );
           }, 500);
@@ -782,7 +782,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
               setLoading(false);
               addAssistantMessage(
                 data.message || "That's a great thing to explore. What feels like the biggest barrier for you?",
-                [{ id: "done", label: "Thanks for the reflection!", emoji: "✨", value: "done", color: "white" as const }],
+                [{ id: "done", label: "Close", emoji: "✕", value: "done", color: "white" as const }],
                 false
               );
             })
@@ -790,7 +790,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
               setLoading(false);
               addAssistantMessage(
                 "Thanks for sharing that. Every bit of awareness helps! 💚",
-                [{ id: "done", label: "Thanks for the reflection!", emoji: "✨", value: "done", color: "white" as const }],
+                [{ id: "done", label: "Close", emoji: "✕", value: "done", color: "white" as const }],
                 false
               );
             });
@@ -1014,7 +1014,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           setLoading(false);
           addAssistantMessage(
             data.message || "That's a great question to explore. What comes to mind when you think about it?",
-            data.options || [{ id: "close", label: "Thanks for the reflection!", emoji: "✨", value: "close", color: "white" }],
+            data.options || [{ id: "close", label: "Close", emoji: "✕", value: "close", color: "white" }],
             false
           );
         })
@@ -1037,7 +1037,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           }
           addAssistantMessage(
             fallbackMessage,
-            [{ id: "close", label: "Thanks for the reflection!", emoji: "✨", value: "close", color: "white" }],
+            [{ id: "close", label: "Close", emoji: "✕", value: "close", color: "white" }],
             false
           );
         });
@@ -1130,7 +1130,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
       if (currentLayer === 3) {
         addAssistantMessage(
           data.message,
-          data.options || [{ id: "close", label: "Thanks for the reflection!", emoji: "✨", value: "close", color: "white" }],
+          data.options || [{ id: "close", label: "Close", emoji: "✕", value: "close", color: "white" }],
           false
         );
         return;
@@ -1184,7 +1184,16 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         <h1 className="text-sm font-medium text-white">
           {getCheckInTypeLabel(transaction.category)}
         </h1>
-        <div className="w-10" />
+        <button
+          onClick={() => {
+            completeSession();
+            onClose();
+          }}
+          className="rounded-lg p-2 text-[var(--peek-text-muted)] hover:bg-white/10"
+          aria-label="Close check-in"
+        >
+          ✕
+        </button>
       </header>
 
       <div className="h-[calc(100vh-60px)]">

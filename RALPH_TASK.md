@@ -48,8 +48,8 @@ Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LL
 14. [x] Test Coffee check-in flows completely
 
 ### Phase D: Exit Experience
-15. [ ] Remove "Thanks for the reflection!" perpetual message
-16. [ ] Add X close button to chat header
+15. [x] Remove "Thanks for the reflection!" perpetual message
+16. [x] Add X close button to chat header
 17. [ ] Implement graceful exit messages for deliberate paths
 18. [ ] Add "Magnets" mention to graceful exits
 19. [ ] Add freeform follow-up option after graceful exit

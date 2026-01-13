@@ -681,7 +681,9 @@ describe("Mode Definitions", () => {
     expect(modeDefinitions["#comfort-driven-spender"]).toBeDefined();
     expect(modeDefinitions["#routine-treat-spender"]).toBeDefined();
     expect(modeDefinitions["#visual-impulse-driven"]).toBeUndefined();
-    expect(modeDefinitions["#trend-susceptibility-driven"]).toBeDefined();
+    expect(modeDefinitions["#trend-susceptibility-driven"]).toBeUndefined();
+    expect(modeDefinitions["#social-media-influenced"]).toBeDefined();
+    expect(modeDefinitions["#friend-peer-influenced"]).toBeDefined();
   });
 
   it("should have definitions for deal modes", () => {

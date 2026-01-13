@@ -208,19 +208,19 @@ describe("Shopping Fixed Question 2 question mapping", () => {
 describe("Layer 3 Cost Comparison mode-aware adaptations", () => {
   it("threshold-spending-driven should use the free-shipping worth question", () => {
     expect(getCostComparisonModeAdaptedQuestion("#threshold-spending-driven", 42)).toBe(
-      "was adding those extra items to hit free shipping worth the $42.00 you spent?"
+      "Was adding those extra items to hit free shipping worth the $42.00 you spent?"
     );
   });
 
   it("scarcity-driven should use the limited-drop buy-again question", () => {
     expect(getCostComparisonModeAdaptedQuestion("#scarcity-driven", 89.99)).toBe(
-      "if that limited drop came back, would you buy it again at $89.99?"
+      "If that limited drop came back, would you buy it again at $89.99?"
     );
   });
 
   it("reward-driven-spender should use the reward utility question", () => {
     expect(getCostComparisonModeAdaptedQuestion("#reward-driven-spender", 120)).toBe(
-      "is this reward something you'll get a lot of use out of?"
+      "Is this reward something you'll get a lot of use out of?"
     );
   });
 

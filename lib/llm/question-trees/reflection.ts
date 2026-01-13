@@ -59,6 +59,45 @@ export const COST_COMPARISON_CONTEXT: Record<string, string> = {
 };
 
 /**
+ * Layer 3 probing hints (per docs/question-trees/shopping-check-in.md)
+ *
+ * These are intentionally stored as concrete question strings so prompts can
+ * enforce "specific questions only" in reflection paths just like Layer 2.
+ */
+export const BEHAVIORAL_EXCAVATION_PROBING_HINTS = [
+  "does this feel like something that happens a lot, sometimes, or rarely?",
+  "what usually happens with the stuff that slides through — do you end up using it?",
+  "does that sit okay with you or is there something about it that bugs you?",
+  "if it doesn't feel great, what do you think is behind that?",
+  "you said it bugs you but it keeps happening — what do you think gets in the way?",
+  // Context hooks (placeholders are filled in by the prompt builder)
+  "does this happen more at {merchant} specifically?",
+  "is this usually a {day_of_week} thing?",
+];
+
+export const EMOTIONAL_REFLECTION_PROBING_HINTS = [
+  "is it more of a 'meh' or does it actually bother you?",
+  "if you had to name what you're feeling, what would it be?",
+  "what is it about this that's creating the tension?",
+  "is it the amount, the frequency, or something else?",
+  "does this feel like it lines up with how you want to spend?",
+];
+
+export const COST_COMPARISON_PROBING_HINTS = [
+  "is this something you'll get a lot of use out of?",
+  "if you had to spend that ${price} again, would you?",
+  "if you use this {x_times}, that's about ${y_per_use} per use — does that feel worth it?",
+];
+
+export const OPEN_ENDED_REFLECTION_GUIDANCE = [
+  `start with: "what's on your mind?" or "what are you curious about?"`,
+  "if they ask about frequency/patterns → pivot to Behavioral Excavation style questions",
+  "if they express feelings/tension → pivot to Emotional Reflection style questions",
+  "if they ask about value/worth/regret → pivot to Cost Comparison style questions",
+  "if it's novel → answer briefly and offer to continue",
+];
+
+/**
  * Mode-aware question adaptation for Cost Comparison ("Is this a good use of money?")
  *
  * Spec source: docs/question-trees/shopping-check-in.md

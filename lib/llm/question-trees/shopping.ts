@@ -53,7 +53,17 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
     path: "deliberate",
     goal: "Validate the intentionality and explore satisfaction with the decision process",
     probingHints: ["How long were you considering this?", "Did you compare options?"],
-    modeIndicators: {},
+    // Exploration TAGS (not modes): categorize intentional purchase drivers.
+    modeIndicators: {
+      "#deliberate-purchase": [
+        "describes planning, waiting, or intentionally deciding over time",
+        "mentions comparing options, reading reviews, or doing research",
+      ],
+      "#value-standards-driven": [
+        "mentions durability, quality, or having standards for the 'right one'",
+        "talks about long-term value (cost-per-use, investment piece)",
+      ],
+    },
     counterProfilePatterns: [],
   },
   deal: {
@@ -65,7 +75,7 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
       "#deal-driven": ["focuses on discount amount"],
       "#threshold-spending-driven": ["mentions free shipping thresholds"],
     },
-    counterProfilePatterns: ["I was already planning to buy this"],
+    counterProfilePatterns: ["I was already planning to buy this", "I would have bought it anyway"],
   },
   gift: {
     path: "gift",

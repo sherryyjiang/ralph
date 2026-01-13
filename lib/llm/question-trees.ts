@@ -12,7 +12,9 @@ import type { ShoppingPath } from "@/lib/types";
 // `lib/llm/question-trees/` (modular). Some modules import from "@/lib/llm/question-trees",
 // which resolves to this file; re-export selected helpers from the modular implementation
 // to avoid drift.
-export { getCostComparisonModeAdaptedQuestion } from "./question-trees/reflection";
+import { getCostComparisonModeAdaptedQuestion as getCostComparisonModeAdaptedQuestionImpl } from "./question-trees/reflection";
+
+export const getCostComparisonModeAdaptedQuestion = getCostComparisonModeAdaptedQuestionImpl;
 
 // =============================================================================
 // Shopping Check-In Fixed Questions

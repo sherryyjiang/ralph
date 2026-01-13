@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { buildSystemPrompt, explorationGoals } from "@/lib/llm/prompts";
-import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
+import { explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
+import type { Transaction, CheckInSession, Message, LLMResponse, ShoppingSubPath } from "@/lib/types";
 
 // =============================================================================
 // Configuration
 // =============================================================================
 
 const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "gemini-2.5-flash";
+
+// Min/max probing exchanges before mode assignment
+const MIN_PROBING_DEPTH = 2;
 
 function getClient(): GoogleGenAI {
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -26,18 +29,25 @@ interface ChatRequest {
   transaction: Transaction;
   session: CheckInSession;
   stream?: boolean;
-  requestModeAssignment?: boolean; // Trigger mode assignment after sufficient probing
-  forceModeAssignment?: boolean; // Force mode assignment at max probing depth
+  probingDepth?: number; // 0-3, tracks Layer 2 probing exchanges
+  requestModeAssignment?: boolean; // Trigger mode assignment
 }
 
 // =============================================================================
-// POST Handler (Non-streaming)
+// POST Handler
 // =============================================================================
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as ChatRequest;
-    const { messages, transaction, session, stream, requestModeAssignment, forceModeAssignment } = body;
+    const body = (await request.json()) as ChatRequest;
+    const {
+      messages,
+      transaction,
+      session,
+      stream,
+      probingDepth = 0,
+      requestModeAssignment,
+    } = body;
 
     // Validate required fields
     if (!messages || !transaction || !session) {
@@ -47,29 +57,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get probing depth from session metadata
-    const probingDepth = session.metadata?.probingDepth || 0;
-
     // Get question tree context for the current path
-    const questionTreeSection = session.path 
-      ? getQuestionTreeSection(session.path) 
+    const questionTreeSection = session.path
+      ? getQuestionTreeSection(session.path, session.subPath)
       : undefined;
 
-    // Build system prompt with mode assignment instructions if needed
-    const systemPrompt = buildSystemPrompt({
+    // Determine if we should request mode assignment based on probing depth
+    const shouldRequestModeAssignment =
+      requestModeAssignment ||
+      (session.currentLayer === 2 && probingDepth >= MIN_PROBING_DEPTH);
+
+    // Build system prompt with probing depth and mode assignment context
+    const systemPrompt = buildSystemPromptWithModeAssignment({
       transaction,
       session,
       questionTreeSection,
-      probingDepth: session.currentLayer === 2 ? probingDepth : undefined,
-      requestModeAssignment: requestModeAssignment || false,
-      forceModeAssignment: forceModeAssignment || false,
+      probingDepth,
+      requestModeAssignment: shouldRequestModeAssignment,
     });
 
     // Handle streaming vs non-streaming
     if (stream) {
       return handleStreamingResponse(messages, systemPrompt);
     } else {
-      return handleNonStreamingResponse(messages, systemPrompt, requestModeAssignment || forceModeAssignment);
+      return handleNonStreamingResponse(messages, systemPrompt);
     }
   } catch (error) {
     console.error("Chat API error:", error);
@@ -81,13 +92,138 @@ export async function POST(request: NextRequest) {
 }
 
 // =============================================================================
+// System Prompt Builder with Mode Assignment
+// =============================================================================
+
+interface BuildPromptParams {
+  transaction: Transaction;
+  session: CheckInSession;
+  questionTreeSection?: string;
+  probingDepth: number;
+  requestModeAssignment: boolean;
+}
+
+function buildSystemPromptWithModeAssignment({
+  transaction,
+  session,
+  questionTreeSection,
+  probingDepth,
+  requestModeAssignment,
+}: BuildPromptParams): string {
+  const basePrompt = `You are a friendly, empathetic financial coach helping users understand their spending patterns.
+Your tone is warm but not judgmental - like a supportive friend who happens to be good with money.
+Keep responses concise (2-3 sentences max).
+Never lecture or moralize. Ask curious questions.
+If the user seems defensive, validate their feelings first.
+
+## Current Context
+- Transaction: $${transaction.amount.toFixed(2)} at ${transaction.merchant}
+- Category: ${transaction.category}
+- Check-in Layer: ${session.currentLayer}
+- Path: ${session.path || "not yet determined"}
+- Sub-path: ${session.subPath || "not yet determined"}
+- Probing Depth: ${probingDepth}
+${session.mode ? `- Assigned Mode: ${session.mode}` : ""}
+
+${questionTreeSection ? `## Question Tree Context\n${questionTreeSection}` : ""}`;
+
+  // Add mode assignment instructions if probing is complete
+  if (requestModeAssignment && session.currentLayer === 2) {
+    return (
+      basePrompt +
+      `
+
+## MODE ASSIGNMENT REQUIRED
+
+Based on the conversation so far, you must now:
+1. Identify which spending mode best matches the user's behavior
+2. Craft a warm, summarizing message that acknowledges what you learned
+3. Transition to Layer 3 reflection
+
+Available modes to assign:
+- #intuitive-threshold-spender: Buys quickly when price feels right
+- #reward-driven-spender: Treats purchases as earned rewards
+- #comfort-driven-spender: Uses shopping for emotional comfort
+- #routine-treat-spender: Regular self-treating as habit
+- #scroll-triggered: Impulse from social media browsing
+- #in-store-wanderer: Impulse from in-store browsing
+- #aesthetic-driven: Drawn to visual appeal
+- #duplicate-collector: Buys similar items repeatedly
+- #social-media-influenced: Influenced by online content
+- #friend-peer-influenced: Influenced by friends/peers
+- #scarcity-driven: Responds to limited availability
+- #deal-driven: Motivated by discounts
+- #threshold-spending-driven: Adds items to hit thresholds
+- #deliberate-budget-saver: Saves up for planned purchases
+- #deliberate-deal-hunter: Waits for deals on planned items
+- #deliberate-researcher: Researches before buying
+- #deliberate-pause-tester: Waits to confirm desire
+- #deliberate-low-priority: Gets to low-priority items eventually
+- #loyal-repurchaser: Sticks with same products
+- #brand-switcher: Tries new alternatives
+- #upgrader: Upgrades to better versions
+- #gift-giver: Thoughtful about gift purchases
+
+RESPOND WITH JSON:
+{
+  "message": "Your warm, summarizing message that transitions to reflection",
+  "assignedMode": "#mode-id",
+  "shouldTransition": true
+}
+
+If the user shows COUNTER-PROFILE behavior (intentional when you expected impulsive), include:
+{
+  "message": "Your acknowledging message",
+  "exitGracefully": true
+}`
+    );
+  }
+
+  // Regular Layer 2 probing instructions
+  if (session.currentLayer === 2) {
+    return (
+      basePrompt +
+      `
+
+## Layer 2 Probing Instructions
+
+You are in the probing phase. Your goal is to:
+1. Ask ONE curious follow-up question based on the user's response
+2. Look for mode indicators (patterns that suggest a spending mode)
+3. Watch for counter-profile signals (behavior that contradicts the initial path)
+
+Respond with ONLY your conversational message - no JSON, no options.
+Keep it natural and empathetic. Don't label or diagnose the user.`
+    );
+  }
+
+  // Layer 3 reflection instructions
+  if (session.currentLayer === 3) {
+    return (
+      basePrompt +
+      `
+
+## Layer 3 Reflection Instructions
+
+The user has been assigned mode: ${session.mode}
+Guide them through reflection based on their chosen path.
+Be supportive and help them discover insights about their spending.
+
+If they seem ready to close:
+{ "message": "Your closing message", "exitGracefully": true }`
+    );
+  }
+
+  return basePrompt;
+}
+
+// =============================================================================
 // Non-streaming Response Handler
 // =============================================================================
 
 async function handleNonStreamingResponse(
   messages: Message[],
-  systemPrompt: string,
-  expectModeAssignment = false
+  systemPrompt: string
 ): Promise<NextResponse> {
   const client = getClient();
 
@@ -109,7 +245,7 @@ async function handleNonStreamingResponse(
   });
 
   const text = response.text || "";
-  const parsedResponse = parseResponse(text, expectModeAssignment);
+  const parsedResponse = parseResponse(text);
 
   return NextResponse.json(parsedResponse);
 }
@@ -167,7 +303,7 @@ async function handleStreamingResponse(
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
     },
   });
 }
@@ -176,12 +312,13 @@ async function handleStreamingResponse(
 // Response Parsing
 // =============================================================================
 
-function parseResponse(text: string, expectModeAssignment = false): LLMResponse {
+function parseResponse(text: string): LLMResponse {
   // Try to parse as JSON
   try {
     // Look for JSON in the response (might be wrapped in markdown code blocks)
-    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) ||
-                      text.match(/\{[\s\S]*"message"[\s\S]*\}/);
+    const jsonMatch =
+      text.match(/```json\s*([\s\S]*?)\s*```/) ||
+      text.match(/\{[\s\S]*"message"[\s\S]*\}/);
 
     if (jsonMatch) {
       const jsonStr = jsonMatch[1] || jsonMatch[0];
@@ -198,35 +335,10 @@ function parseResponse(text: string, expectModeAssignment = false): LLMResponse 
     // JSON parsing failed, return as plain text
   }
 
-  // Look for mode indicators in plain text if we expected mode assignment
-  let assignedMode: string | undefined;
-  if (expectModeAssignment) {
-    const modePatterns = [
-      "#comfort-driven-spender",
-      "#novelty-seeker",
-      "#social-spender",
-      "#deal-hunter",
-      "#scarcity-susceptible",
-      "#intentional-planner",
-      "#quality-seeker",
-      "#generous-giver",
-      "#obligation-driven",
-      "#organized-restocker",
-      "#just-in-case-buyer",
-    ];
-    for (const mode of modePatterns) {
-      if (text.toLowerCase().includes(mode.toLowerCase())) {
-        assignedMode = mode;
-        break;
-      }
-    }
-  }
-
   // If not valid JSON, treat entire response as message
   return {
     message: text,
-    assignedMode,
-    shouldTransition: expectModeAssignment, // Transition to Layer 3 if mode assignment was expected
+    shouldTransition: false,
     exitGracefully: false,
   };
 }
@@ -235,11 +347,14 @@ function parseResponse(text: string, expectModeAssignment = false): LLMResponse 
 // Question Tree Section Builder
 // =============================================================================
 
-function getQuestionTreeSection(path: string): string {
+function getQuestionTreeSection(path: string, subPath?: ShoppingSubPath): string {
   const goal = explorationGoals[path];
   if (!goal) return "";
 
-  return `
+  // Get sub-path specific probing if available
+  const subPathProbing = subPath ? getSubPathProbing(path, subPath) : undefined;
+
+  let section = `
 ### Path: ${path.toUpperCase()}
 
 **Exploration Goal**: ${goal.goal}
@@ -251,8 +366,28 @@ ${goal.probingHints.map((h) => `- ${h}`).join("\n")}
 ${goal.modeIndicators.map((m) => `- ${m}`).join("\n")}
 
 **Counter-Profile Patterns** (if detected, exit gracefully):
-${goal.counterProfilePatterns.length > 0 
+${
+  goal.counterProfilePatterns.length > 0
     ? goal.counterProfilePatterns.map((p) => `- ${p}`).join("\n")
-    : "- (No counter-profiles for this path)"}
-`;
+    : "- (No counter-profiles for this path)"
+}`;
+
+  // Add sub-path specific context if available
+  if (subPathProbing) {
+    section += `
+
+### Sub-path: ${subPath?.toUpperCase()}
+
+**Specific Exploration Goal**: ${subPathProbing.explorationGoal}
+
+**Sub-path Probing Hints**:
+${subPathProbing.probingHints.map((h) => `- ${h}`).join("\n")}
+
+**Target Modes**: ${subPathProbing.targetModes.join(", ")}
+
+${subPathProbing.lightProbing ? "**Note**: This is a deliberate/intentional path - use LIGHT probing (1-2 exchanges max)" : ""}
+${subPathProbing.counterProfileExit ? `**Counter-profile Exit**: ${subPathProbing.counterProfileExit}` : ""}`;
+  }
+
+  return section;
 }

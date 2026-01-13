@@ -64,8 +64,9 @@ export function buildSystemPrompt({
   requestModeAssignment = false,
   forceModeAssignment = false,
 }: BuildSystemPromptParams): string {
-  const maxProbingDepth = 3;
-  const shouldTransitionSoon = probingDepth >= 2;
+  const maxProbingDepth = 4;
+  // Determine if we should request mode assignment based on flags or probing depth
+  const shouldTransitionSoon = requestModeAssignment || forceModeAssignment || probingDepth >= 2;
   
   const basePrompt = `You are a friendly, empathetic financial coach helping users understand their spending patterns.
 Your tone is warm but not judgmental - like a supportive friend who happens to be good with money.
@@ -100,29 +101,34 @@ Ask ONE follow-up that helps you understand if this is a pattern.
 ` : ""}
 
 ${shouldTransitionSoon ? `
-**Ready to Transition**: You've gathered enough insight. After acknowledging their response:
-1. Look at the mode indicators you've detected
-2. Respond with JSON to transition to Layer 3:
+**${forceModeAssignment ? "MUST ASSIGN MODE NOW" : "Ready to Transition"}**: You've gathered enough insight. After acknowledging their response:
+1. Look at the mode indicators you've detected from the conversation
+2. IMPORTANT: You MUST respond with valid JSON to transition to Layer 3:
+\`\`\`json
 {
   "message": "Your warm, validating summary that transitions to reflection",
   "shouldTransition": true,
-  "assignedMode": "#mode-id or null if unclear"
+  "assignedMode": "#mode-id"
 }
+\`\`\`
 
-Choose from these modes based on what you learned:
-- #comfort-driven-spender: Uses shopping for emotional regulation
-- #novelty-seeker: Drawn to new/trending items, FOMO
-- #social-spender: Influenced by friends/social media
-- #deal-hunter: Motivated by discounts and savings
-- #scarcity-susceptible: Responds to limited time/quantity
-- #intentional-planner: Researches and plans purchases
-- #quality-seeker: Focused on value and durability
-- #generous-giver: Enjoys gift-giving, might overspend on others
-- #obligation-driven: Feels pressure in gift-giving
-- #organized-restocker: Systematic about restocking
-- #just-in-case-buyer: Buys extras out of anxiety
+Choose from these modes based on what you learned (pick the BEST match):
+- #comfort-driven-spender: Uses shopping for emotional regulation, mentions stress/treating self
+- #novelty-seeker: Drawn to new/trending items, FOMO, excited by newness
+- #social-spender: Influenced by friends/social media, shopping as social activity
+- #deal-hunter: Motivated by discounts and savings, feels validated by deals
+- #scarcity-susceptible: Responds to limited time/quantity, urgency drives decisions
+- #intentional-planner: Researches and plans purchases, compares options
+- #quality-seeker: Focused on value and durability, willing to pay more for better
+- #generous-giver: Enjoys gift-giving, thoughtful about gifts
+- #obligation-driven: Feels pressure in gift-giving, gifts as social currency
+- #organized-restocker: Systematic about restocking, buys before running out
+- #just-in-case-buyer: Buys extras out of anxiety, might have unused duplicates
+
+If no clear mode is evident, use "assignedMode": null but STILL set "shouldTransition": true.
 ` : `
 For now, respond with ONLY your conversational message - no JSON, no options.
+Continue probing with empathy. Ask ONE follow-up question.
 `}
 
 **Counter-Profile Detection**: If the user's responses don't match the path (e.g., they said "impulse" but describe planned behavior), acknowledge this gracefully and respond with:

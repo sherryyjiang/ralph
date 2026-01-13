@@ -1,12 +1,66 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
 import { getTransactionById, getMonthlyFoodSpend, getMonthlyCoffeeCount } from "@/lib/data/synthetic-transactions";
+<<<<<<< Updated upstream
 import { getFoodAwarenessCalibration, getCoffeeFrequencyCalibration } from "@/lib/llm/question-trees";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, FoodMode } from "@/lib/types";
+=======
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
+
+// ═══════════════════════════════════════════════════════════════
+// MODE LABEL MAPPING
+// ═══════════════════════════════════════════════════════════════
+
+const MODE_LABELS: Record<string, string> = {
+  // Impulse modes
+  "#comfort-driven-spender": "Comfort-Driven Spender",
+  "#novelty-seeker": "Novelty Seeker",
+  "#social-spender": "Social Spender",
+  "#intuitive-threshold-spender": "Intuitive Threshold Spender",
+  "#reward-driven-spender": "Reward-Driven Spender",
+  "#routine-treat-spender": "Routine Treat Spender",
+  "#visual-impulse-driven": "Visual Impulse Buyer",
+  "#scroll-triggered": "Scroll-Triggered Buyer",
+  "#in-store-wanderer": "In-Store Wanderer",
+  "#aesthetic-driven": "Aesthetic-Driven Buyer",
+  "#duplicate-collector": "Duplicate Collector",
+  "#trend-susceptibility-driven": "Trend-Susceptible",
+  "#social-media-influenced": "Social Media Influenced",
+  "#friend-peer-influenced": "Friend/Peer Influenced",
+  // Deal modes
+  "#deal-hunter": "Deal Hunter",
+  "#scarcity-susceptible": "Scarcity-Susceptible",
+  "#scarcity-driven": "Scarcity-Driven",
+  "#deal-driven": "Deal-Driven",
+  "#threshold-spending-driven": "Threshold Spender",
+  // Deliberate modes
+  "#intentional-planner": "Intentional Planner",
+  "#quality-seeker": "Quality Seeker",
+  "#deliberate-budget-saver": "Deliberate Budget Saver",
+  "#deliberate-deal-hunter": "Deliberate Deal Hunter",
+  "#deliberate-researcher": "Deliberate Researcher",
+  "#deliberate-pause-tester": "Deliberate Pause Tester",
+  "#deliberate-low-priority": "Low Priority Buyer",
+  // Gift modes
+  "#generous-giver": "Generous Giver",
+  "#obligation-driven": "Obligation-Driven Giver",
+  "#gift-giver": "Gift Giver",
+  // Maintenance modes
+  "#organized-restocker": "Organized Restocker",
+  "#just-in-case-buyer": "Just-In-Case Buyer",
+  "#loyal-repurchaser": "Loyal Repurchaser",
+  "#brand-switcher": "Brand Switcher",
+  "#upgrader": "Upgrader",
+};
+
+function getModeLabel(mode: string): string | null {
+  return MODE_LABELS[mode] || null;
+}
+>>>>>>> Stashed changes
 
 // ═══════════════════════════════════════════════════════════════
 // FIXED QUESTIONS - Shopping Check-In (Layer 1)
@@ -74,21 +128,33 @@ const SHOPPING_FIXED_Q2: Record<ShoppingPath, { question: string; options: Quick
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
-function getInitialMessage(category: TransactionCategory, merchantName: string): { content: string; options?: QuickReplyOption[] } {
+function getInitialMessage(
+  category: TransactionCategory, 
+  merchantName: string,
+  transaction: { merchant: string; amount: number }
+): { content: string; options?: QuickReplyOption[] } {
   switch (category) {
     case "shopping":
       return {
         content: `Let's reflect on your ${merchantName} purchase! ${SHOPPING_FIXED_Q1.question}`,
         options: SHOPPING_FIXED_Q1.options,
       };
-    case "food":
+    case "food": {
+      const actualMonthlySpend = getMonthlyFoodSpend();
+      const calibration = getFoodAwarenessCalibration(transaction, actualMonthlySpend);
       return {
-        content: "Let's check in on your food spending. How much do you think you've spent on food delivery this month?",
+        content: calibration.content,
+        options: calibration.options,
       };
-    case "coffee":
+    }
+    case "coffee": {
+      const actualMonthlyCount = getMonthlyCoffeeCount();
+      const calibration = getCoffeeFrequencyCalibration(transaction, actualMonthlyCount);
       return {
-        content: "Quick check-in! How many coffee or treat runs do you think you've made this month?",
+        content: calibration.content,
+        options: calibration.options,
       };
+    }
   }
 }
 
@@ -182,10 +248,10 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
   useEffect(() => {
     if (messages.length === 0) {
       startSession();
-      const initial = getInitialMessage(transaction.category, transaction.merchant);
+      const initial = getInitialMessage(transaction.category, transaction.merchant, transaction);
       addAssistantMessage(initial.content, initial.options, true);
     }
-  }, [messages.length, startSession, addAssistantMessage, transaction.category, transaction.merchant]);
+  }, [messages.length, startSession, addAssistantMessage, transaction]);
 
   // Handle user option selection
   const handleOptionSelect = useCallback((value: string) => {
@@ -273,11 +339,6 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
       incrementProbingDepth();
     }
 
-    // Determine if we should request mode assignment
-    // Trigger after MIN_PROBING_DEPTH exchanges, or force at MAX_PROBING_DEPTH
-    const shouldRequestModeAssignment = currentLayer === 2 && newProbingDepth >= MIN_PROBING_DEPTH;
-    const forceModeAssignment = currentLayer === 2 && newProbingDepth >= MAX_PROBING_DEPTH;
-
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -330,9 +391,19 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         }
         setLayer(3);
         
+        // Build transition message with mode label if available
+        const modeLabel = data.assignedMode ? getModeLabel(data.assignedMode) : null;
+        let transitionMessage = data.message || "I think I understand the pattern here.";
+        
+        if (modeLabel) {
+          transitionMessage += `\n\nBased on what you've shared, it sounds like you might be a **${modeLabel}**. That's just a pattern I noticed — no judgment! Would you like to explore any of these?`;
+        } else {
+          transitionMessage += "\n\nWould you like to explore any of these?";
+        }
+        
         // Show transition message with Layer 3 options
         addAssistantMessage(
-          data.message || "I think I understand the pattern here. Would you like to explore any of these questions?",
+          transitionMessage,
           LAYER_3_REFLECTION_OPTIONS,
           false
         );
@@ -405,8 +476,10 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
           messages={messages}
           transaction={transaction}
           isLoading={isLoading}
+          error={error}
           onSendMessage={handleSendMessage}
           onOptionSelect={handleOptionSelectWrapper}
+          onRetry={() => setError(null)}
         />
       </div>
     </div>

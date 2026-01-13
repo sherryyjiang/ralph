@@ -3,32 +3,47 @@
 ## Task: Peek Check-In Chat App
 
 ### Current Status
-- **Phase**: Not Started
-- **Last Criterion Completed**: None
-- **Next Up**: Phase 1 - Foundation
+- **Phase**: Phase 5 - Food Check-In
+- **Last Criterion Completed**: 17 (shopping flow tests)
+- **Next Up**: Criteria 18-20 (Food Check-In)
+
+---
+
+## Completed Phases
+
+### Phase 1: Foundation ✅
+- TypeScript interfaces in `lib/types/index.ts`
+- Synthetic transactions covering all check-in paths
+- LLM wrapper with env-var model switching
+- Dashboard with weekly summary and transaction list
+
+### Phase 2: Chat Infrastructure ✅
+- Chat components (container, bubble, quick-reply, input)
+- Session state management with useReducer
+- Check-in page with dynamic routing
+- Transaction tap → check-in flow
+
+### Phase 3: Gemini Integration ✅
+- API route at `/api/chat/route.ts`
+- System prompt construction from question tree
+- Streaming and non-streaming responses
+- Error handling and loading states
+
+### Phase 4: Shopping Check-In ✅
+- Fixed Q1 and Q2 for all 5 paths
+- Layer 2 LLM probing
+- Mode assignment after probing
+- 26 passing tests
 
 ---
 
 ## Session History
 
-*No sessions yet - task starting fresh*
-
----
-
-## Notes
-
-- Reference `PEEK_QUESTION_TREES.md` for all question tree logic
-- Reference `PEEK_CHECKIN_SPEC.md` for technical specification
-- This is a mock-up using synthetic data (no real user data integration yet)
-
-### 2026-01-13 12:27:31
-**Session 1 started** (model: opus-4.5-thinking)
-
-### 2026-01-13 12:27:59
-**Session 1 ended** - 🔄 Context rotation (token limit reached)
-
-### 2026-01-13 12:28:01
-**Session 2 started** (model: opus-4.5-thinking)
+### 2026-01-13 Session 2
+- Completed Phases 1-4
+- All linting passes
+- All 26 tests pass
+- Next: Phase 5 Food Check-In
 
 ### 2026-01-13 12:30:28
 **Session 2 ended** - 🔄 Context rotation (token limit reached)
@@ -40,10 +55,24 @@
 - Created spending dashboard in `app/page.tsx`
 - Weekly summary component with total spent, percentage change, pending check-ins
 - Transaction list grouped by date with category icons
-- Peek theme colors applied (deep purple, orange accent, yellow amounts)
-- Transactions show "Tap to reflect" on hover
 
-**Starting Phase 2**: Chat Infrastructure
+**Phase 2 Complete** ✅
+- Chat components: chat-container, message-bubble, quick-reply
+- Check-in session state management with useReducer
+- Check-in page at `/check-in/[sessionId]`
+
+**Phase 3 Complete** ✅
+- API route at `/api/chat/route.ts` for Gemini calls
+- System prompt construction with question tree context
+- Streaming support and error handling
+
+**Phase 4 Complete** ✅
+- Shopping Fixed Q1 and Q2 for all paths
+- Layer 2 LLM probing with exploration goals
+- Mode assignment after probing
+- 26 tests passing in shopping-flow.test.ts
+
+**Starting Phase 5-8**: Food, Coffee, Reflection, Polish
 
 ### 2026-01-13 12:34:03
 **Session 3 ended** - 🔄 Context rotation (token limit reached)
@@ -145,3 +174,9 @@
 
 ### 2026-01-13 12:45:42
 **Session 18 started** (model: opus-4.5-thinking)
+
+### 2026-01-13 12:46:22
+**Session 18 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 12:46:24
+**Session 19 started** (model: opus-4.5-thinking)

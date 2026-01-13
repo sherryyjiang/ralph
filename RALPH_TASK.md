@@ -33,11 +33,11 @@ Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LL
 3. [x] Verify aggregate totals match spec (~$251 food, ~$112 coffee)
 
 ### Phase B: Home Page Redesign
-4. [ ] Remove `WeeklySummary` component from home page
-5. [ ] Create `ShoppingTransactionCard` with inline Fixed Q1 options
-6. [ ] Create `CategoryCheckInCard` with freeform text input for guess
-7. [ ] Update navigation to pass path/guess via URL params
-8. [ ] Verify only 4 cards show on home page
+4. [x] Remove `WeeklySummary` component from home page
+5. [x] Create `ShoppingTransactionCard` with inline Fixed Q1 options
+6. [x] Create `CategoryCheckInCard` with freeform text input for guess
+7. [x] Update navigation to pass path/guess via URL params
+8. [x] Verify only 4 cards show on home page
 
 ### Phase C: Fix Awareness Calibration Loop
 9. [ ] Add `calibrationPhase` state to session management

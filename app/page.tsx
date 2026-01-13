@@ -2,7 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { syntheticTransactions } from "@/lib/data/synthetic-transactions";
+import { 
+  shoppingTransactions, 
+  getFoodCategoryStats, 
+  getCoffeeCategoryStats 
+} from "@/lib/data/synthetic-transactions";
 import type { Transaction, TransactionCategory } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
@@ -13,7 +17,8 @@ function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(amount);
 }
 
@@ -27,57 +32,9 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function getCategoryIcon(category: TransactionCategory): string {
-  switch (category) {
-    case "shopping": return "🛍️";
-    case "food": return "🍕";
-    case "coffee": return "☕";
-  }
-}
-
-function getCategoryColor(category: TransactionCategory): string {
-  switch (category) {
-    case "shopping": return "bg-purple-500/20 text-purple-300";
-    case "food": return "bg-green-500/20 text-green-300";
-    case "coffee": return "bg-amber-500/20 text-amber-300";
-  }
-}
-
-function getThisWeekTransactions(): Transaction[] {
-  const now = new Date();
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  return syntheticTransactions.filter((t) => t.date >= weekAgo);
-}
-
-function calculateWeeklySpend(): number {
-  return getThisWeekTransactions().reduce((sum, t) => sum + t.amount, 0);
-}
-
 // ═══════════════════════════════════════════════════════════════
 // COMPONENTS
 // ═══════════════════════════════════════════════════════════════
-
-function WeeklySummary({ totalSpent, previousWeek }: { totalSpent: number; previousWeek: number }) {
-  const percentChange = previousWeek > 0 
-    ? ((totalSpent - previousWeek) / previousWeek) * 100 
-    : 0;
-  const isUp = percentChange > 0;
-
-  return (
-    <div className="rounded-2xl bg-gradient-to-br from-[#2d1b4e] to-[#1a0a2e] p-6 shadow-xl">
-      <p className="text-sm font-medium text-[#a89cc0]">This Week</p>
-      <div className="mt-2 flex items-baseline gap-3">
-        <span className="text-4xl font-bold text-[#ffd700]">
-          {formatCurrency(totalSpent)}
-        </span>
-        <span className={`flex items-center text-sm ${isUp ? "text-red-400" : "text-green-400"}`}>
-          {isUp ? "↑" : "↓"} {Math.abs(percentChange).toFixed(0)}%
-          <span className="ml-1 text-[#7a6b8a]">vs last week</span>
-        </span>
-      </div>
-    </div>
-  );
-}
 
 function PeekBadge({ count }: { count: number }) {
   if (count === 0) return null;
@@ -92,63 +49,148 @@ function PeekBadge({ count }: { count: number }) {
   );
 }
 
-function TransactionCard({ 
+// Path options for Fixed Q1 (shopping)
+const PATH_OPTIONS = [
+  { value: "impulse", label: "Saw it and bought it in the moment", emoji: "⚡" },
+  { value: "deliberate", label: "Been thinking about this for a while", emoji: "🎯" },
+  { value: "deal", label: "A good deal / discount made me go for it", emoji: "🏷️" },
+  { value: "gift", label: "Bought it for someone else", emoji: "🎁" },
+  { value: "maintenance", label: "Restocking or replacing", emoji: "🔄" },
+];
+
+function ShoppingTransactionCard({ 
   transaction, 
-  onCheckIn 
+  onPathSelect 
 }: { 
   transaction: Transaction; 
-  onCheckIn: (id: string) => void;
+  onPathSelect: (transactionId: string, path: string) => void;
 }) {
-  const hasHighFrequency = (transaction.frequencyThisMonth ?? 0) > 3;
-  
   return (
-    <div 
-      className="group relative overflow-hidden rounded-xl border border-white/10 bg-[#2d1b4e]/80 p-4 transition-all duration-200 hover:border-[#ff7b00]/50 hover:shadow-lg hover:shadow-[#ff7b00]/10"
-    >
-      <div className="flex items-start justify-between gap-4">
-        {/* Left: Icon + Details */}
-        <div className="flex items-start gap-3">
-          <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl ${getCategoryColor(transaction.category)}`}>
-            {getCategoryIcon(transaction.category)}
+    <div className="rounded-xl border border-white/10 bg-[#2d1b4e]/80 p-4">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/20 text-xl">
+            🛍️
           </div>
           <div>
             <p className="font-medium text-white">{transaction.merchant}</p>
-            <div className="mt-1 flex items-center gap-2 text-sm text-[#a89cc0]">
-              <span>{formatDate(transaction.date)}</span>
-              {hasHighFrequency && (
-                <>
-                  <span className="text-[#7a6b8a]">•</span>
-                  <span className="text-[#ff7b00]">
-                    {transaction.frequencyThisMonth}x this month
-                  </span>
-                </>
-              )}
-              {transaction.isFirstTime && (
-                <>
-                  <span className="text-[#7a6b8a]">•</span>
-                  <span className="text-purple-400">First time</span>
-                </>
-              )}
-            </div>
+            <p className="text-sm text-[#a89cc0]">
+              {formatDate(transaction.date)}
+              {transaction.isFirstTime && " · First time"}
+            </p>
           </div>
         </div>
-
-        {/* Right: Amount */}
-        <div className="text-right">
-          <p className="text-lg font-semibold text-[#ffd700]">
-            {formatCurrency(transaction.amount)}
-          </p>
-        </div>
+        <p className="text-lg font-semibold text-[#ffd700]">
+          {formatCurrency(transaction.amount)}
+        </p>
       </div>
 
-      {/* Check-in CTA */}
-      <button
-        onClick={() => onCheckIn(transaction.id)}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#ff7b00]/10 py-2.5 text-sm font-medium text-[#ff7b00] transition-all duration-200 hover:bg-[#ff7b00]/20 active:scale-[0.98]"
-      >
-        <span className="text-base">💬</span>
-        Quick check-in
-      </button>
+      {/* Entry Question */}
+      <p className="mt-4 text-sm text-[#a89cc0]">
+        When you bought this, were you...
+      </p>
+
+      {/* Path Options */}
+      <div className="mt-3 space-y-2">
+        {PATH_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => onPathSelect(transaction.id, option.value)}
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 
+                       text-left text-sm text-white transition-colors hover:bg-white/10"
+          >
+            <span className="mr-2">{option.emoji}</span>
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CategoryCheckInCard({ 
+  category, 
+  totalSpend, 
+  count, 
+  onGuessSubmit 
+}: { 
+  category: "food" | "coffee";
+  totalSpend: number;
+  count: number;
+  onGuessSubmit: (category: "food" | "coffee", guess: string) => void;
+}) {
+  const [guess, setGuess] = useState("");
+  
+  const isFood = category === "food";
+  const icon = isFood ? "🍕" : "☕";
+  const title = isFood ? "Food Delivery" : "Coffee & Treats";
+  const question = isFood 
+    ? "How much do you think you spent on ordering food this month?"
+    : "How many times did you buy coffee or small treats this month?";
+  
+  const handleSubmit = () => {
+    if (guess.trim()) {
+      onGuessSubmit(category, guess);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-[#2d1b4e]/80 p-4">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl
+            ${isFood ? "bg-green-500/20" : "bg-amber-500/20"}`}>
+            {icon}
+          </div>
+          <div>
+            <p className="font-medium text-white">{title}</p>
+            <p className="text-sm text-[#a89cc0]">
+              {count} {isFood ? "orders" : "purchases"} this month
+            </p>
+          </div>
+        </div>
+        <p className="text-lg font-semibold text-[#ffd700]">
+          {formatCurrency(totalSpend)}
+        </p>
+      </div>
+
+      {/* Entry Question */}
+      <p className="mt-4 text-sm text-[#a89cc0]">
+        {question}
+      </p>
+
+      {/* Guess Input */}
+      <div className="mt-3 flex gap-2">
+        <div className="relative flex-1">
+          {isFood && (
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">
+              $
+            </span>
+          )}
+          <input
+            type="text"
+            value={guess}
+            onChange={(e) => setGuess(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            placeholder={isFood ? "Enter amount" : "Enter number"}
+            className={`w-full rounded-lg border border-white/10 bg-white/5 
+                       py-2.5 pr-3 text-white placeholder:text-white/30
+                       focus:border-[#ff7b00] focus:outline-none
+                       ${isFood ? "pl-7" : "pl-3"}`}
+          />
+        </div>
+        <button
+          onClick={handleSubmit}
+          disabled={!guess.trim()}
+          className="rounded-lg bg-[#ff7b00] px-4 py-2.5 text-white 
+                     transition-colors hover:bg-[#ff7b00]/90
+                     disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          →
+        </button>
+      </div>
     </div>
   );
 }
@@ -161,25 +203,24 @@ export default function DashboardPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory | "all">("all");
 
-  const weeklySpend = useMemo(() => calculateWeeklySpend(), []);
-  const previousWeekSpend = weeklySpend * 0.85; // Mock previous week (15% less)
+  // Get category stats
+  const foodStats = useMemo(() => getFoodCategoryStats(), []);
+  const coffeeStats = useMemo(() => getCoffeeCategoryStats(), []);
   
-  const thisWeekTransactions = useMemo(() => getThisWeekTransactions(), []);
-  const pendingCheckIns = thisWeekTransactions.length;
+  // Pending check-ins: 2 shopping + food + coffee = 4
+  const pendingCheckIns = shoppingTransactions.length + 2;
 
-  const filteredTransactions = useMemo(() => {
-    if (selectedCategory === "all") {
-      return syntheticTransactions.sort((a, b) => b.date.getTime() - a.date.getTime());
-    }
-    return syntheticTransactions
-      .filter((t) => t.category === selectedCategory)
-      .sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [selectedCategory]);
-
-  const handleCheckIn = (transactionId: string) => {
-    // Generate a session ID and navigate to check-in
+  // Handle shopping path selection
+  const handlePathSelect = (transactionId: string, path: string) => {
     const sessionId = `session_${Date.now()}_${transactionId}`;
-    router.push(`/check-in/${sessionId}?txn=${transactionId}`);
+    router.push(`/check-in/${sessionId}?txn=${transactionId}&path=${path}`);
+  };
+
+  // Handle category guess submission
+  const handleGuessSubmit = (category: "food" | "coffee", guess: string) => {
+    const sessionId = `session_${Date.now()}_${category}`;
+    const param = category === "food" ? "guess" : "guessCount";
+    router.push(`/check-in/${sessionId}?category=${category}&${param}=${guess}`);
   };
 
   const categories: { value: TransactionCategory | "all"; label: string; icon: string }[] = [
@@ -198,11 +239,8 @@ export default function DashboardPage() {
           <PeekBadge count={pendingCheckIns} />
         </div>
 
-        {/* Weekly Summary */}
-        <WeeklySummary totalSpent={weeklySpend} previousWeek={previousWeekSpend} />
-
         {/* Category Filter */}
-        <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2">
           {categories.map((cat) => (
             <button
               key={cat.value}
@@ -219,26 +257,38 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Transaction List */}
-        <div className="mt-6 space-y-3">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-[#7a6b8a]">
-            Recent Transactions
-          </h2>
-          {filteredTransactions.map((transaction) => (
-            <TransactionCard
-              key={transaction.id}
-              transaction={transaction}
-              onCheckIn={handleCheckIn}
-            />
-          ))}
-        </div>
+        {/* Transaction/Category Cards */}
+        <div className="mt-6 space-y-4">
+          {/* Shopping Transactions */}
+          {(selectedCategory === "all" || selectedCategory === "shopping") &&
+            shoppingTransactions.map((txn) => (
+              <ShoppingTransactionCard
+                key={txn.id}
+                transaction={txn}
+                onPathSelect={handlePathSelect}
+              />
+            ))}
 
-        {/* Empty State */}
-        {filteredTransactions.length === 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-[#a89cc0]">No transactions in this category</p>
-          </div>
-        )}
+          {/* Food Category Card */}
+          {(selectedCategory === "all" || selectedCategory === "food") && (
+            <CategoryCheckInCard
+              category="food"
+              totalSpend={foodStats.totalSpend}
+              count={foodStats.orderCount ?? 0}
+              onGuessSubmit={handleGuessSubmit}
+            />
+          )}
+
+          {/* Coffee Category Card */}
+          {(selectedCategory === "all" || selectedCategory === "coffee") && (
+            <CategoryCheckInCard
+              category="coffee"
+              totalSpend={coffeeStats.totalSpend}
+              count={coffeeStats.purchaseCount ?? 0}
+              onGuessSubmit={handleGuessSubmit}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

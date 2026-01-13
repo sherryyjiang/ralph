@@ -599,3 +599,25 @@ console.log('Coffee total: \$' + coffee.totalSpend + ' (expected: ~\$112)');
 console.log('Coffee count:', coffee.purchaseCount, '(expected: 18)');
 " → exit 0
 [14:41:39] 🟡 TOKENS: 54481 / 80000 (68%) [read:209KB write:0KB assist:0KB shell:0KB]
+[14:41:59] 🟡 SHELL cd /Users/sherryyjiang/Documents/GitHub/ralph && git add -A && git status → exit 0
+[14:42:09] 🟡 SHELL cd /Users/sherryyjiang/Documents/GitHub/ralph && git commit -m "$(cat <<'EOF'
+ralph: complete Phase A data layer updates for iteration 2
+
+- Reduce synthetic transactions to 4 key items:
+  - Shopping: Zara ($45) and H&M ($32.50)
+  - Food: 9 orders totaling $251 (DoorDash, Uber Eats, Grubhub)
+  - Coffee: 18 purchases totaling ~$114.50 (Starbucks, Local Cafe)
+- Add getFoodCategoryStats() with merchant/day breakdown
+- Add getCoffeeCategoryStats() with purchase count and avg per visit
+- Add CategoryStats interface for typed aggregates
+- All 73 tests passing
+EOF
+)" → exit 0
+[14:42:09] 🟡 TOKENS: 54557 / 80000 (68%) [read:209KB write:0KB assist:1KB shell:0KB]
+[14:42:20] 🟡 READ /Users/sherryyjiang/Documents/GitHub/ralph/app/page.tsx (246 lines, ~24.0KB)
+[14:42:29] 🔴 READ /Users/sherryyjiang/Documents/GitHub/ralph/docs/HOME_PAGE_REDESIGN.md (425 lines, ~41.5KB)
+[14:42:29] 🔴 WARN: Approaching token limit (71378 >= 70000)
+[14:43:25] 🔴 TOKENS: 71399 / 80000 (89%) - approaching limit [read:274KB write:0KB assist:1KB shell:0KB]
+[14:43:48] 🔴 SHELL cd /Users/sherryyjiang/Documents/GitHub/ralph && npx tsc --noEmit 2>&1 | head -30 → exit 0
+[14:43:48] 🔴 SHELL cd /Users/sherryyjiang/Documents/GitHub/ralph && npm test 2>&1 | head -20 → exit 0
+[14:43:55] 🔴 TOKENS: 71412 / 80000 (89%) - approaching limit [read:274KB write:0KB assist:1KB shell:0KB]

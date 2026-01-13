@@ -51,11 +51,19 @@ interface BuildSystemPromptParams {
   transaction: Transaction;
   session: CheckInSession;
   questionTreeSection?: string;
-  probingTurn?: number;
-  maxProbingTurns?: number;
+  probingDepth?: number;
+  requestModeAssignment?: boolean;
+  forceModeAssignment?: boolean;
 }
 
-export function buildSystemPrompt({ transaction, session, questionTreeSection, probingDepth = 0 }: BuildSystemPromptParams): string {
+export function buildSystemPrompt({ 
+  transaction, 
+  session, 
+  questionTreeSection, 
+  probingDepth = 0,
+  requestModeAssignment = false,
+  forceModeAssignment = false,
+}: BuildSystemPromptParams): string {
   const maxProbingDepth = 3;
   const shouldTransitionSoon = probingDepth >= 2;
   

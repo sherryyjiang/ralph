@@ -172,7 +172,7 @@ describe("Counter-Profile Detection", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// Food Check-In Tests
+// Food Check-In Tests (Awareness Calibration)
 // ═══════════════════════════════════════════════════════════════
 
 describe("Food Check-In Options", () => {
@@ -182,15 +182,15 @@ describe("Food Check-In Options", () => {
     expect(options.length).toBeGreaterThan(0);
   });
 
-  it("should include stress as a yellow option", () => {
-    const stress = options.find(o => o.value === "stress");
-    expect(stress).toBeDefined();
-    expect(stress?.color).toBe("yellow");
+  it("should include guess options for awareness calibration", () => {
+    const guess100 = options.find(o => o.value === "100");
+    expect(guess100).toBeDefined();
+    expect(guess100?.label).toContain("$100");
   });
 });
 
 // ═══════════════════════════════════════════════════════════════
-// Coffee Check-In Tests
+// Coffee Check-In Tests (Frequency Calibration)
 // ═══════════════════════════════════════════════════════════════
 
 describe("Coffee Check-In Options", () => {
@@ -200,9 +200,9 @@ describe("Coffee Check-In Options", () => {
     expect(options.length).toBeGreaterThan(0);
   });
 
-  it("should include routine as a yellow option", () => {
-    const routine = options.find(o => o.value === "routine");
-    expect(routine).toBeDefined();
-    expect(routine?.color).toBe("yellow");
+  it("should include guess options for frequency calibration", () => {
+    const guess5 = options.find(o => o.value === "5");
+    expect(guess5).toBeDefined();
+    expect(guess5?.label).toContain("5");
   });
 });

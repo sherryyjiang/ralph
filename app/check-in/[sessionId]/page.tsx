@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { useCheckInSession, getCheckInTypeLabel } from "@/lib/hooks/use-check-in-session";
 import { getTransactionById } from "@/lib/data/synthetic-transactions";
-import type { QuickReplyOption, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ImpulseSubPath, DealSubPath } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // FIXED QUESTIONS - Shopping Check-In (Layer 1)
@@ -157,9 +157,9 @@ const MAX_PROBING_DEPTH = 4;
 
 function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
   const {
-    session,
     messages,
     isLoading,
+    error,
     currentLayer,
     currentPath,
     currentMode,
@@ -172,6 +172,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setMode,
     setLayer,
     setLoading,
+    setError,
     incrementProbingDepth,
     completeSession,
   } = useCheckInSession(sessionId, transaction);

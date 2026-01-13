@@ -371,3 +371,9 @@
 
 ### 2026-01-13 14:50:52
 **Session 7 started** (model: opus-4.5-thinking)
+
+### 2026-01-13 14:52:24
+**Session 7 ended** - 🔄 Context rotation (token limit reached)
+
+### 2026-01-13 14:52:26
+**Session 8 started** (model: opus-4.5-thinking)

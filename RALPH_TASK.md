@@ -43,9 +43,9 @@ Iterate on the v1 Peek Check-In Chat app with UI improvements, bug fixes, and LL
 9. [x] Add `calibrationPhase` state to session management
 10. [x] Update check-in page to read guess from URL params (not re-ask)
 11. [x] Fix option handler to properly track calibration phases
-12. [ ] Implement full flow: guess → result → feeling → (breakdown) → Layer 2
-13. [ ] Test Food check-in flows completely
-14. [ ] Test Coffee check-in flows completely
+12. [x] Implement full flow: guess → result → feeling → (breakdown) → Layer 2
+13. [x] Test Food check-in flows completely
+14. [x] Test Coffee check-in flows completely
 
 ### Phase D: Exit Experience
 15. [ ] Remove "Thanks for the reflection!" perpetual message

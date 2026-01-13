@@ -284,6 +284,7 @@ const LAYER_3_REFLECTION_OPTIONS: QuickReplyOption[] = [
 
 function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGuess, initialGuessCount }: CheckInChatProps) {
   const {
+    session,
     messages,
     isLoading,
     error,
@@ -827,7 +828,50 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           }, 500);
           
         } else if (value === "could_be_better") {
-          // User wants to explore - show motivation question
+          // User wants to explore - offer breakdown first
+          setCalibrationPhase("breakdown_offered");
+          setTimeout(() => {
+            const breakdownOptions: QuickReplyOption[] = [
+              { id: "show_coffee_breakdown", label: "Yes, show me", emoji: "📊", value: "show_coffee_breakdown", color: "white" as const },
+              { id: "skip_coffee_breakdown", label: "No, I'd rather move on", emoji: "➡️", value: "skip_coffee_breakdown", color: "white" as const },
+            ];
+            
+            addAssistantMessage(
+              "Would you like to see what's behind these purchases?",
+              breakdownOptions,
+              true
+            );
+          }, 500);
+          
+        } else if (value === "show_coffee_breakdown") {
+          // User wants to see coffee breakdown
+          setCalibrationPhase("breakdown_shown");
+          const coffeeStats = getCoffeeCategoryStats();
+          
+          // Build breakdown message
+          let breakdownMessage = "Here's the breakdown:\n\n📊 By Merchant:\n";
+          coffeeStats.topMerchants.forEach((m: { name: string; count: number; spend: number }) => {
+            breakdownMessage += `• ${m.name}: ${m.count} purchases ($${m.spend.toFixed(0)})\n`;
+          });
+          
+          breakdownMessage += "\n📅 By Day:\n";
+          coffeeStats.topDays.slice(0, 3).forEach((d: { day: string; count: number }) => {
+            breakdownMessage += `• ${d.day}: ${d.count} purchases\n`;
+          });
+          
+          breakdownMessage += "\nDoes that land how you expected?";
+          
+          const breakdownReactionOptions: QuickReplyOption[] = [
+            { id: "coffee_breakdown_expected", label: "Yeah, that tracks", emoji: "👍", value: "coffee_breakdown_expected", color: "white" as const },
+            { id: "coffee_breakdown_surprised", label: "Some of that surprises me", emoji: "😮", value: "coffee_breakdown_surprised", color: "yellow" as const },
+          ];
+          
+          setTimeout(() => {
+            addAssistantMessage(breakdownMessage, breakdownReactionOptions, true);
+          }, 500);
+          
+        } else if (value === "skip_coffee_breakdown" || value === "coffee_breakdown_expected" || value === "coffee_breakdown_surprised") {
+          // After breakdown (or skipped) - transition to motivation question
           setCalibrationPhase("layer_2_ready");
           setTimeout(() => {
             const motivationQ = getCoffeeMotivationQuestion();

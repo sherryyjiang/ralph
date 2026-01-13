@@ -30,6 +30,13 @@ export const SHOPPING_Q2_QUESTIONS: Record<ShoppingPath, string> = {
   maintenance: "Did you get the same thing or switched it up?",
 };
 
+export function getShoppingFixedQuestion2Text(path: string): string | null {
+  if (path in SHOPPING_Q2_QUESTIONS) {
+    return SHOPPING_Q2_QUESTIONS[path as keyof typeof SHOPPING_Q2_QUESTIONS];
+  }
+  return null;
+}
+
 /**
  * Shopping Fixed Question 1: "What's the story behind this purchase?"
  */

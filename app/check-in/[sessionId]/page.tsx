@@ -70,6 +70,13 @@ const MODE_LABELS: Record<string, string> = {
   "#convenience-driven": "Convenience Orderer",
   "#lack-of-pre-planning": "Last-Minute Planner",
   "#intentional-treat": "Intentional Treat",
+  // Coffee modes
+  "#autopilot-routine": "Autopilot Routine",
+  "#environment-triggered": "Environment Triggered",
+  "#emotional-coping": "Emotional Coping",
+  "#productivity-justification": "Productivity Justification",
+  "#intentional-ritual": "Intentional Ritual",
+  "#productive-coffee-drinker": "Productive Coffee Drinker",
 };
 
 function getModeLabel(mode: string): string | null {
@@ -250,6 +257,8 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
     setLayer,
     setLoading,
     setError,
+    setUserGuess,
+    setActualAmount,
     setUserGuessCount,
     setActualCount,
     incrementProbingDepth,

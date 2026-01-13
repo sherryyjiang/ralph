@@ -950,7 +950,8 @@ export type CoffeeMode =
   | "#emotional-coping"
   | "#productivity-justification"
   | "#intentional-ritual"         // Counter-profile
-  | "#productive-coffee-drinker"; // Counter-profile
+  | "#productive-coffee-drinker"  // Counter-profile
+  | "#social-ritual";             // Social ritual
 
 export type CoffeeMotivation = "routine" | "nearby" | "pick_me_up" | "focus";
 
@@ -1280,6 +1281,7 @@ export function getCoffeeEconomicEvaluation(mode: CoffeeMode, monthlySpend: numb
     "#productivity-justification": "the productivity you think you're getting",
     "#intentional-ritual": "your intentional daily treat",
     "#productive-coffee-drinker": "the real productivity boost",
+    "#social-ritual": "the social connection and shared moments",
   };
 
   const benefit = benefitMap[mode] || "coffee and treats";

@@ -4,7 +4,7 @@
 
 ### Current Status
 - **Phase**: Phase C (Fix Mode Definitions - Flat, No Hierarchy)
-- **Last Criterion Completed**: 13 (Verified mode definitions are flat; tags are not treated as modes)
+- **Last Criterion Completed**: 14 (Verified `targetModes` only contains actual modes, not exploration tags)
 - **Verification**: `pnpm test shopping-flow` passing (131 tests)
 
 ---

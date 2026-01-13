@@ -287,7 +287,7 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
       "Is trying new stuff kind of the fun part for you?",
     ],
     // Modes are flat: do NOT include exploration tags like #visual-impulse-driven
-    targetModes: ["#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector", "#exploration-hobbyist"],
+    targetModes: ["#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector"],
     modeSignals: {
       "#scroll-triggered": [
         "I was scrolling and saw it",
@@ -307,11 +307,6 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
       "#duplicate-collector": [
         "I have like 5 of these already",
         "adding to my collection",
-      ],
-      "#exploration-hobbyist": [
-        "I like trying new things",
-        "wanted to see what the hype was about",
-        "I just like exploring",
       ],
     },
   },

@@ -104,6 +104,59 @@ function checkInReducer(state: CheckInState, action: CheckInAction): CheckInStat
         },
       };
 
+    case "START_STREAMING_MESSAGE":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          messages: [
+            ...state.session.messages,
+            {
+              id: generateMessageId(),
+              role: "assistant",
+              content: "",
+              timestamp: new Date(),
+            },
+          ],
+        },
+      };
+
+    case "APPEND_STREAMING_CONTENT": {
+      const messages = [...state.session.messages];
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.role === "assistant") {
+        messages[messages.length - 1] = {
+          ...lastMessage,
+          content: lastMessage.content + action.payload.content,
+        };
+      }
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          messages,
+        },
+      };
+    }
+
+    case "FINISH_STREAMING_MESSAGE": {
+      const msgs = [...state.session.messages];
+      const last = msgs[msgs.length - 1];
+      if (last && last.role === "assistant") {
+        msgs[msgs.length - 1] = {
+          ...last,
+          options: action.payload.options,
+        };
+      }
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          messages: msgs,
+        },
+      };
+    }
+
     case "ADD_USER_MESSAGE":
       return {
         ...state,

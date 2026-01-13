@@ -1,176 +1,181 @@
-"use client";
+/**
+ * Chat API Hook
+ * 
+ * Handles communication with the /api/chat endpoint,
+ * supporting both streaming and non-streaming responses.
+ */
 
-import { useState, useCallback } from "react";
-import type { Message, Transaction, CheckInSession, LLMResponse, QuickReplyOption } from "@/lib/types";
+import { useState, useCallback, useRef } from "react";
+import type { Message, Transaction, CheckInSession, QuickReplyOption } from "@/lib/types";
 
-interface UseChatApiOptions {
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface ChatAPIResponse {
+  message: string;
+  options?: QuickReplyOption[];
+  assignedMode?: string;
+  shouldTransition?: boolean;
+  exitGracefully?: boolean;
+}
+
+export interface UseChatAPIOptions {
+  transaction: Transaction;
+  session: CheckInSession;
   onStreamChunk?: (chunk: string) => void;
-  onComplete?: (response: LLMResponse) => void;
+  onStreamComplete?: (fullMessage: string) => void;
   onError?: (error: string) => void;
 }
 
-export function useChatApi(options: UseChatApiOptions = {}) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [streamingText, setStreamingText] = useState("");
-
-  /**
-   * Send a message and get a non-streaming response
-   */
-  const sendMessage = useCallback(async (
-    messages: Message[],
-    transaction: Transaction,
-    session: CheckInSession
-  ): Promise<LLMResponse | null> => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages,
-          transaction,
-          session,
-          stream: false,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to get response");
-      }
-
-      const data = await response.json() as LLMResponse;
-      options.onComplete?.(data);
-      return data;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      setError(errorMessage);
-      options.onError?.(errorMessage);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [options]);
-
-  /**
-   * Send a message and get a streaming response
-   */
-  const sendMessageStreaming = useCallback(async (
-    messages: Message[],
-    transaction: Transaction,
-    session: CheckInSession
-  ): Promise<string | null> => {
-    setIsLoading(true);
-    setError(null);
-    setStreamingText("");
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages,
-          transaction,
-          session,
-          stream: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to get response");
-      }
-
-      // Read the stream
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No response body");
-
-      const decoder = new TextDecoder();
-      let fullText = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        
-        // Parse SSE events
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") {
-              break;
-            }
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.text) {
-                fullText += parsed.text;
-                setStreamingText(fullText);
-                options.onStreamChunk?.(parsed.text);
-              }
-            } catch {
-              // Ignore parse errors for incomplete JSON
-            }
-          }
-        }
-      }
-
-      // Parse the full response as LLMResponse
-      const parsedResponse = parseStreamedResponse(fullText);
-      options.onComplete?.(parsedResponse);
-      
-      return fullText;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      setError(errorMessage);
-      options.onError?.(errorMessage);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [options]);
-
-  return {
-    isLoading,
-    error,
-    streamingText,
-    sendMessage,
-    sendMessageStreaming,
-    clearError: () => setError(null),
-  };
+export interface UseChatAPIReturn {
+  sendMessage: (messages: Message[], stream?: boolean) => Promise<ChatAPIResponse | null>;
+  isStreaming: boolean;
+  streamedContent: string;
+  error: string | null;
+  abortStream: () => void;
 }
 
-/**
- * Parse a streamed text response into LLMResponse format
- */
-function parseStreamedResponse(text: string): LLMResponse {
-  // Try to parse as JSON
-  try {
-    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) ||
-                      text.match(/\{[\s\S]*"message"[\s\S]*\}/);
+// =============================================================================
+// Hook Implementation
+// =============================================================================
 
-    if (jsonMatch) {
-      const jsonStr = jsonMatch[1] || jsonMatch[0];
-      const parsed = JSON.parse(jsonStr);
-      return {
-        message: parsed.message || text,
-        options: parsed.options as QuickReplyOption[] | undefined,
-        assignedMode: parsed.assignedMode,
-        shouldTransition: parsed.shouldTransition ?? false,
-        exitGracefully: parsed.exitGracefully ?? false,
-      };
+export function useChatAPI(options: UseChatAPIOptions): UseChatAPIReturn {
+  const { transaction, session, onStreamChunk, onStreamComplete, onError } = options;
+  
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamedContent, setStreamedContent] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const abortStream = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
-  } catch {
-    // JSON parsing failed
-  }
+    setIsStreaming(false);
+  }, []);
+
+  const sendMessage = useCallback(async (
+    messages: Message[],
+    stream = false
+  ): Promise<ChatAPIResponse | null> => {
+    setError(null);
+    
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
+    
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: messages.map(m => ({
+            ...m,
+            timestamp: m.timestamp.toISOString(),
+          })),
+          transaction: {
+            ...transaction,
+            date: transaction.date.toISOString(),
+          },
+          session: {
+            ...session,
+            messages: session.messages.map(m => ({
+              ...m,
+              timestamp: m.timestamp.toISOString(),
+            })),
+            metadata: {
+              ...session.metadata,
+              startedAt: session.metadata.startedAt?.toISOString(),
+              completedAt: session.metadata.completedAt?.toISOString(),
+            },
+          },
+          stream,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Request failed" }));
+        const errorMessage = errorData.error || `HTTP ${response.status}`;
+        setError(errorMessage);
+        onError?.(errorMessage);
+        return null;
+      }
+
+      // Handle streaming response
+      if (stream && response.body) {
+        setIsStreaming(true);
+        setStreamedContent("");
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6).trim();
+                
+                if (data === "[DONE]") {
+                  setIsStreaming(false);
+                  onStreamComplete?.(fullContent);
+                  return { message: fullContent };
+                }
+
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.text) {
+                    fullContent += parsed.text;
+                    setStreamedContent(fullContent);
+                    onStreamChunk?.(parsed.text);
+                  }
+                  if (parsed.error) {
+                    throw new Error(parsed.error);
+                  }
+                } catch (parseError) {
+                  // Ignore JSON parse errors for partial data
+                }
+              }
+            }
+          }
+        } finally {
+          setIsStreaming(false);
+        }
+
+        return { message: fullContent };
+      }
+
+      // Handle non-streaming response
+      const data: ChatAPIResponse = await response.json();
+      return data;
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "AbortError") {
+          return null; // Request was aborted
+        }
+        const errorMessage = err.message || "Failed to send message";
+        setError(errorMessage);
+        onError?.(errorMessage);
+      }
+      return null;
+    } finally {
+      abortControllerRef.current = null;
+    }
+  }, [transaction, session, onStreamChunk, onStreamComplete, onError]);
 
   return {
-    message: text,
-    shouldTransition: false,
-    exitGracefully: false,
+    sendMessage,
+    isStreaming,
+    streamedContent,
+    error,
+    abortStream,
   };
 }

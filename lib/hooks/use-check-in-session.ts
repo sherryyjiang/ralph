@@ -34,6 +34,9 @@ export type CheckInAction =
   | { type: "START_SESSION" }
   | { type: "ADD_MESSAGE"; payload: Message }
   | { type: "ADD_ASSISTANT_MESSAGE"; payload: { content: string; options?: QuickReplyOption[]; isFixedQuestion?: boolean } }
+  | { type: "START_STREAMING_MESSAGE" }
+  | { type: "APPEND_STREAMING_CONTENT"; payload: { content: string } }
+  | { type: "FINISH_STREAMING_MESSAGE"; payload: { options?: QuickReplyOption[] } }
   | { type: "ADD_USER_MESSAGE"; payload: { content: string } }
   | { type: "SET_PATH"; payload: ShoppingPath }
   | { type: "SET_SUB_PATH"; payload: ImpulseSubPath | DealSubPath }

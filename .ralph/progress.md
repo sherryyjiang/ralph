@@ -504,6 +504,29 @@ All phases completed:
 ### 2026-01-13 14:52:26
 **Session 8 started** (model: opus-4.5-thinking)
 
+**Iteration 2 - Session 8 Progress:**
+
+**Phase D: Exit Experience** ✅
+- Verified X close button already implemented in chat header
+- Verified graceful exit messages for deliberate, gift, maintenance paths
+- Verified Magnets mention in all exit messages
+- Verified freeform text input always available for follow-up
+
+**Phase E: AI Quality** ✅
+- Added WARM tone guidelines to system prompt (warmth, validation, mirroring)
+- Made probing hints REQUIRED in prompt (not suggestions)
+- Added negative examples to prevent generic questions
+- Added probing adherence tests for right_one path
+
+**Phase F: Testing** ✅
+- All 192 tests passing across 3 test suites
+- Lint passing (0 errors, 1 warning)
+- Question tree routing tests verified
+- Awareness calibration phase transitions tested
+- Graceful exit detection tested
+
+**ALL ITERATION 2 CRITERIA COMPLETE** ✅
+
 ### 2026-01-13 14:53:50
 **Session 8 ended** - 🔄 Context rotation (token limit reached)
 

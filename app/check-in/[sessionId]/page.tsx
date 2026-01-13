@@ -351,8 +351,11 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
       // Continue probing in Layer 2 (mode not yet assigned, or more exploration needed)
       addAssistantMessage(data.message, data.options, false);
 
-    } catch {
+    } catch (err) {
       setLoading(false);
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+      setError(errorMessage);
+      
       // Fallback: transition to Layer 3 if in Layer 2
       if (currentLayer === 2) {
         addAssistantMessage(
@@ -369,7 +372,7 @@ function CheckInChat({ sessionId, transaction, onClose }: CheckInChatProps) {
         );
       }
     }
-  }, [messages, transaction, sessionId, currentLayer, currentPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setLayer, setMode, incrementProbingDepth]);
+  }, [messages, transaction, sessionId, currentLayer, currentPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setError, setLayer, setMode, incrementProbingDepth]);
 
   // Handle special actions
   const handleOptionSelectWrapper = useCallback((value: string) => {

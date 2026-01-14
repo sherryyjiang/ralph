@@ -8,6 +8,7 @@ import {
   coffeeTransactions
 } from "@/lib/data/synthetic-transactions";
 import type { Transaction, TransactionCategory } from "@/lib/types";
+import { ChipotleTestCard } from "@/components/home/chipotle-test-card";
 
 // ═══════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
@@ -225,8 +226,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory | "all">("all");
   
-  // Pending check-ins: 2 shopping + food + coffee = 4
-  const pendingCheckIns = shoppingTransactions.length + 2;
+  // Pending check-ins: 2 shopping + food + coffee + chipotle test = 5
+  const pendingCheckIns = shoppingTransactions.length + 3;
 
   // Handle shopping path selection
   const handlePathSelect = (transactionId: string, path: string) => {
@@ -280,6 +281,11 @@ export default function DashboardPage() {
 
         {/* Transaction/Category Cards */}
         <div className="mt-6 space-y-4">
+          {/* Chipotle Test Card */}
+          {(selectedCategory === "all" || selectedCategory === "food") && (
+            <ChipotleTestCard />
+          )}
+
           {/* Shopping Transactions */}
           {(selectedCategory === "all" || selectedCategory === "shopping") &&
             shoppingTransactions.map((txn) => (

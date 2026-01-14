@@ -578,16 +578,22 @@ function getQuestionTreeSection(path: string, subPath?: string): string {
   // Get sub-path specific probing if available
   const subPathProbing = subPath ? getSubPathProbing(path, subPath) : undefined;
 
-  let section = `
-### Path: ${path.toUpperCase()}
+  // Determine which probing hints to use as PRIMARY (subPath takes priority)
+  const primaryProbingHints = subPathProbing?.probingHints || goal.probingHints;
+  const explorationGoalText = subPathProbing
+    ? `${subPathProbing.explorationGoal} (Sub-path: ${subPath?.toUpperCase()})`
+    : goal.goal;
 
-**Exploration Goal**: ${goal.goal}
+  let section = `
+### Path: ${path.toUpperCase()}${subPathProbing ? ` → Sub-path: ${subPath?.toUpperCase()}` : ""}
+
+**Exploration Goal**: ${explorationGoalText}
 
 ## REQUIRED PROBING QUESTIONS
 
 You MUST use these exact questions or very close variations. Do NOT make up your own questions.
 
-${goal.probingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
+${primaryProbingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
 
 ### How to use these:
 - Start with question #1 if the user just answered Fixed Q2
@@ -619,13 +625,6 @@ ${
   // Add sub-path specific context if available
   if (subPathProbing) {
     section += `
-
-### Sub-path: ${subPath?.toUpperCase()}
-
-**Specific Exploration Goal**: ${subPathProbing.explorationGoal}
-
-**Sub-path REQUIRED Probing Questions**:
-${subPathProbing.probingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
 
 **Target Modes**: ${subPathProbing.targetModes.join(", ")}
 

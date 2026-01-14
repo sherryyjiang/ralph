@@ -20,7 +20,7 @@ import {
   getGracefulExitMessage,
   type CoffeeMotivation,
 } from "@/lib/llm/question-trees/index";
-import type { QuickReplyOption, TransactionCategory, ShoppingPath, ShoppingSubPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
+import type { QuickReplyOption, TransactionCategory, ShoppingPath, ShoppingSubPath, ImpulseSubPath, DealSubPath, CheckInMode, ReflectionPath } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════
 // MODE LABEL MAPPING
@@ -355,7 +355,9 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
     currentPath,
     currentSubPath,
     currentMode,
+    currentReflectionPath,
     probingDepth,
+    layer3ExchangeCount,
     calibrationPhase,
     startSession,
     addAssistantMessage,
@@ -373,6 +375,8 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
     addTag,
     incrementProbingDepth,
     resetProbingDepth,
+    setReflectionPath,
+    incrementLayer3Exchange,
     setCalibrationPhase,
     completeSession,
   } = useCheckInSession(sessionId, transaction);
@@ -1100,7 +1104,8 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
     // Layer 3: Handle reflection path selection
     if (currentLayer === 3 && ["problem", "feel", "worth", "different"].includes(value)) {
       setLoading(true);
-      
+      setReflectionPath(value as ReflectionPath); // Store reflection path in state
+
       // Call API with reflection context
       fetch("/api/chat", {
         method: "POST",
@@ -1116,9 +1121,9 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
             currentLayer: 3,
             path: currentPath,
             mode: currentMode,
-            reflectionPath: value, // Store reflection path choice
+            reflectionPath: value, // Pass reflection path choice to API
             messages,
-            metadata: { tags: [] },
+            metadata: { tags: [], layer3ExchangeCount: 0 },
           },
         }),
       })
@@ -1155,7 +1160,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           );
         });
     }
-  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, calibrationPhase, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, setCalibrationPhase, addTag, session]);
+  }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, calibrationPhase, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, setCalibrationPhase, addTag, session, setReflectionPath]);
 
   // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {
@@ -1166,6 +1171,12 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
     const newProbingDepth = currentLayer === 2 ? probingDepth + 1 : probingDepth;
     if (currentLayer === 2) {
       incrementProbingDepth();
+    }
+
+    // Increment exchange count for Layer 3 exchanges
+    const newLayer3ExchangeCount = currentLayer === 3 ? layer3ExchangeCount + 1 : layer3ExchangeCount;
+    if (currentLayer === 3) {
+      incrementLayer3Exchange();
     }
 
     try {
@@ -1184,14 +1195,18 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
             path: currentPath,
             subPath: currentSubPath,
             mode: currentMode,
+            reflectionPath: currentReflectionPath,
             messages,
-            metadata: { 
+            metadata: {
               tags: [],
               probingDepth: newProbingDepth,
+              layer3ExchangeCount: newLayer3ExchangeCount,
             },
           },
           // Pass probing depth at top level for API route
           probingDepth: newProbingDepth,
+          // Pass layer 3 exchange count at top level for API route
+          layer3ExchangeCount: newLayer3ExchangeCount,
         }),
       });
 
@@ -1295,7 +1310,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         );
       }
     }
-  }, [messages, transaction, sessionId, currentLayer, currentPath, currentSubPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setError, setLayer, setMode, setSubPath, incrementProbingDepth]);
+  }, [messages, transaction, sessionId, currentLayer, currentPath, currentSubPath, currentMode, currentReflectionPath, probingDepth, layer3ExchangeCount, addUserMessage, addAssistantMessage, setLoading, setError, setLayer, setMode, setSubPath, incrementProbingDepth, incrementLayer3Exchange, resetProbingDepth]);
 
   // Handle special actions
   const handleOptionSelectWrapper = useCallback((value: string) => {

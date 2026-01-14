@@ -9,6 +9,7 @@ import type {
   CheckInMode,
   Message,
   QuickReplyOption,
+  ReflectionPath,
   ShoppingPath,
   ShoppingSubPath,
   Transaction,
@@ -34,6 +35,7 @@ export interface CheckInState {
   isLoading: boolean;
   error: string | null;
   probingExchangeCount: number; // Track Layer 2 exchanges
+  layer3ExchangeCount: number; // Track Layer 3 reflection exchanges
   calibrationPhase: CalibrationPhase; // Track awareness calibration phase
 }
 
@@ -64,6 +66,9 @@ export type CheckInAction =
   | { type: "ADD_TAG"; payload: string }
   | { type: "INCREMENT_PROBING_DEPTH" }
   | { type: "RESET_PROBING_DEPTH" }
+  | { type: "SET_REFLECTION_PATH"; payload: ReflectionPath }
+  | { type: "INCREMENT_LAYER3_EXCHANGE" }
+  | { type: "RESET_LAYER3_EXCHANGE" }
   | { type: "SET_CALIBRATION_PHASE"; payload: CalibrationPhase }
   | { type: "COMPLETE_SESSION" }
   | { type: "DISMISS_SESSION" };
@@ -405,6 +410,27 @@ function checkInReducer(state: CheckInState, action: CheckInAction): CheckInStat
         },
       };
 
+    case "SET_REFLECTION_PATH":
+      return {
+        ...state,
+        session: {
+          ...state.session,
+          reflectionPath: action.payload,
+        },
+      };
+
+    case "INCREMENT_LAYER3_EXCHANGE":
+      return {
+        ...state,
+        layer3ExchangeCount: state.layer3ExchangeCount + 1,
+      };
+
+    case "RESET_LAYER3_EXCHANGE":
+      return {
+        ...state,
+        layer3ExchangeCount: 0,
+      };
+
     case "SET_CALIBRATION_PHASE":
       return {
         ...state,
@@ -472,6 +498,7 @@ function createInitialState(
     isLoading: false,
     error: null,
     probingExchangeCount: 0,
+    layer3ExchangeCount: 0,
     calibrationPhase: "awaiting_guess",
   };
 }
@@ -572,6 +599,18 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     dispatch({ type: "RESET_PROBING_DEPTH" });
   }, []);
 
+  const setReflectionPath = useCallback((path: ReflectionPath) => {
+    dispatch({ type: "SET_REFLECTION_PATH", payload: path });
+  }, []);
+
+  const incrementLayer3Exchange = useCallback(() => {
+    dispatch({ type: "INCREMENT_LAYER3_EXCHANGE" });
+  }, []);
+
+  const resetLayer3Exchange = useCallback(() => {
+    dispatch({ type: "RESET_LAYER3_EXCHANGE" });
+  }, []);
+
   const setCalibrationPhase = useCallback((phase: CalibrationPhase) => {
     dispatch({ type: "SET_CALIBRATION_PHASE", payload: phase });
   }, []);
@@ -594,8 +633,10 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     currentPath: state.session.path,
     currentSubPath: state.session.subPath,
     currentMode: state.session.mode,
+    currentReflectionPath: state.session.reflectionPath,
     status: state.session.status,
     probingDepth: state.session.metadata.probingDepth || 0,
+    layer3ExchangeCount: state.layer3ExchangeCount,
     coffeeMotivation: state.session.metadata.coffeeMotivation,
     calibrationPhase: state.calibrationPhase,
 
@@ -618,9 +659,12 @@ export function useCheckInSession(sessionId: string, transaction: Transaction) {
     setActualCount,
     setCoffeeMotivation,
     setCalibrationPhase,
+    setReflectionPath,
     addTag,
     incrementProbingDepth,
     resetProbingDepth,
+    incrementLayer3Exchange,
+    resetLayer3Exchange,
     completeSession,
     dismissSession,
   };

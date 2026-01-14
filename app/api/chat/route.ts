@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
-import { getGracefulExitMessage } from "@/lib/llm/question-trees/index";
+import { getGracefulExitMessage, buildClosingSummary } from "@/lib/llm/question-trees/index";
 import { buildReflectionPrompt } from "@/lib/llm/prompts/layer3-reflection";
 import type { ReflectionPathType } from "@/lib/llm/question-trees/types";
 import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
@@ -36,6 +36,7 @@ interface ChatRequest {
   session: CheckInSession;
   stream?: boolean;
   probingDepth?: number; // 0-3, tracks Layer 2 probing exchanges
+  layer3ExchangeCount?: number; // Tracks Layer 3 reflection exchanges
   requestModeAssignment?: boolean; // Trigger mode assignment
 }
 
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
       session,
       stream,
       probingDepth = 0,
+      layer3ExchangeCount = 0,
       requestModeAssignment,
     } = body;
 
@@ -87,6 +89,7 @@ export async function POST(request: NextRequest) {
       session,
       questionTreeSection,
       probingDepth,
+      layer3ExchangeCount,
       requestModeAssignment: shouldRequestModeAssignment,
     });
 
@@ -94,7 +97,34 @@ export async function POST(request: NextRequest) {
     if (stream) {
       return handleStreamingResponse(messages, systemPrompt);
     } else {
-      return handleNonStreamingResponse(messages, systemPrompt);
+      const response = await handleNonStreamingResponse(messages, systemPrompt);
+
+      // For Layer 3 with exchange count >= 2, ensure we have a closing summary
+      if (session.currentLayer === 3 && layer3ExchangeCount >= 2) {
+        const responseData = await response.json();
+
+        // If the LLM didn't return exitGracefully, generate a closing summary
+        if (!responseData.exitGracefully) {
+          const reflectionPath = (session.reflectionPath || "problem") as ReflectionPathType;
+          const closingSummary = buildClosingSummary(
+            session.mode,
+            reflectionPath,
+            "neutral" // Default to neutral if we can't determine sentiment
+          );
+
+          return NextResponse.json({
+            message: responseData.message
+              ? `${responseData.message}\n\n${closingSummary}`
+              : closingSummary,
+            exitGracefully: true,
+          });
+        }
+
+        // Re-create the response since we consumed it
+        return NextResponse.json(responseData);
+      }
+
+      return response;
     }
   } catch (error) {
     console.error("Chat API error:", error);
@@ -114,6 +144,7 @@ interface BuildPromptParams {
   session: CheckInSession;
   questionTreeSection?: string;
   probingDepth: number;
+  layer3ExchangeCount: number;
   requestModeAssignment: boolean;
 }
 
@@ -122,6 +153,7 @@ function buildSystemPromptWithModeAssignment({
   session,
   questionTreeSection,
   probingDepth,
+  layer3ExchangeCount,
   requestModeAssignment,
 }: BuildPromptParams): string {
   const basePrompt = `You are Peek — a warm, curious financial companion. Think: supportive friend who's good with money.
@@ -287,14 +319,49 @@ Use the SPECIFIC numbered questions instead.`
   // Layer 3 reflection instructions
   if (session.currentLayer === 3) {
     const reflectionPath = (session.reflectionPath || "problem") as ReflectionPathType;
-    
+
     // Get the reflection-specific prompt from the consolidated module
     const reflectionInstructions = buildReflectionPrompt(
       reflectionPath,
       session.mode,
       { merchant: transaction.merchant, amount: transaction.amount }
     );
-    
+
+    // Determine if this is the first exchange or a follow-up
+    const isFirstExchange = layer3ExchangeCount === 0;
+    const shouldClose = layer3ExchangeCount >= 2;
+
+    let exchangeContext = "";
+    if (isFirstExchange) {
+      exchangeContext = `
+CRITICAL: This is the user's FIRST message in this reflection path.
+You MUST use the exact entry question specified below. DO NOT generate a generic response like "That's a great question to explore" or "What comes to mind?"`;
+    } else if (shouldClose) {
+      exchangeContext = `
+CRITICAL: This is exchange #${layer3ExchangeCount + 1} in this reflection. You MUST now conclude the conversation.
+
+Your response MUST:
+1. Briefly acknowledge what they just shared (1 sentence)
+2. Summarize the key insight or pattern you discovered together (1-2 sentences)
+3. End warmly
+
+You MUST return JSON with exitGracefully: true:
+{ "message": "Your closing summary here", "exitGracefully": true }
+
+Example closing summaries:
+- "sounds like you tend to grab things when the price feels right, even if you're not sure you need them. based on our chat, there's something about this pattern that's bothering you. thanks for exploring this with me."
+- "it seems like these small purchases add up in ways that don't feel great. you mentioned wanting to be more intentional — that's a real insight. thanks for reflecting on this with me."`;
+    } else {
+      exchangeContext = `
+This is exchange #${layer3ExchangeCount + 1} in this reflection. Continue exploring with the user using the probing hints below.
+After this exchange, you will conclude the conversation. Keep probing warm and focused.
+
+Response format: Just reply with a warm, conversational message (1-2 sentences).
+- Start by acknowledging what they shared
+- Then ask ONE follow-up question from the probing hints
+- Do NOT use JSON format yet - save that for the closing`;
+    }
+
     return (
       basePrompt +
       `
@@ -303,14 +370,11 @@ Use the SPECIFIC numbered questions instead.`
 
 The user has been assigned mode: ${session.mode || "not assigned"}
 Reflection path selected: ${reflectionPath}
+Current exchange: #${layer3ExchangeCount + 1}
 
-CRITICAL: This is the user's FIRST message in this reflection path.
-You MUST use the exact entry question specified below. DO NOT generate a generic response like "That's a great question to explore" or "What comes to mind?"
+${exchangeContext}
 
-${reflectionInstructions}
-
-**After 2-3 meaningful exchanges**, offer to close:
-{ "message": "Your closing summary that reflects what you learned about their patterns", "exitGracefully": true }`
+${reflectionInstructions}`
     );
   }
 

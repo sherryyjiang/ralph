@@ -17,14 +17,14 @@ export function getReflectionOptions(): FixedQuestionResponse {
   };
 }
 
-export interface ReflectionPath {
+export interface ReflectionPathOption {
   id: string;
   label: string;
   emoji: string;
   type: "behavioral_excavation" | "emotional_reflection" | "cost_comparison" | "open_ended" | "exit";
 }
 
-export const REFLECTION_PATHS: Record<string, ReflectionPath> = {
+export const REFLECTION_PATHS: Record<string, ReflectionPathOption> = {
   problem: { id: "problem", label: "Is this a problem?", emoji: "🤔", type: "behavioral_excavation" },
   feel: { id: "feel", label: "How do I feel about this?", emoji: "💭", type: "emotional_reflection" },
   worth: { id: "worth", label: "Is this a good use of money?", emoji: "💰", type: "cost_comparison" },

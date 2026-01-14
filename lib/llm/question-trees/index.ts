@@ -39,7 +39,7 @@ export {
   MODE_AWARE_EXIT_MESSAGE,
   getGracefulExitMessage,
 } from "./reflection";
-export type { ReflectionPath } from "./reflection";
+export type { ReflectionPathOption } from "./reflection";
 
 // Shopping
 export {

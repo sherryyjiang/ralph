@@ -353,6 +353,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
     error,
     currentLayer,
     currentPath,
+    currentSubPath,
     currentMode,
     probingDepth,
     calibrationPhase,
@@ -1181,6 +1182,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
             status: "in_progress",
             currentLayer,
             path: currentPath,
+            subPath: currentSubPath,
             mode: currentMode,
             messages,
             metadata: { 
@@ -1293,7 +1295,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         );
       }
     }
-  }, [messages, transaction, sessionId, currentLayer, currentPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setError, setLayer, setMode, setSubPath, incrementProbingDepth]);
+  }, [messages, transaction, sessionId, currentLayer, currentPath, currentSubPath, currentMode, probingDepth, addUserMessage, addAssistantMessage, setLoading, setError, setLayer, setMode, setSubPath, incrementProbingDepth]);
 
   // Handle special actions
   const handleOptionSelectWrapper = useCallback((value: string) => {

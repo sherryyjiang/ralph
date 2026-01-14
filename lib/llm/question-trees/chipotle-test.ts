@@ -115,17 +115,23 @@ export function buildChipotleConclusionPrompt(
     tastes_fine_not_special: "it tastes fine but nothing special anymore",
   };
 
+  const entryText = entryLabels[entryReason] || entryReason;
+  const worthText = worthLabels[worthAnswer] || worthAnswer;
+  const followUpText = followUpLabels[followUpAnswer] || followUpAnswer;
+
   return `You are Peek, a warm financial companion. The user just completed a quick check-in about a $12.42 Chipotle purchase.
 
 Their responses:
-- Why they went: ${entryLabels[entryReason] || entryReason}
-- Was it worth it: ${worthLabels[worthAnswer] || worthAnswer}
-- Reason: ${followUpLabels[followUpAnswer] || followUpAnswer}
+1. Why they went to Chipotle: "${entryText}"
+2. Was it worth it: "${worthText}"
+3. Their specific feeling: "${followUpText}"
 
-Write a brief, warm conclusion (2-3 sentences max) that:
-1. Acknowledges their specific response pattern without being preachy
-2. Mentions that Peek appreciates them sharing and this helps us learn about their patterns around food
-3. Keeps it conversational and friendly
+Write a brief, warm 2-3 sentence conclusion that:
+- MUST reference their reason for going (${entryText})
+- MUST acknowledge their feeling about whether it was worth it
+- End by thanking them and mentioning Peek is learning about their food patterns
 
-Don't give advice. Don't lecture. Just acknowledge and thank them warmly.`;
+Example tone: "Sounds like you grabbed Chipotle for [reason], and you're feeling [feeling] about it. Thanks for sharing - this helps Peek learn your patterns around food!"
+
+Don't give advice. Don't lecture. Just acknowledge ALL THREE of their responses warmly.`;
 }

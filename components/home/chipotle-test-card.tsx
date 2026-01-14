@@ -57,16 +57,16 @@ export function ChipotleTestCard() {
       </p>
 
       {/* Entry Options */}
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 space-y-2">
         {CHIPOTLE_ENTRY_OPTIONS.map((option) => (
           <button
             key={option.value}
             type="button"
             onClick={() => handleEntrySelect(option.value)}
-            className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5
-                       text-center text-sm text-white transition-colors hover:bg-white/10"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5
+                       text-left text-sm text-white transition-colors hover:bg-white/10"
           >
-            <span className="mr-1">{option.emoji}</span>
+            <span className="mr-2">{option.emoji}</span>
             {option.label}
           </button>
         ))}

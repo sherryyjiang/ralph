@@ -584,11 +584,8 @@ function getQuestionTreeSection(path: string, subPath?: string): string {
     ? `${subPathProbing.explorationGoal} (Sub-path: ${subPath?.toUpperCase()})`
     : goal.goal;
 
-  let section = `
-### Path: ${path.toUpperCase()}${subPathProbing ? ` → Sub-path: ${subPath?.toUpperCase()}` : ""}
-
-**Exploration Goal**: ${explorationGoalText}
-
+  // Build probing questions section only if we have hints
+  const probingSection = primaryProbingHints.length > 0 ? `
 ## REQUIRED PROBING QUESTIONS
 
 You MUST use these exact questions or very close variations. Do NOT make up your own questions.
@@ -611,7 +608,13 @@ ${primaryProbingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
 ❌ "What factors did you consider?"
 
 These are too vague. Use the SPECIFIC numbered questions above instead.
+` : "";
 
+  let section = `
+### Path: ${path.toUpperCase()}${subPathProbing ? ` → Sub-path: ${subPath?.toUpperCase()}` : ""}
+
+**Exploration Goal**: ${explorationGoalText}
+${probingSection}
 **Mode Indicators** (look for these patterns):
 ${goal.modeIndicators.map((m) => `- ${m}`).join("\n")}
 

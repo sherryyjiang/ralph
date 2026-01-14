@@ -13,7 +13,7 @@ export interface FixedQuestionResponse {
 export interface ExplorationGoal {
   path: string;
   goal: string;
-  probingHints: string[];
+  probingHints?: string[]; // Optional - probing hints should be defined at the subpath level
   modeIndicators: Record<string, string[]>;
   counterProfilePatterns: string[];
 }

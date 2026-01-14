@@ -40,7 +40,7 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
   impulse: {
     path: "impulse",
     goal: "Understand what emotional or environmental triggers led to the spontaneous purchase",
-    probingHints: ["What were you doing right before you saw it?", "How were you feeling at that moment?"],
+    // NOTE: probingHints are defined at the subpath level (impulseSubPathProbing)
     modeIndicators: {
       "#price-sensitivity-driven": ["mentions the price felt right"],
       "#self-reward-driven": ["frames it as a treat or reward"],
@@ -52,7 +52,7 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
   deliberate: {
     path: "deliberate",
     goal: "Validate the intentionality and explore satisfaction with the decision process",
-    probingHints: ["How long were you considering this?", "Did you compare options?"],
+    // NOTE: probingHints are defined at the subpath level (deliberateSubPathProbing)
     // Exploration TAGS (not modes): categorize intentional purchase drivers.
     modeIndicators: {
       "#deliberate-purchase": [
@@ -69,7 +69,7 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
   deal: {
     path: "deal",
     goal: "Distinguish between genuine value and deal-induced impulse buying",
-    probingHints: ["Would you have bought this at full price?"],
+    // NOTE: probingHints are defined at the subpath level (dealSubPathProbing)
     modeIndicators: {
       "#scarcity-driven": ["mentions limited drop"],
       "#deal-driven": ["focuses on discount amount"],
@@ -80,14 +80,14 @@ export const shoppingExplorationGoals: Record<string, ExplorationGoal> = {
   gift: {
     path: "gift",
     goal: "Explore gift-giving patterns",
-    probingHints: ["Is this for a special occasion?"],
+    // NOTE: probingHints are defined at the subpath level (giftSubPathProbing)
     modeIndicators: {},
     counterProfilePatterns: [],
   },
   maintenance: {
     path: "maintenance",
     goal: "Verify true necessity",
-    probingHints: ["Was the old one completely used up?"],
+    // NOTE: probingHints are defined at the subpath level (maintenanceSubPathProbing)
     modeIndicators: {},
     counterProfilePatterns: [],
   },

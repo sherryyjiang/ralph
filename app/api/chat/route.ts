@@ -576,21 +576,22 @@ function getQuestionTreeSection(path: string, subPath?: string): string {
   if (!goal) return "";
 
   // Get sub-path specific probing if available
+  // NOTE: Probing hints ONLY exist at the subpath level, never at the path level
   const subPathProbing = subPath ? getSubPathProbing(path, subPath) : undefined;
 
-  // Determine which probing hints to use as PRIMARY (subPath takes priority)
-  const primaryProbingHints = subPathProbing?.probingHints || goal.probingHints;
+  // Probing hints come ONLY from subpath - they don't exist at path level
+  const probingHints = subPathProbing?.probingHints || [];
   const explorationGoalText = subPathProbing
     ? `${subPathProbing.explorationGoal} (Sub-path: ${subPath?.toUpperCase()})`
     : goal.goal;
 
-  // Build probing questions section only if we have hints
-  const probingSection = primaryProbingHints.length > 0 ? `
+  // Build probing questions section only if we have hints (from subpath)
+  const probingSection = probingHints.length > 0 ? `
 ## REQUIRED PROBING QUESTIONS
 
 You MUST use these exact questions or very close variations. Do NOT make up your own questions.
 
-${primaryProbingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
+${probingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
 
 ### How to use these:
 - Start with question #1 if the user just answered Fixed Q2

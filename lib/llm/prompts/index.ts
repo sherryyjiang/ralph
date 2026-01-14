@@ -15,7 +15,7 @@ export { explorationGoals, getSubPathProbing, type SubPathProbing } from "./expl
 export { getFixedQuestion1Options, getFixedQuestion2Options } from "./fixed-questions";
 
 // System Prompts
-export { getSystemPrompt } from "./system-prompts";
+export { getSystemPrompt, buildSystemPrompt } from "./system-prompts";
 
 // Layer 2 Probing
 export { getLayer2ProbingPrompt, getModeAssignmentPrompt } from "./layer2-probing";
@@ -36,7 +36,4 @@ export {
 
 // Category-Specific Prompts
 export { getReflectionPrompt, getFoodModePrompt } from "./category-prompts";
-
-// Note: buildSystemPrompt is still in the main prompts.ts file
-// as it has complex dependencies. Import it from "../prompts" directly.
 

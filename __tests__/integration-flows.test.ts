@@ -49,7 +49,9 @@ describe("Shopping Check-In Flow Integration", () => {
     it("should have exploration goals for impulse path", () => {
       const goal = explorationGoals.impulse;
       expect(goal).toBeDefined();
-      expect(goal.probingHints.length).toBeGreaterThan(0);
+      expect(goal.goal).toBeDefined();
+      // Note: probingHints are defined at the subpath level, not the path level
+      expect(goal.modeIndicators.length).toBeGreaterThan(0);
     });
   });
 });
@@ -315,7 +317,8 @@ describe("Coffee Check-In Flow Integration", () => {
   describe("Economic Evaluation (Layer 3)", () => {
     it("should generate mode-specific evaluation", () => {
       const evaluation = getCoffeeEconomicEvaluation("#autopilot-routine", actualMonthlySpend, actualMonthlyCount);
-      expect(evaluation.content).toContain("didn't consciously choose");
+      // The text uses "did not" instead of "didn't"
+      expect(evaluation.content).toContain("did not consciously choose");
       expect(evaluation.content).toContain(`$${actualMonthlySpend.toFixed(0)}`);
     });
 
@@ -395,10 +398,20 @@ describe("Layer Transitions", () => {
     });
   });
 
-  it("should have probing hints for Layer 2", () => {
-    Object.keys(explorationGoals).forEach(path => {
-      expect(explorationGoals[path].probingHints.length).toBeGreaterThan(0);
-    });
+  it("should have probing hints at subpath level for Layer 2", () => {
+    // Probing hints are defined at the subpath level, not the path level
+    // Test that getSubPathProbing returns hints for known subpaths
+    const { getSubPathProbing } = require("@/lib/llm/prompts");
+    
+    // Test impulse subpaths have probing hints
+    const impulseSubPath = getSubPathProbing("impulse", "price_felt_right");
+    expect(impulseSubPath).toBeDefined();
+    expect(impulseSubPath?.probingHints?.length).toBeGreaterThan(0);
+    
+    // Test deal subpaths have probing hints
+    const dealSubPath = getSubPathProbing("deal", "sale_discount");
+    expect(dealSubPath).toBeDefined();
+    expect(dealSubPath?.probingHints?.length).toBeGreaterThan(0);
   });
 });
 

@@ -4,9 +4,13 @@
 
 import type { TransactionCategory, QuickReplyOption, Transaction, CheckInSession } from "@/lib/types";
 
+/**
+ * Path-level exploration goal
+ * NOTE: probingHints are NOT defined at the path level - they exist ONLY at the subpath level
+ * via SubPathProbing. This is intentional architecture.
+ */
 export interface ExplorationGoal {
   goal: string;
-  probingHints: string[];
   modeIndicators: string[];
   counterProfilePatterns: string[];
 }

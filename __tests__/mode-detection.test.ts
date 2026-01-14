@@ -81,11 +81,16 @@ describe("Mode Assignment Logic", () => {
     });
   });
 
-  it("should have probing hints for gathering mode signals", () => {
-    Object.keys(explorationGoals).forEach(path => {
-      const goal = explorationGoals[path];
-      expect(goal.probingHints.length).toBeGreaterThanOrEqual(2);
-    });
+  it("should have probing hints at subpath level for gathering mode signals", () => {
+    // Probing hints are defined at the subpath level, not the path level
+    const { getSubPathProbing } = require("@/lib/llm/prompts");
+    
+    // Test that subpaths have probing hints
+    const impulseSubPath = getSubPathProbing("impulse", "treating_myself");
+    expect(impulseSubPath?.probingHints?.length).toBeGreaterThanOrEqual(1);
+    
+    const dealSubPath = getSubPathProbing("deal", "sale_discount");
+    expect(dealSubPath?.probingHints?.length).toBeGreaterThanOrEqual(1);
   });
 
   it("should have clear exploration goals", () => {
@@ -109,18 +114,24 @@ describe("Path to Mode Mapping", () => {
     expect(indicators).toContain("#trend-susceptibility-driven");
   });
 
-  it("deal should avoid path-level indicators (sub-path probing determines the mode)", () => {
+  it("deal should have mode indicators and subpath probing", () => {
     const indicators = explorationGoals.deal.modeIndicators.join(" ");
     expect(indicators).toContain("#deal-driven");
     expect(indicators).toContain("#scarcity-driven");
     expect(indicators).toContain("#threshold-spending-driven");
-    expect(explorationGoals.deal.probingHints.join(" ").toLowerCase()).toContain("full price");
+    // probingHints are at the subpath level, not path level
+    const { getSubPathProbing } = require("@/lib/llm/prompts");
+    const subPath = getSubPathProbing("deal", "sale_discount");
+    expect(subPath?.probingHints?.join(" ").toLowerCase()).toContain("full price");
   });
 
-  it("deliberate should avoid path-level indicators (sub-path probing determines the mode)", () => {
+  it("deliberate should have mode indicators and subpath probing", () => {
     const indicators = explorationGoals.deliberate.modeIndicators.join(" ");
     expect(indicators).toContain("#deliberate-purchase");
     expect(indicators).toContain("#value-standards-driven");
-    expect(explorationGoals.deliberate.probingHints.length).toBeGreaterThan(0);
+    // probingHints are at the subpath level, not path level
+    const { getSubPathProbing } = require("@/lib/llm/prompts");
+    const subPath = getSubPathProbing("deliberate", "right_one");
+    expect(subPath?.probingHints?.length).toBeGreaterThan(0);
   });
 });

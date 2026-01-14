@@ -149,83 +149,340 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
 };
 
 export const deliberateSubPathProbing: Record<string, SubPathProbing> = {
-  afford_it: { subPath: "afford_it", explorationGoal: "Were they saving toward a goal?", probingHints: ["What changed that made it feel okay to buy?"], targetModes: ["#deliberate-budget-saver"], modeSignals: { "#deliberate-budget-saver": ["saved up for it"] }, lightProbing: true },
-  right_price: { subPath: "right_price", explorationGoal: "Understand their deal-seeking patience", probingHints: ["What deal did you find?"], targetModes: ["#deliberate-deal-hunter"], modeSignals: { "#deliberate-deal-hunter": ["tracked the price"] }, lightProbing: true },
-  right_one: { subPath: "right_one", explorationGoal: "Understand their research process", probingHints: ["Where did you go for your research?"], targetModes: ["#deliberate-researcher"], modeSignals: { "#deliberate-researcher": ["did my research"] }, lightProbing: true },
-  still_wanted: { subPath: "still_wanted", explorationGoal: "Validate their intentional pause", probingHints: ["How long was it on your radar?"], targetModes: ["#deliberate-pause-tester"], modeSignals: { "#deliberate-pause-tester": ["sat on it for a while"] }, lightProbing: true },
-  got_around: { subPath: "got_around", explorationGoal: "Understand what was creating the delay", probingHints: ["What finally made you do it?"], targetModes: ["#deliberate-low-priority"], modeSignals: { "#deliberate-low-priority": ["just got around to it"] }, lightProbing: true },
-  other: { subPath: "other", explorationGoal: "Open-ended: understand what they were waiting on", probingHints: ["What was the main thing you were waiting on?"], targetModes: ["#deliberate-budget-saver", "#deliberate-deal-hunter", "#deliberate-researcher"], modeSignals: {}, lightProbing: true },
+  afford_it: {
+    subPath: "afford_it",
+    explorationGoal: "Were they saving toward a goal?",
+    probingHints: ["What changed that made it feel okay to buy?"],
+    targetModes: ["#deliberate-budget-saver"],
+    modeSignals: { "#deliberate-budget-saver": ["saved up for it"] },
+    lightProbing: true,
+  },
+  right_price: {
+    subPath: "right_price",
+    explorationGoal: "Understand their deal-seeking patience",
+    probingHints: ["What deal did you find?"],
+    targetModes: ["#deliberate-deal-hunter"],
+    modeSignals: { "#deliberate-deal-hunter": ["tracked the price"] },
+    lightProbing: true,
+  },
+  right_one: {
+    subPath: "right_one",
+    explorationGoal: "Understand their research process",
+    probingHints: ["Where did you go for your research?"],
+    targetModes: ["#deliberate-researcher"],
+    modeSignals: { "#deliberate-researcher": ["did my research"] },
+    lightProbing: true,
+  },
+  still_wanted: {
+    subPath: "still_wanted",
+    explorationGoal: "Validate their intentional pause",
+    probingHints: ["How long was it on your radar?"],
+    targetModes: ["#deliberate-pause-tester"],
+    modeSignals: { "#deliberate-pause-tester": ["sat on it for a while"] },
+    lightProbing: true,
+  },
+  got_around: {
+    subPath: "got_around",
+    explorationGoal: "Understand what was creating the delay",
+    probingHints: ["What finally made you do it?"],
+    targetModes: ["#deliberate-low-priority"],
+    modeSignals: { "#deliberate-low-priority": ["just got around to it"] },
+    lightProbing: true,
+  },
+  other: {
+    subPath: "other",
+    explorationGoal: "Open-ended: understand what they were waiting on",
+    probingHints: ["What was the main thing you were waiting on?"],
+    targetModes: ["#deliberate-budget-saver", "#deliberate-deal-hunter", "#deliberate-researcher"],
+    modeSignals: {},
+    lightProbing: true,
+  },
 };
 
 export const dealSubPathProbing: Record<string, SubPathProbing> = {
-  limited_edition: { subPath: "limited_edition", explorationGoal: "Susceptibility to FOMO", probingHints: ["Tell me more about the limited edition event"], targetModes: ["#scarcity-driven"], modeSignals: { "#scarcity-driven": ["did not want to miss it", "FOMO"] } },
-  sale_discount: { subPath: "sale_discount", explorationGoal: "Do they buy things they already wanted at a better price?", probingHints: ["Were you already looking for this before the sale?"], targetModes: ["#deal-driven"], modeSignals: { "#deal-driven": ["could not pass up the deal"] }, counterProfileExit: "If they would have bought at full price, exit gracefully" },
-  free_shipping: { subPath: "free_shipping", explorationGoal: "Did they add items just to hit the threshold?", probingHints: ["Did you add anything extra to hit the threshold?"], targetModes: ["#threshold-spending-driven"], modeSignals: { "#threshold-spending-driven": ["added something to get free shipping"] }, counterProfileExit: "If they were already over the threshold, exit gracefully" },
+  limited_edition: {
+    subPath: "limited_edition",
+    explorationGoal: "Susceptibility to FOMO",
+    probingHints: ["Tell me more about the limited edition event"],
+    targetModes: ["#scarcity-driven"],
+    modeSignals: { "#scarcity-driven": ["did not want to miss it", "FOMO"] },
+  },
+  sale_discount: {
+    subPath: "sale_discount",
+    explorationGoal: "Do they buy things they already wanted at a better price?",
+    probingHints: ["Were you already looking for this before the sale?"],
+    targetModes: ["#deal-driven"],
+    modeSignals: { "#deal-driven": ["could not pass up the deal"] },
+    counterProfileExit: "If they would have bought at full price, exit gracefully",
+  },
+  free_shipping: {
+    subPath: "free_shipping",
+    explorationGoal: "Did they add items just to hit the threshold?",
+    probingHints: ["Did you add anything extra to hit the threshold?"],
+    targetModes: ["#threshold-spending-driven"],
+    modeSignals: { "#threshold-spending-driven": ["added something to get free shipping"] },
+    counterProfileExit: "If they were already over the threshold, exit gracefully",
+  },
 };
 
 export const giftSubPathProbing: Record<string, SubPathProbing> = {
-  family: { subPath: "family", explorationGoal: "Light exploration of gift-giving", probingHints: ["Special occasion?"], targetModes: ["#gift-giver"], modeSignals: {}, lightProbing: true },
-  friend: { subPath: "friend", explorationGoal: "Light exploration of gift-giving", probingHints: ["Special occasion?"], targetModes: ["#gift-giver"], modeSignals: {}, lightProbing: true },
-  partner: { subPath: "partner", explorationGoal: "Light exploration of gift-giving", probingHints: ["Special occasion?"], targetModes: ["#gift-giver"], modeSignals: {}, lightProbing: true },
-  coworker: { subPath: "coworker", explorationGoal: "Light exploration of gift-giving", probingHints: ["Special occasion?"], targetModes: ["#gift-giver"], modeSignals: {}, lightProbing: true },
+  family: {
+    subPath: "family",
+    explorationGoal: "Light exploration of gift-giving",
+    probingHints: ["Special occasion?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {},
+    lightProbing: true,
+  },
+  friend: {
+    subPath: "friend",
+    explorationGoal: "Light exploration of gift-giving",
+    probingHints: ["Special occasion?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {},
+    lightProbing: true,
+  },
+  partner: {
+    subPath: "partner",
+    explorationGoal: "Light exploration of gift-giving",
+    probingHints: ["Special occasion?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {},
+    lightProbing: true,
+  },
+  coworker: {
+    subPath: "coworker",
+    explorationGoal: "Light exploration of gift-giving",
+    probingHints: ["Special occasion?"],
+    targetModes: ["#gift-giver"],
+    modeSignals: {},
+    lightProbing: true,
+  },
 };
 
 export const maintenanceSubPathProbing: Record<string, SubPathProbing> = {
-  same_thing: { subPath: "same_thing", explorationGoal: "Validate loyalty", probingHints: ["How long have you been using that?"], targetModes: ["#loyal-repurchaser"], modeSignals: { "#loyal-repurchaser": ["it works"] }, lightProbing: true },
-  switched_up: { subPath: "switched_up", explorationGoal: "Understand the switch", probingHints: ["What made you switch?"], targetModes: ["#brand-switcher"], modeSignals: { "#brand-switcher": ["wanted to try something new"] }, lightProbing: true },
-  upgraded: { subPath: "upgraded", explorationGoal: "Understand upgrade motivation", probingHints: ["What made you want to upgrade?"], targetModes: ["#upgrader"], modeSignals: { "#upgrader": ["wanted something better"] }, lightProbing: true },
+  same_thing: {
+    subPath: "same_thing",
+    explorationGoal: "Validate loyalty",
+    probingHints: ["How long have you been using that?"],
+    targetModes: ["#loyal-repurchaser"],
+    modeSignals: { "#loyal-repurchaser": ["it works"] },
+    lightProbing: true,
+  },
+  switched_up: {
+    subPath: "switched_up",
+    explorationGoal: "Understand the switch",
+    probingHints: ["What made you switch?"],
+    targetModes: ["#brand-switcher"],
+    modeSignals: { "#brand-switcher": ["wanted to try something new"] },
+    lightProbing: true,
+  },
+  upgraded: {
+    subPath: "upgraded",
+    explorationGoal: "Understand upgrade motivation",
+    probingHints: ["What made you want to upgrade?"],
+    targetModes: ["#upgrader"],
+    modeSignals: { "#upgrader": ["wanted something better"] },
+    lightProbing: true,
+  },
 };
 
 export function getSubPathProbing(path: string, subPath: string): SubPathProbing | undefined {
   switch (path) {
-    case "impulse": return impulseSubPathProbing[subPath];
-    case "deliberate": return deliberateSubPathProbing[subPath];
-    case "deal": return dealSubPathProbing[subPath];
-    case "gift": return giftSubPathProbing[subPath];
-    case "maintenance": return maintenanceSubPathProbing[subPath];
-    default: return undefined;
+    case "impulse":
+      return impulseSubPathProbing[subPath];
+    case "deliberate":
+      return deliberateSubPathProbing[subPath];
+    case "deal":
+      return dealSubPathProbing[subPath];
+    case "gift":
+      return giftSubPathProbing[subPath];
+    case "maintenance":
+      return maintenanceSubPathProbing[subPath];
+    default:
+      return undefined;
   }
 }
 
 export const impulseSubPathGoals: Record<string, SubPathExplorationGoal> = {
-  price_felt_right: { subPath: "price_felt_right", mode: "#intuitive-threshold-spender", explorationGoal: "Understand their price threshold", probingHints: ["What price did you get it for?"], keySignals: ["saw it, wanted it, bought it"] },
-  treating_myself: { subPath: "treating_myself", mode: "", explorationGoal: "What triggered the reward?", probingHints: ["What were you treating yourself for?"], keySignals: [], possibleModes: ["#reward-driven-spender", "#comfort-driven-spender", "#routine-treat-spender"] },
-  caught_eye: { subPath: "caught_eye", mode: "", explorationGoal: "Where/how did they encounter it?", probingHints: ["Where did you see it?"], keySignals: ["I was scrolling and saw it"], possibleModes: ["#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector"] },
-  trending: { subPath: "trending", mode: "", explorationGoal: "How susceptible to trends?", probingHints: ["Where have you been seeing it?"], keySignals: ["I saw it on TikTok"], possibleModes: ["#social-media-influenced", "#friend-peer-influenced"] },
-  other: { subPath: "other", mode: "", explorationGoal: "Open-ended", probingHints: ["What made you want it?"], keySignals: [], possibleModes: ["#intuitive-threshold-spender", "#reward-driven-spender", "#comfort-driven-spender"] },
+  price_felt_right: {
+    subPath: "price_felt_right",
+    mode: "#intuitive-threshold-spender",
+    explorationGoal: "Understand their price threshold",
+    probingHints: ["What price did you get it for?"],
+    keySignals: ["saw it, wanted it, bought it"],
+  },
+  treating_myself: {
+    subPath: "treating_myself",
+    mode: "",
+    explorationGoal: "What triggered the reward?",
+    probingHints: ["What were you treating yourself for?"],
+    keySignals: [],
+    possibleModes: ["#reward-driven-spender", "#comfort-driven-spender", "#routine-treat-spender"],
+  },
+  caught_eye: {
+    subPath: "caught_eye",
+    mode: "",
+    explorationGoal: "Where/how did they encounter it?",
+    probingHints: ["Where did you see it?"],
+    keySignals: ["I was scrolling and saw it"],
+    possibleModes: ["#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector"],
+  },
+  trending: {
+    subPath: "trending",
+    mode: "",
+    explorationGoal: "How susceptible to trends?",
+    probingHints: ["Where have you been seeing it?"],
+    keySignals: ["I saw it on TikTok"],
+    possibleModes: ["#social-media-influenced", "#friend-peer-influenced"],
+  },
+  other: {
+    subPath: "other",
+    mode: "",
+    explorationGoal: "Open-ended",
+    probingHints: ["What made you want it?"],
+    keySignals: [],
+    possibleModes: ["#intuitive-threshold-spender", "#reward-driven-spender", "#comfort-driven-spender"],
+  },
 };
 
 export const dealSubPathGoals: Record<string, SubPathExplorationGoal> = {
-  limited_edition: { subPath: "limited_edition", mode: "#scarcity-driven", explorationGoal: "FOMO susceptibility", probingHints: ["Tell me more about the limited edition"], keySignals: ["it was selling out"] },
-  sale_discount: { subPath: "sale_discount", mode: "#deal-driven", explorationGoal: "Do they buy at better price?", probingHints: ["Were you already looking for this?"], keySignals: ["it was such a good deal"] },
-  free_shipping: { subPath: "free_shipping", mode: "#threshold-spending-driven", explorationGoal: "Did they add items?", probingHints: ["Did you add anything extra?"], keySignals: ["hit the free shipping threshold"] },
+  limited_edition: {
+    subPath: "limited_edition",
+    mode: "#scarcity-driven",
+    explorationGoal: "FOMO susceptibility",
+    probingHints: ["Tell me more about the limited edition"],
+    keySignals: ["it was selling out"],
+  },
+  sale_discount: {
+    subPath: "sale_discount",
+    mode: "#deal-driven",
+    explorationGoal: "Do they buy at better price?",
+    probingHints: ["Were you already looking for this?"],
+    keySignals: ["it was such a good deal"],
+  },
+  free_shipping: {
+    subPath: "free_shipping",
+    mode: "#threshold-spending-driven",
+    explorationGoal: "Did they add items?",
+    probingHints: ["Did you add anything extra?"],
+    keySignals: ["hit the free shipping threshold"],
+  },
 };
 
 export const deliberateSubPathGoals: Record<string, SubPathExplorationGoal> = {
-  afford_it: { subPath: "afford_it", mode: "#deliberate-budget-saver", explorationGoal: "Were they saving?", probingHints: ["What changed?"], keySignals: ["saved up for it"], lightProbing: true, counterProfileExit: "That is really thoughtful." },
-  right_price: { subPath: "right_price", mode: "#deliberate-deal-hunter", explorationGoal: "Understand deal-seeking", probingHints: ["What deal?"], keySignals: ["waited for a sale"], lightProbing: true, counterProfileExit: "Nice! Being patient pays off." },
-  right_one: { subPath: "right_one", mode: "#deliberate-researcher", explorationGoal: "Understand research process", probingHints: ["Where did you research?"], keySignals: ["researched options"], lightProbing: true, counterProfileExit: "Great way to shop!" },
-  still_wanted: { subPath: "still_wanted", mode: "#deliberate-pause-tester", explorationGoal: "Validate pause", probingHints: ["How long on your radar?"], keySignals: ["gave it time"], lightProbing: true, counterProfileExit: "Smart approach." },
-  got_around: { subPath: "got_around", mode: "#deliberate-low-priority", explorationGoal: "Understand delay", probingHints: ["What finally made you do it?"], keySignals: ["kept putting it off"], lightProbing: true, counterProfileExit: "Sometimes things take a while." },
-  other: { subPath: "other", mode: "", explorationGoal: "Open-ended", probingHints: ["What were you waiting on?"], keySignals: [], possibleModes: ["#deliberate-budget-saver", "#deliberate-deal-hunter", "#deliberate-researcher"], lightProbing: true },
+  afford_it: {
+    subPath: "afford_it",
+    mode: "#deliberate-budget-saver",
+    explorationGoal: "Were they saving?",
+    probingHints: ["What changed?"],
+    keySignals: ["saved up for it"],
+    lightProbing: true,
+    counterProfileExit: "That is really thoughtful.",
+  },
+  right_price: {
+    subPath: "right_price",
+    mode: "#deliberate-deal-hunter",
+    explorationGoal: "Understand deal-seeking",
+    probingHints: ["What deal?"],
+    keySignals: ["waited for a sale"],
+    lightProbing: true,
+    counterProfileExit: "Nice! Being patient pays off.",
+  },
+  right_one: {
+    subPath: "right_one",
+    mode: "#deliberate-researcher",
+    explorationGoal: "Understand research process",
+    probingHints: ["Where did you research?"],
+    keySignals: ["researched options"],
+    lightProbing: true,
+    counterProfileExit: "Great way to shop!",
+  },
+  still_wanted: {
+    subPath: "still_wanted",
+    mode: "#deliberate-pause-tester",
+    explorationGoal: "Validate pause",
+    probingHints: ["How long on your radar?"],
+    keySignals: ["gave it time"],
+    lightProbing: true,
+    counterProfileExit: "Smart approach.",
+  },
+  got_around: {
+    subPath: "got_around",
+    mode: "#deliberate-low-priority",
+    explorationGoal: "Understand delay",
+    probingHints: ["What finally made you do it?"],
+    keySignals: ["kept putting it off"],
+    lightProbing: true,
+    counterProfileExit: "Sometimes things take a while.",
+  },
+  other: {
+    subPath: "other",
+    mode: "",
+    explorationGoal: "Open-ended",
+    probingHints: ["What were you waiting on?"],
+    keySignals: [],
+    possibleModes: ["#deliberate-budget-saver", "#deliberate-deal-hunter", "#deliberate-researcher"],
+    lightProbing: true,
+  },
 };
 
 export function getSubPathExplorationGoal(path: string, subPath: string): SubPathExplorationGoal | undefined {
-  if (path === "impulse") return impulseSubPathGoals[subPath];
-  else if (path === "deal") return dealSubPathGoals[subPath];
-  else if (path === "deliberate") return deliberateSubPathGoals[subPath];
+  if (path === "impulse") {
+    return impulseSubPathGoals[subPath];
+  } else if (path === "deal") {
+    return dealSubPathGoals[subPath];
+  } else if (path === "deliberate") {
+    return deliberateSubPathGoals[subPath];
+  }
   return undefined;
 }
 
 export function getFixedQuestion2Options(category: string, path: string): QuickReplyOption[] | null {
   if (category === "shopping") {
     switch (path) {
-      case "impulse": return Object.keys(impulseSubPathProbing).map((key) => ({ id: key, label: key.replace(/_/g, " "), value: key, color: "yellow" as const }));
-      case "deliberate": return [...new Set([...Object.keys(deliberateSubPathProbing), "other"])].map((key) => ({ id: key, label: key.replace(/_/g, " "), value: key, color: "white" as const }));
-      case "deal": return Object.keys(dealSubPathProbing).map((key) => ({ id: key, label: key.replace(/_/g, " "), value: key, color: "yellow" as const }));
-      case "gift": return [{ id: "family", label: "Family", value: "family", color: "white" as const }, { id: "friend", label: "Friend", value: "friend", color: "white" as const }, { id: "partner", label: "Partner", value: "partner", color: "white" as const }, { id: "coworker", label: "Coworker", value: "coworker", color: "white" as const }, { id: "other", label: "Someone else", value: "other", color: "white" as const }];
-      case "maintenance": return [{ id: "same_thing", label: "Same thing as before", value: "same_thing", color: "white" as const }, { id: "switched_up", label: "Switched it up", value: "switched_up", color: "white" as const }, { id: "upgraded", label: "Upgraded", value: "upgraded", color: "white" as const }];
-      default: return null;
+      case "impulse":
+        return Object.keys(impulseSubPathProbing).map((key) => ({
+          id: key,
+          label: key.replace(/_/g, " "),
+          value: key,
+          color: "yellow" as const,
+        }));
+
+      case "deliberate":
+        return [...new Set([...Object.keys(deliberateSubPathProbing), "other"])].map((key) => ({
+          id: key,
+          label: key.replace(/_/g, " "),
+          value: key,
+          color: "white" as const,
+        }));
+
+      case "deal":
+        return Object.keys(dealSubPathProbing).map((key) => ({
+          id: key,
+          label: key.replace(/_/g, " "),
+          value: key,
+          color: "yellow" as const,
+        }));
+
+      case "gift":
+        return [
+          { id: "family", label: "Family", value: "family", color: "white" as const },
+          { id: "friend", label: "Friend", value: "friend", color: "white" as const },
+          { id: "partner", label: "Partner", value: "partner", color: "white" as const },
+          { id: "coworker", label: "Coworker", value: "coworker", color: "white" as const },
+          { id: "other", label: "Someone else", value: "other", color: "white" as const },
+        ];
+
+      case "maintenance":
+        return [
+          { id: "same_thing", label: "Same thing as before", value: "same_thing", color: "white" as const },
+          { id: "switched_up", label: "Switched it up", value: "switched_up", color: "white" as const },
+          { id: "upgraded", label: "Upgraded", value: "upgraded", color: "white" as const },
+        ];
+
+      default:
+        return null;
     }
   }
   return null;

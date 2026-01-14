@@ -127,10 +127,8 @@ export const impulseSubPathProbing: Record<string, SubPathProbing> = {
     explorationTag: "#visual-impulse-driven",
     explorationGoal: "Where/how did they encounter it?",
     probingHints: [
-      "Where did you see it?",
       "What caught your eye about it?",
       "Is this similar to things you already own?",
-      "How many similar items do you have?",
       "Is trying new stuff kind of the fun part for you?",
     ],
     targetModes: ["#scroll-triggered", "#in-store-wanderer", "#aesthetic-driven", "#duplicate-collector"],
@@ -365,10 +363,8 @@ export const impulseSubPathGoals: Record<string, SubPathExplorationGoal> = {
     mode: "",
     explorationGoal: "Where/how did they encounter it?",
     probingHints: [
-      "Where did you see it?",
       "What caught your eye about it?",
       "Is this similar to things you already own?",
-      "How many similar items do you have?",
       "Is trying new stuff kind of the fun part for you?",
     ],
     keySignals: ["I was scrolling and saw it"],

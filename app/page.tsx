@@ -281,11 +281,6 @@ export default function DashboardPage() {
 
         {/* Transaction/Category Cards */}
         <div className="mt-6 space-y-4">
-          {/* Chipotle Test Card */}
-          {(selectedCategory === "all" || selectedCategory === "food") && (
-            <ChipotleTestCard />
-          )}
-
           {/* Shopping Transactions */}
           {(selectedCategory === "all" || selectedCategory === "shopping") &&
             shoppingTransactions.map((txn) => (
@@ -312,6 +307,11 @@ export default function DashboardPage() {
               sampleTransactions={coffeeTransactions}
               onGuessSubmit={handleGuessSubmit}
             />
+          )}
+
+          {/* Chipotle Test Card */}
+          {(selectedCategory === "all" || selectedCategory === "food") && (
+            <ChipotleTestCard />
           )}
         </div>
       </div>

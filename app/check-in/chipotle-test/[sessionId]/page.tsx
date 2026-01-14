@@ -7,13 +7,14 @@ import { getChipotleTestTransaction } from "@/lib/data/chipotle-test";
 import {
   getChipotleWorthItQuestion,
   getChipotleFollowUpQuestion,
-  getChipotleConclusionMessage,
+  buildChipotleConclusionPrompt,
   CHIPOTLE_EXIT_OPTIONS,
 } from "@/lib/llm/question-trees/chipotle-test";
 import type { QuickReplyOption } from "@/lib/types";
 
 // Flow steps
 type FlowStep = "worth_it" | "follow_up" | "conclusion";
+type WorthAnswer = "yes" | "no" | "meh";
 
 interface Message {
   id: string;
@@ -29,13 +30,14 @@ export default function ChipotleTestCheckInPage() {
   const router = useRouter();
 
   const sessionId = params.sessionId as string;
-  const entryReason = searchParams.get("reason");
+  const entryReason = searchParams.get("reason") || "unknown";
 
   const transaction = getChipotleTestTransaction();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentStep, setCurrentStep] = useState<FlowStep>("worth_it");
-  const [wasWorthIt, setWasWorthIt] = useState<boolean | null>(null);
+  const [worthAnswer, setWorthAnswer] = useState<WorthAnswer | null>(null);
+  const [followUpAnswer, setFollowUpAnswer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,8 +81,34 @@ export default function ChipotleTestCheckInPage() {
     setMessages((prev) => [...prev, assistantMessage]);
   }, []);
 
+  // Call LLM for conclusion
+  const fetchConclusion = useCallback(async (entry: string, worth: string, followUp: string) => {
+    setIsLoading(true);
+    try {
+      const prompt = buildChipotleConclusionPrompt(entry, worth, followUp);
+
+      const response = await fetch("/api/chipotle-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get conclusion");
+      }
+
+      const data = await response.json();
+      setIsLoading(false);
+      return data.message;
+    } catch (err) {
+      setIsLoading(false);
+      // Fallback message if LLM fails
+      return "Thanks for sharing! Peek appreciates you taking the time to reflect. We'll continue to learn more about you and your patterns, especially around food. 🌯";
+    }
+  }, []);
+
   const handleOptionSelect = useCallback(
-    (value: string) => {
+    async (value: string) => {
       const lastMessage = messages[messages.length - 1];
       const selectedOption = lastMessage?.options?.find((o) => o.value === value);
       const displayText = selectedOption?.label || value;
@@ -93,57 +121,59 @@ export default function ChipotleTestCheckInPage() {
       }
 
       if (currentStep === "worth_it") {
-        const worthIt = value === "yes";
-        setWasWorthIt(worthIt);
+        const answer = value as WorthAnswer;
+        setWorthAnswer(answer);
         setCurrentStep("follow_up");
 
         setTimeout(() => {
-          const followUpQ = getChipotleFollowUpQuestion(worthIt);
+          const followUpQ = getChipotleFollowUpQuestion(answer);
           addAssistantMessage(followUpQ.content, followUpQ.options);
         }, 400);
       } else if (currentStep === "follow_up") {
+        setFollowUpAnswer(value);
         setCurrentStep("conclusion");
 
-        setTimeout(() => {
-          const conclusion = getChipotleConclusionMessage();
-          addAssistantMessage(conclusion, CHIPOTLE_EXIT_OPTIONS);
-        }, 400);
+        // Fetch LLM conclusion
+        const conclusion = await fetchConclusion(entryReason, worthAnswer || "unknown", value);
+        addAssistantMessage(conclusion, CHIPOTLE_EXIT_OPTIONS);
       }
     },
-    [messages, currentStep, addUserMessage, addAssistantMessage, router]
+    [messages, currentStep, worthAnswer, entryReason, addUserMessage, addAssistantMessage, fetchConclusion, router]
   );
 
   // Handle free-form text input
   const handleSendMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       addUserMessage(content);
 
-      // For free-form input, acknowledge and continue to next step
       if (currentStep === "worth_it") {
-        // Interpret as "yes" if positive sentiment, otherwise ask again
-        const isPositive = /yes|yeah|yep|worth|good|great/i.test(content);
-        setWasWorthIt(isPositive);
+        // Interpret free-form as best guess
+        let answer: WorthAnswer = "meh";
+        if (/yes|yeah|yep|worth|good|great|definitely/i.test(content)) {
+          answer = "yes";
+        } else if (/no|nope|not worth|waste|regret/i.test(content)) {
+          answer = "no";
+        }
+        setWorthAnswer(answer);
         setCurrentStep("follow_up");
 
         setTimeout(() => {
-          const followUpQ = getChipotleFollowUpQuestion(isPositive);
+          const followUpQ = getChipotleFollowUpQuestion(answer);
           addAssistantMessage(followUpQ.content, followUpQ.options);
         }, 400);
       } else if (currentStep === "follow_up") {
+        setFollowUpAnswer(content);
         setCurrentStep("conclusion");
 
-        setTimeout(() => {
-          const conclusion = getChipotleConclusionMessage();
-          addAssistantMessage(conclusion, CHIPOTLE_EXIT_OPTIONS);
-        }, 400);
+        // Use the free-form text as the follow-up answer
+        const conclusion = await fetchConclusion(entryReason, worthAnswer || "unknown", content);
+        addAssistantMessage(conclusion, CHIPOTLE_EXIT_OPTIONS);
       } else {
         // At conclusion, just close
-        setTimeout(() => {
-          router.push("/");
-        }, 400);
+        router.push("/");
       }
     },
-    [currentStep, addUserMessage, addAssistantMessage, router]
+    [currentStep, worthAnswer, entryReason, addUserMessage, addAssistantMessage, fetchConclusion, router]
   );
 
   const handleClose = useCallback(() => {

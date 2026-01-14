@@ -36,22 +36,43 @@ export async function POST(request: NextRequest) {
 
     const client = getClient();
 
-    // Use user role for the full prompt (some models handle this better)
+    // Use user role for the full prompt
     const response = await client.chat.completions.create({
       model: MODEL_ID,
       messages: [
         {
           role: "user",
-          content: prompt + "\n\nPlease respond with ONLY the conclusion message, nothing else.",
+          content: prompt + "\n\nRespond with ONLY the 2-3 sentence conclusion message.",
         },
       ],
       temperature: 0.7,
-      max_tokens: 200,
+      max_tokens: 500, // Increased to allow for reasoning + content
     });
 
     console.log("Chipotle test API - full response:", JSON.stringify(response, null, 2));
 
-    const message = response.choices[0]?.message?.content?.trim();
+    // Handle both content field and reasoning field (model may use either)
+    const messageObj = response.choices[0]?.message as { content?: string; reasoning?: string };
+    let message = messageObj?.content?.trim();
+
+    // If content is empty but reasoning has text, extract the response from reasoning
+    if (!message && messageObj?.reasoning) {
+      console.log("Using reasoning field as response");
+      // The reasoning often contains the actual response - extract it
+      const reasoning = messageObj.reasoning;
+      // Look for the actual response part (usually after "Here's my draft:" or similar)
+      const draftMatch = reasoning.match(/(?:Here's my (?:draft|response)|draft:)\s*["\n]([^"]+)/i);
+      if (draftMatch) {
+        message = draftMatch[1].trim();
+      } else {
+        // Just use the last paragraph of reasoning as the response
+        const paragraphs = reasoning.split('\n\n').filter((p: string) => p.trim());
+        const lastParagraph = paragraphs[paragraphs.length - 1];
+        if (lastParagraph && lastParagraph.length > 20) {
+          message = lastParagraph.replace(/^["']|["']$/g, '').trim();
+        }
+      }
+    }
 
     if (!message) {
       console.error("No message content in LLM response");

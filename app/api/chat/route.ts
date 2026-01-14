@@ -611,13 +611,20 @@ ${probingHints.map((h, i) => `${i + 1}. "${h}"`).join("\n")}
 These are too vague. Use the SPECIFIC numbered questions above instead.
 ` : "";
 
+  // Build mode signals section from subpath probing
+  const modeSignalsSection = subPathProbing?.modeSignals && Object.keys(subPathProbing.modeSignals).length > 0
+    ? `**Mode Signals** (look for these patterns in the conversation to determine mode):
+${Object.entries(subPathProbing.modeSignals).map(([mode, signals]) => 
+  `- ${mode}: ${(signals as string[]).map(s => `"${s}"`).join(", ")}`
+).join("\n")}`
+    : "";
+
   let section = `
 ### Path: ${path.toUpperCase()}${subPathProbing ? ` → Sub-path: ${subPath?.toUpperCase()}` : ""}
 
 **Exploration Goal**: ${explorationGoalText}
 ${probingSection}
-**Mode Indicators** (look for these patterns):
-${goal.modeIndicators.map((m) => `- ${m}`).join("\n")}
+${modeSignalsSection}
 
 **Counter-Profile Patterns** (if detected, exit gracefully):
 ${
@@ -633,10 +640,7 @@ ${
 **Target Modes**: ${subPathProbing.targetModes.join(", ")}
 
 ${subPathProbing.lightProbing ? "**Note**: This is a deliberate/intentional path - use LIGHT probing (1 exchange max, then exit gracefully)" : ""}
-${subPathProbing.counterProfilePatterns?.length ? `\n**Sub-path Counter-Profile Patterns** (if detected, follow the behavior below):\n${subPathProbing.counterProfilePatterns.map((p) => `- ${p}`).join("\n")}` : ""}
-${subPathProbing.counterProfileBehavior ? `\n**Sub-path Counter-Profile Behavior**: ${subPathProbing.counterProfileBehavior.toUpperCase()}` : ""}
-${subPathProbing.counterProfileRerouteToSubPath ? `\n**Sub-path Counter-Profile Reroute Target**: ${subPathProbing.counterProfileRerouteToSubPath}` : ""}
-${subPathProbing.counterProfileExit ? `\n**Sub-path Counter-Profile Exit Message**: ${subPathProbing.counterProfileExit}` : ""}`;
+${subPathProbing.counterProfileExit ? `\n**Counter-Profile Exit Message**: ${subPathProbing.counterProfileExit}` : ""}`;
   }
 
   return section;

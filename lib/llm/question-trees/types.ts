@@ -14,7 +14,6 @@ export interface ExplorationGoal {
   path: string;
   goal: string;
   probingHints?: string[]; // Optional - probing hints should be defined at the subpath level
-  modeIndicators: Record<string, string[]>;
   counterProfilePatterns: string[];
 }
 
@@ -29,16 +28,6 @@ export interface SubPathProbing {
   lightProbing?: boolean;
 }
 
-export interface SubPathExplorationGoal {
-  subPath: string;
-  mode: string;
-  explorationGoal: string;
-  probingHints: string[];
-  keySignals: string[];
-  possibleModes?: string[];
-  lightProbing?: boolean;
-  counterProfileExit?: string;
-}
 
 export interface ModeDefinition {
   id: string;

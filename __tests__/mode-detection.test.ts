@@ -1,46 +1,59 @@
 /**
  * Mode Detection Accuracy Tests
  * 
- * Tests for the mode indicator patterns and detection logic.
+ * Tests for mode detection via SubPathProbing targetModes and modeSignals.
+ * Mode detection is now handled at the subpath level, not the path level.
  */
 
-import { explorationGoals } from "@/lib/llm/prompts";
+import { explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
+import {
+  impulseSubPathProbing,
+  dealSubPathProbing,
+  deliberateSubPathProbing,
+} from "@/lib/llm/question-trees";
 
 // ═══════════════════════════════════════════════════════════════
-// Mode Indicator Coverage Tests
+// Target Modes Coverage Tests
 // ═══════════════════════════════════════════════════════════════
 
 describe("Mode Detection Coverage", () => {
-  describe("Shopping Modes", () => {
-    it("should include impulse exploration tags in indicators", () => {
-      const indicators = explorationGoals.impulse.modeIndicators;
-      expect(indicators.some(i => i.includes("#price-sensitivity-driven"))).toBe(true);
-      expect(indicators.some(i => i.includes("#self-reward-driven"))).toBe(true);
-      expect(indicators.some(i => i.includes("#visual-impulse-driven"))).toBe(true);
-      expect(indicators.some(i => i.includes("#trend-susceptibility-driven"))).toBe(true);
+  describe("Shopping Target Modes (SubPath Level)", () => {
+    it("should include impulse target modes in subpath probing", () => {
+      expect(impulseSubPathProbing.price_felt_right.targetModes).toContain("#intuitive-threshold-spender");
+      expect(impulseSubPathProbing.treating_myself.targetModes).toContain("#reward-driven-spender");
+      expect(impulseSubPathProbing.caught_eye.targetModes).toContain("#scroll-triggered");
+      expect(impulseSubPathProbing.trending.targetModes).toContain("#social-media-influenced");
     });
 
-    it("should include deal exploration tags in indicators", () => {
-      const indicators = explorationGoals.deal.modeIndicators;
-      expect(indicators.some(i => i.includes("#deal-driven"))).toBe(true);
-      expect(indicators.some(i => i.includes("#scarcity-driven"))).toBe(true);
-      expect(indicators.some(i => i.includes("#threshold-spending-driven"))).toBe(true);
+    it("should include deal target modes in subpath probing", () => {
+      expect(dealSubPathProbing.limited_edition.targetModes).toContain("#scarcity-driven");
+      expect(dealSubPathProbing.sale_discount.targetModes).toContain("#deal-driven");
+      expect(dealSubPathProbing.free_shipping.targetModes).toContain("#threshold-spending-driven");
     });
 
-    it("should include deliberate exploration tags in indicators", () => {
-      const indicators = explorationGoals.deliberate.modeIndicators;
-      expect(indicators.some(i => i.includes("#deliberate-purchase"))).toBe(true);
-      expect(indicators.some(i => i.includes("#value-standards-driven"))).toBe(true);
+    it("should include deliberate target modes in subpath probing", () => {
+      expect(deliberateSubPathProbing.afford_it.targetModes).toContain("#deliberate-budget-saver");
+      expect(deliberateSubPathProbing.right_one.targetModes).toContain("#deliberate-researcher");
+      expect(deliberateSubPathProbing.still_wanted.targetModes).toContain("#deliberate-pause-tester");
     });
   });
 
-  describe("Mode Indicator Quality", () => {
-    it("should have behavioral signals for each mode", () => {
-      Object.keys(explorationGoals).forEach(path => {
-        const goal = explorationGoals[path];
-        goal.modeIndicators.forEach(indicator => {
-          expect(indicator.length).toBeGreaterThan(10);
-        });
+  describe("Mode Signal Quality", () => {
+    it("should have mode signals for impulse subpaths", () => {
+      Object.values(impulseSubPathProbing).forEach(probing => {
+        expect(probing.modeSignals).toBeDefined();
+      });
+    });
+
+    it("should have mode signals for deal subpaths", () => {
+      Object.values(dealSubPathProbing).forEach(probing => {
+        expect(probing.modeSignals).toBeDefined();
+      });
+    });
+
+    it("should have mode signals for deliberate subpaths", () => {
+      Object.values(deliberateSubPathProbing).forEach(probing => {
+        expect(probing.modeSignals).toBeDefined();
       });
     });
   });
@@ -72,20 +85,8 @@ describe("Counter-Profile Detection", () => {
 // ═══════════════════════════════════════════════════════════════
 
 describe("Mode Assignment Logic", () => {
-  it("should have mode indicators formatted correctly", () => {
-    Object.keys(explorationGoals).forEach(path => {
-      const goal = explorationGoals[path];
-      goal.modeIndicators.forEach(indicator => {
-        expect(indicator).toContain(":");
-      });
-    });
-  });
-
   it("should have probing hints at subpath level for gathering mode signals", () => {
     // Probing hints are defined at the subpath level, not the path level
-    const { getSubPathProbing } = require("@/lib/llm/prompts");
-    
-    // Test that subpaths have probing hints
     const impulseSubPath = getSubPathProbing("impulse", "treating_myself");
     expect(impulseSubPath?.probingHints?.length).toBeGreaterThanOrEqual(1);
     
@@ -99,39 +100,50 @@ describe("Mode Assignment Logic", () => {
       expect(goal.goal.length).toBeGreaterThan(20);
     });
   });
+
+  it("should have target modes for each subpath probing", () => {
+    // All subpaths should have target modes for assignment
+    Object.values(impulseSubPathProbing).forEach(probing => {
+      expect(probing.targetModes.length).toBeGreaterThan(0);
+    });
+    
+    Object.values(dealSubPathProbing).forEach(probing => {
+      expect(probing.targetModes.length).toBeGreaterThan(0);
+    });
+    
+    Object.values(deliberateSubPathProbing).forEach(probing => {
+      expect(probing.targetModes.length).toBeGreaterThan(0);
+    });
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════
-// Path-to-Mode Mapping Tests
+// Path-to-Mode Mapping Tests (via SubPathProbing)
 // ═══════════════════════════════════════════════════════════════
 
-describe("Path to Mode Mapping", () => {
-  it("impulse should surface exploration tags (not modes) at path level", () => {
-    const indicators = explorationGoals.impulse.modeIndicators.join(" ");
-    expect(indicators).toContain("#price-sensitivity-driven");
-    expect(indicators).toContain("#self-reward-driven");
-    expect(indicators).toContain("#visual-impulse-driven");
-    expect(indicators).toContain("#trend-susceptibility-driven");
+describe("Path to Mode Mapping (via SubPathProbing)", () => {
+  it("impulse subpaths should have target modes (not exploration tags)", () => {
+    const allTargetModes = Object.values(impulseSubPathProbing)
+      .flatMap(probing => probing.targetModes);
+    
+    // Should have actual modes, not exploration tags
+    expect(allTargetModes).toContain("#intuitive-threshold-spender");
+    expect(allTargetModes).toContain("#scroll-triggered");
+    expect(allTargetModes).toContain("#social-media-influenced");
+    
+    // Should NOT contain exploration tags as target modes
+    expect(allTargetModes).not.toContain("#price-sensitivity-driven");
+    expect(allTargetModes).not.toContain("#visual-impulse-driven");
   });
 
-  it("deal should have mode indicators and subpath probing", () => {
-    const indicators = explorationGoals.deal.modeIndicators.join(" ");
-    expect(indicators).toContain("#deal-driven");
-    expect(indicators).toContain("#scarcity-driven");
-    expect(indicators).toContain("#threshold-spending-driven");
-    // probingHints are at the subpath level, not path level
-    const { getSubPathProbing } = require("@/lib/llm/prompts");
-    const subPath = getSubPathProbing("deal", "sale_discount");
-    expect(subPath?.probingHints?.join(" ").toLowerCase()).toContain("full price");
+  it("deal subpaths should have proper target modes and probing", () => {
+    expect(dealSubPathProbing.sale_discount.targetModes).toContain("#deal-driven");
+    expect(dealSubPathProbing.sale_discount.probingHints.join(" ").toLowerCase()).toContain("full price");
   });
 
-  it("deliberate should have mode indicators and subpath probing", () => {
-    const indicators = explorationGoals.deliberate.modeIndicators.join(" ");
-    expect(indicators).toContain("#deliberate-purchase");
-    expect(indicators).toContain("#value-standards-driven");
-    // probingHints are at the subpath level, not path level
-    const { getSubPathProbing } = require("@/lib/llm/prompts");
-    const subPath = getSubPathProbing("deliberate", "right_one");
-    expect(subPath?.probingHints?.length).toBeGreaterThan(0);
+  it("deliberate subpaths should have proper target modes and probing", () => {
+    const rightOneProbing = getSubPathProbing("deliberate", "right_one");
+    expect(rightOneProbing?.targetModes).toContain("#deliberate-researcher");
+    expect(rightOneProbing?.probingHints?.length).toBeGreaterThan(0);
   });
 });

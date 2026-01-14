@@ -9,16 +9,12 @@ import {
   getFixedQuestion2Options as getTreeFixedQuestion2Options,
   SHOPPING_Q2_QUESTIONS,
   getShoppingFixedQuestion2Text,
-  getSubPathExplorationGoal, 
   getSubPathProbing,
   impulseSubPathProbing,
   deliberateSubPathProbing,
   dealSubPathProbing,
   giftSubPathProbing,
   maintenanceSubPathProbing,
-  impulseSubPathGoals, 
-  dealSubPathGoals,
-  deliberateSubPathGoals,
   modeDefinitions,
   getCostComparisonModeAdaptedQuestion,
   BEHAVIORAL_EXCAVATION_PROBING_HINTS,
@@ -260,10 +256,6 @@ describe("Exploration Goals", () => {
       expect(subPathProbing?.probingHints?.length).toBeGreaterThan(0);
     });
 
-    it("should have mode indicators", () => {
-      expect(impulseGoal.modeIndicators.length).toBeGreaterThan(0);
-    });
-
     it("should have counter-profile patterns for graceful exit", () => {
       expect(impulseGoal.counterProfilePatterns.length).toBeGreaterThan(0);
     });
@@ -324,29 +316,32 @@ describe("Path Routing Logic", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// Mode Indicator Tests
+// Target Modes Tests (derived from SubPathProbing)
 // ═══════════════════════════════════════════════════════════════
 
-describe("Mode Indicators", () => {
-  it("should include exploration tags for impulse path", () => {
-    const impulseIndicators = explorationGoals.impulse.modeIndicators.join(" ");
-    expect(impulseIndicators).toContain("#price-sensitivity-driven");
-    expect(impulseIndicators).toContain("#self-reward-driven");
-    expect(impulseIndicators).toContain("#visual-impulse-driven");
-    expect(impulseIndicators).toContain("#trend-susceptibility-driven");
+describe("Target Modes (from SubPathProbing)", () => {
+  it("should have target modes for impulse sub-paths", () => {
+    const priceProbing = getSubPathProbing("impulse", "price_felt_right");
+    expect(priceProbing?.targetModes).toContain("#intuitive-threshold-spender");
+    
+    const trendingProbing = getSubPathProbing("impulse", "trending");
+    expect(trendingProbing?.targetModes).toContain("#social-media-influenced");
   });
 
-  it("should include exploration tags for deal path", () => {
-    const dealIndicators = explorationGoals.deal.modeIndicators.join(" ");
-    expect(dealIndicators).toContain("#deal-driven");
-    expect(dealIndicators).toContain("#scarcity-driven");
-    expect(dealIndicators).toContain("#threshold-spending-driven");
+  it("should have target modes for deal sub-paths", () => {
+    const limitedProbing = getSubPathProbing("deal", "limited_edition");
+    expect(limitedProbing?.targetModes).toContain("#scarcity-driven");
+    
+    const saleProbing = getSubPathProbing("deal", "sale_discount");
+    expect(saleProbing?.targetModes).toContain("#deal-driven");
   });
 
-  it("should include exploration tags for deliberate path", () => {
-    const deliberateIndicators = explorationGoals.deliberate.modeIndicators.join(" ");
-    expect(deliberateIndicators).toContain("#deliberate-purchase");
-    expect(deliberateIndicators).toContain("#value-standards-driven");
+  it("should have target modes for deliberate sub-paths", () => {
+    const rightOneProbing = getSubPathProbing("deliberate", "right_one");
+    expect(rightOneProbing?.targetModes).toContain("#deliberate-researcher");
+    
+    const affordProbing = getSubPathProbing("deliberate", "afford_it");
+    expect(affordProbing?.targetModes).toContain("#deliberate-budget-saver");
   });
 });
 
@@ -411,41 +406,40 @@ describe("Coffee Check-In Options", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// Sub-Path Exploration Goal Tests (Layer 2 Probing)
+// Sub-Path Probing Tests (Layer 2 Probing)
 // ═══════════════════════════════════════════════════════════════
 
-describe("Impulse Sub-Path Exploration Goals", () => {
-  it("should have exploration goals for all impulse sub-paths", () => {
-    expect(impulseSubPathGoals.price_felt_right).toBeDefined();
-    expect(impulseSubPathGoals.treating_myself).toBeDefined();
-    expect(impulseSubPathGoals.caught_eye).toBeDefined();
-    expect(impulseSubPathGoals.trending).toBeDefined();
-    expect(impulseSubPathGoals.other).toBeDefined();
+describe("Impulse Sub-Path Probing", () => {
+  it("should have probing config for all impulse sub-paths", () => {
+    expect(impulseSubPathProbing.price_felt_right).toBeDefined();
+    expect(impulseSubPathProbing.treating_myself).toBeDefined();
+    expect(impulseSubPathProbing.caught_eye).toBeDefined();
+    expect(impulseSubPathProbing.trending).toBeDefined();
+    expect(impulseSubPathProbing.other).toBeDefined();
   });
 
   it("price_felt_right should target intuitive-threshold-spender mode", () => {
-    const goal = impulseSubPathGoals.price_felt_right;
-    expect(goal.mode).toBe("#intuitive-threshold-spender");
+    const probing = impulseSubPathProbing.price_felt_right;
+    expect(probing.targetModes).toContain("#intuitive-threshold-spender");
   });
 
-  it("treating_myself should branch to multiple possible modes", () => {
-    const goal = impulseSubPathGoals.treating_myself;
-    expect(goal.possibleModes).toBeDefined();
-    expect(goal.possibleModes?.length).toBe(3);
-    expect(goal.possibleModes).toContain("#reward-driven-spender");
-    expect(goal.possibleModes).toContain("#comfort-driven-spender");
-    expect(goal.possibleModes).toContain("#routine-treat-spender");
+  it("treating_myself should target multiple modes", () => {
+    const probing = impulseSubPathProbing.treating_myself;
+    expect(probing.targetModes.length).toBeGreaterThanOrEqual(1);
+    expect(probing.targetModes).toContain("#reward-driven-spender");
+    expect(probing.targetModes).toContain("#comfort-driven-spender");
+    expect(probing.targetModes).toContain("#routine-treat-spender");
   });
 
-  it("caught_eye should have probing hints about where item was seen", () => {
-    const goal = impulseSubPathGoals.caught_eye;
-    const hints = goal.probingHints.join(" ");
-    expect(hints).toContain("Where did you see it");
+  it("caught_eye should have probing hints about what caught their eye", () => {
+    const probing = impulseSubPathProbing.caught_eye;
+    const hints = probing.probingHints.join(" ");
+    expect(hints).toContain("caught your eye");
   });
 
   it("trending should explore trend susceptibility", () => {
-    const goal = impulseSubPathGoals.trending;
-    expect(goal.explorationGoal).toContain("susceptible");
+    const probing = impulseSubPathProbing.trending;
+    expect(probing.explorationGoal).toContain("susceptible");
   });
 });
 
@@ -473,76 +467,76 @@ describe("getFixedQuestion2Options (question-trees)", () => {
   });
 });
 
-describe("Deal Sub-Path Exploration Goals", () => {
-  it("should have exploration goals for all deal sub-paths", () => {
-    expect(dealSubPathGoals.limited_edition).toBeDefined();
-    expect(dealSubPathGoals.sale_discount).toBeDefined();
-    expect(dealSubPathGoals.free_shipping).toBeDefined();
+describe("Deal Sub-Path Probing", () => {
+  it("should have probing config for all deal sub-paths", () => {
+    expect(dealSubPathProbing.limited_edition).toBeDefined();
+    expect(dealSubPathProbing.sale_discount).toBeDefined();
+    expect(dealSubPathProbing.free_shipping).toBeDefined();
   });
 
   it("limited_edition should explore FOMO susceptibility", () => {
-    const goal = dealSubPathGoals.limited_edition;
-    expect(goal.explorationGoal).toContain("FOMO");
-    expect(goal.mode).toBe("#scarcity-driven");
+    const probing = dealSubPathProbing.limited_edition;
+    expect(probing.explorationGoal).toContain("FOMO");
+    expect(probing.targetModes).toContain("#scarcity-driven");
   });
 
   it("sale_discount should ask about full price buying", () => {
-    const goal = dealSubPathGoals.sale_discount;
-    const hints = goal.probingHints.join(" ");
+    const probing = dealSubPathProbing.sale_discount;
+    const hints = probing.probingHints.join(" ");
     expect(hints).toContain("full price");
   });
 
   it("free_shipping should explore threshold spending patterns", () => {
-    const goal = dealSubPathGoals.free_shipping;
+    const probing = dealSubPathProbing.free_shipping;
     // Exploration goal is about adding items, mode is about threshold spending
-    expect(goal.explorationGoal).toContain("add");
-    expect(goal.mode).toBe("#threshold-spending-driven");
+    expect(probing.explorationGoal).toContain("add");
+    expect(probing.targetModes).toContain("#threshold-spending-driven");
   });
 });
 
-describe("Deliberate Sub-Path Exploration Goals", () => {
-  it("should have exploration goals for all deliberate sub-paths", () => {
-    expect(deliberateSubPathGoals.afford_it).toBeDefined();
-    expect(deliberateSubPathGoals.right_price).toBeDefined();
-    expect(deliberateSubPathGoals.right_one).toBeDefined();
-    expect(deliberateSubPathGoals.still_wanted).toBeDefined();
-    expect(deliberateSubPathGoals.got_around).toBeDefined();
+describe("Deliberate Sub-Path Probing", () => {
+  it("should have probing config for all deliberate sub-paths", () => {
+    expect(deliberateSubPathProbing.afford_it).toBeDefined();
+    expect(deliberateSubPathProbing.right_price).toBeDefined();
+    expect(deliberateSubPathProbing.right_one).toBeDefined();
+    expect(deliberateSubPathProbing.still_wanted).toBeDefined();
+    expect(deliberateSubPathProbing.got_around).toBeDefined();
   });
 
   it("right_one should target deliberate-researcher mode", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal.mode).toBe("#deliberate-researcher");
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing.targetModes).toContain("#deliberate-researcher");
   });
 
   it("still_wanted should validate intentional pause", () => {
-    const goal = deliberateSubPathGoals.still_wanted;
-    expect(goal.explorationGoal).toContain("pause");
-    expect(goal.mode).toBe("#deliberate-pause-tester");
+    const probing = deliberateSubPathProbing.still_wanted;
+    expect(probing.explorationGoal).toContain("pause");
+    expect(probing.targetModes).toContain("#deliberate-pause-tester");
   });
 });
 
-describe("getSubPathExplorationGoal helper", () => {
-  it("should return impulse sub-path goals for impulse path", () => {
-    const goal = getSubPathExplorationGoal("impulse", "price_felt_right");
-    expect(goal).toBeDefined();
-    expect(goal?.mode).toBe("#intuitive-threshold-spender");
+describe("getSubPathProbing helper", () => {
+  it("should return impulse sub-path probing for impulse path", () => {
+    const probing = getSubPathProbing("impulse", "price_felt_right");
+    expect(probing).toBeDefined();
+    expect(probing?.targetModes).toContain("#intuitive-threshold-spender");
   });
 
-  it("should return deal sub-path goals for deal path", () => {
-    const goal = getSubPathExplorationGoal("deal", "limited_edition");
-    expect(goal).toBeDefined();
-    expect(goal?.mode).toBe("#scarcity-driven");
+  it("should return deal sub-path probing for deal path", () => {
+    const probing = getSubPathProbing("deal", "limited_edition");
+    expect(probing).toBeDefined();
+    expect(probing?.targetModes).toContain("#scarcity-driven");
   });
 
-  it("should return deliberate sub-path goals for deliberate path", () => {
-    const goal = getSubPathExplorationGoal("deliberate", "right_one");
-    expect(goal).toBeDefined();
-    expect(goal?.mode).toBe("#deliberate-researcher");
+  it("should return deliberate sub-path probing for deliberate path", () => {
+    const probing = getSubPathProbing("deliberate", "right_one");
+    expect(probing).toBeDefined();
+    expect(probing?.targetModes).toContain("#deliberate-researcher");
   });
 
   it("should return undefined for unknown paths", () => {
-    const goal = getSubPathExplorationGoal("unknown", "test");
-    expect(goal).toBeUndefined();
+    const probing = getSubPathProbing("unknown", "test");
+    expect(probing).toBeUndefined();
   });
 });
 
@@ -552,15 +546,13 @@ describe("getSubPathExplorationGoal helper", () => {
 
 describe("Probing Adherence for right_one Path", () => {
   it("should have correct probing hints for right_one path per spec", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal).toBeDefined();
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing).toBeDefined();
     
     // Per LLM_PROBING_ADHERENCE.md, right_one should have these exact probing hints:
     // 1. "Where did you go for your research?"
-    // 2. "Where did you end up finding it?"
-    // 3. "How long did you spend looking?"
     
-    const hints = goal.probingHints;
+    const hints = probing.probingHints;
     // Deliberate paths use light probing with 1 hint (1 question max)
     expect(hints.length).toBeGreaterThanOrEqual(1);
     
@@ -570,23 +562,22 @@ describe("Probing Adherence for right_one Path", () => {
   });
 
   it("should target #deliberate-researcher mode", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal.mode).toBe("#deliberate-researcher");
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing.targetModes).toContain("#deliberate-researcher");
   });
 
   it("should have light probing flag for deliberate paths (1-2 exchanges max)", () => {
-    const goal = deliberateSubPathGoals.right_one;
+    const probing = deliberateSubPathProbing.right_one;
     // Deliberate paths should use light probing (graceful exit rather than deep probing)
-    // The lightProbing flag may be on the sub-path or handled by the path handler
-    expect(goal).toBeDefined();
-    expect(goal.mode).toContain("deliberate");
+    expect(probing).toBeDefined();
+    expect(probing.lightProbing).toBe(true);
   });
 
   it("should include exploration goal about research validation", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal.explorationGoal).toBeDefined();
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing.explorationGoal).toBeDefined();
     // The exploration goal should validate their research process
-    expect(goal.explorationGoal.toLowerCase()).toMatch(/research|validate|intentional/);
+    expect(probing.explorationGoal.toLowerCase()).toMatch(/research|validate|intentional/);
   });
 });
 
@@ -596,30 +587,30 @@ describe("Probing Adherence for right_one Path", () => {
 
 describe("right_one Path Probing Adherence", () => {
   it("should have correct probing hints for right_one path", () => {
-    const goal = getSubPathExplorationGoal("deliberate", "right_one");
-    expect(goal).toBeDefined();
+    const probing = getSubPathProbing("deliberate", "right_one");
+    expect(probing).toBeDefined();
     
     // Deliberate paths use light probing (1 question max)
     // The key probing hint is about research
-    expect(goal?.probingHints.length).toBeGreaterThanOrEqual(1);
-    const hintsText = goal?.probingHints.join(" ").toLowerCase() || "";
+    expect(probing?.probingHints.length).toBeGreaterThanOrEqual(1);
+    const hintsText = probing?.probingHints.join(" ").toLowerCase() || "";
     expect(hintsText).toContain("research");
   });
 
   it("should target #deliberate-researcher mode for right_one", () => {
-    const goal = getSubPathExplorationGoal("deliberate", "right_one");
-    expect(goal?.mode).toBe("#deliberate-researcher");
+    const probing = getSubPathProbing("deliberate", "right_one");
+    expect(probing?.targetModes).toContain("#deliberate-researcher");
   });
 
   it("should have exploration goal about research process", () => {
-    const goal = getSubPathExplorationGoal("deliberate", "right_one");
-    expect(goal?.explorationGoal.toLowerCase()).toContain("research");
+    const probing = getSubPathProbing("deliberate", "right_one");
+    expect(probing?.explorationGoal.toLowerCase()).toContain("research");
   });
 
   it("should have at least 1 probing hint for light probing (deliberate path)", () => {
-    const goal = getSubPathExplorationGoal("deliberate", "right_one");
+    const probing = getSubPathProbing("deliberate", "right_one");
     // Deliberate paths use light probing (1 question max, so 1 hint)
-    expect(goal?.probingHints.length).toBeGreaterThanOrEqual(1);
+    expect(probing?.probingHints.length).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -633,31 +624,31 @@ describe("right_one Path Probing Adherence", () => {
 
 describe("Probing Adherence: right_one path", () => {
   it("should have correct exploration goal for right_one sub-path", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal.explorationGoal).toBeDefined();
-    expect(goal.explorationGoal).toContain("research");
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing.explorationGoal).toBeDefined();
+    expect(probing.explorationGoal).toContain("research");
   });
 
   it("should have specific probing hints for research exploration", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal.probingHints).toBeDefined();
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing.probingHints).toBeDefined();
     // Deliberate paths use light probing (1 question max)
-    expect(goal.probingHints.length).toBeGreaterThanOrEqual(1);
+    expect(probing.probingHints.length).toBeGreaterThanOrEqual(1);
     
     // Check for expected probing questions
     // At minimum, should include research-related questions
-    const allHints = goal.probingHints.join(" ").toLowerCase();
+    const allHints = probing.probingHints.join(" ").toLowerCase();
     expect(allHints).toContain("research");
   });
 
   it("should target #deliberate-researcher mode", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal.mode).toBe("#deliberate-researcher");
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing.targetModes).toContain("#deliberate-researcher");
   });
 
   it("probing hints should be specific, not generic", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    const allHints = goal.probingHints.join(" ").toLowerCase();
+    const probing = deliberateSubPathProbing.right_one;
+    const allHints = probing.probingHints.join(" ").toLowerCase();
     
     // These generic questions should NOT be in the hints
     expect(allHints).not.toContain("can you tell me more");
@@ -666,13 +657,13 @@ describe("Probing Adherence: right_one path", () => {
     expect(allHints).not.toContain("how did that make you feel");
   });
 
-  it("should have key signals for mode detection", () => {
-    const goal = deliberateSubPathGoals.right_one;
-    expect(goal.keySignals).toBeDefined();
-    expect(goal.keySignals.length).toBeGreaterThan(0);
+  it("should have mode signals for mode detection", () => {
+    const probing = deliberateSubPathProbing.right_one;
+    expect(probing.modeSignals).toBeDefined();
+    expect(Object.keys(probing.modeSignals).length).toBeGreaterThan(0);
     
     // Should have signals related to research behavior
-    const allSignals = goal.keySignals.join(" ").toLowerCase();
+    const allSignals = Object.values(probing.modeSignals).flat().join(" ").toLowerCase();
     expect(allSignals).toMatch(/research|review|compare/);
   });
 });
@@ -682,20 +673,20 @@ describe("Probing Adherence: all deliberate sub-paths", () => {
     const subPaths = ["afford_it", "right_price", "right_one", "still_wanted", "got_around"];
     
     subPaths.forEach(subPath => {
-      const goal = deliberateSubPathGoals[subPath as keyof typeof deliberateSubPathGoals];
-      expect(goal).toBeDefined();
-      expect(goal.probingHints).toBeDefined();
-      expect(goal.probingHints.length).toBeGreaterThan(0);
+      const probing = deliberateSubPathProbing[subPath as keyof typeof deliberateSubPathProbing];
+      expect(probing).toBeDefined();
+      expect(probing.probingHints).toBeDefined();
+      expect(probing.probingHints.length).toBeGreaterThan(0);
       
       // Each hint should be specific, not generic (at least 8 chars for short questions)
-      goal.probingHints.forEach(hint => {
+      probing.probingHints.forEach(hint => {
         expect(hint.length).toBeGreaterThanOrEqual(8); // Not too short
         expect(hint).not.toMatch(/^\?/); // Should not start with question mark
       });
     });
   });
 
-  it("all deliberate sub-paths should have appropriate modes", () => {
+  it("all deliberate sub-paths should have appropriate target modes", () => {
     const expectedModes: Record<string, string> = {
       afford_it: "#deliberate-budget-saver",
       right_price: "#deliberate-deal-hunter",
@@ -705,8 +696,8 @@ describe("Probing Adherence: all deliberate sub-paths", () => {
     };
     
     Object.entries(expectedModes).forEach(([subPath, expectedMode]) => {
-      const goal = deliberateSubPathGoals[subPath as keyof typeof deliberateSubPathGoals];
-      expect(goal.mode).toBe(expectedMode);
+      const probing = deliberateSubPathProbing[subPath as keyof typeof deliberateSubPathProbing];
+      expect(probing.targetModes).toContain(expectedMode);
     });
   });
 });
@@ -788,66 +779,61 @@ describe("Layer 3 Reflection: Cost Comparison mode adaptation", () => {
 // ═══════════════════════════════════════════════════════════════
 
 describe("Probing Adherence for 'right_one' Path", () => {
-  const rightOneGoal = deliberateSubPathGoals.right_one;
+  const rightOneProbing = deliberateSubPathProbing.right_one;
 
   it("should have right_one as a valid deliberate sub-path", () => {
-    expect(rightOneGoal).toBeDefined();
-    expect(rightOneGoal.subPath).toBe("right_one");
+    expect(rightOneProbing).toBeDefined();
+    expect(rightOneProbing.subPath).toBe("right_one");
   });
 
   it("should target #deliberate-researcher mode", () => {
-    expect(rightOneGoal.mode).toBe("#deliberate-researcher");
+    expect(rightOneProbing.targetModes).toContain("#deliberate-researcher");
   });
 
   it("should have exploration goal about research process", () => {
-    expect(rightOneGoal.explorationGoal.toLowerCase()).toContain("research");
+    expect(rightOneProbing.explorationGoal.toLowerCase()).toContain("research");
   });
 
   it("should have REQUIRED probing hints (per LLM_PROBING_ADHERENCE.md)", () => {
-    expect(rightOneGoal.probingHints).toBeDefined();
-    expect(rightOneGoal.probingHints.length).toBeGreaterThan(0);
+    expect(rightOneProbing.probingHints).toBeDefined();
+    expect(rightOneProbing.probingHints.length).toBeGreaterThan(0);
     
     // Check for specific required questions from PEEK_QUESTION_TREES.md
-    const hints = rightOneGoal.probingHints.join(" ");
+    const hints = rightOneProbing.probingHints.join(" ");
     expect(hints).toContain("research");
   });
 
   it("should have first probing hint ask about research", () => {
     // Deliberate paths use light probing (1 question max)
-    expect(rightOneGoal.probingHints[0].toLowerCase()).toContain("research");
+    expect(rightOneProbing.probingHints[0].toLowerCase()).toContain("research");
   });
 
   it("should use light probing with minimal hints", () => {
     // Deliberate paths have lightProbing: true, so only 1 question
-    expect(rightOneGoal.lightProbing).toBe(true);
-    expect(rightOneGoal.probingHints.length).toBeGreaterThanOrEqual(1);
+    expect(rightOneProbing.lightProbing).toBe(true);
+    expect(rightOneProbing.probingHints.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("should have key signals for detecting deliberate-researcher mode", () => {
-    expect(rightOneGoal.keySignals).toBeDefined();
-    expect(rightOneGoal.keySignals.length).toBeGreaterThan(0);
+  it("should have mode signals for detecting deliberate-researcher mode", () => {
+    expect(rightOneProbing.modeSignals).toBeDefined();
+    expect(Object.keys(rightOneProbing.modeSignals).length).toBeGreaterThan(0);
   });
 
-  it("should detect 'researched options' as a mode signal", () => {
-    const signals = rightOneGoal.keySignals.join(" ");
-    expect(signals).toContain("researched");
+  it("should detect 'researched' as a mode signal", () => {
+    const signals = Object.values(rightOneProbing.modeSignals).flat().join(" ");
+    expect(signals.toLowerCase()).toContain("research");
   });
 
-  it("should detect 'researched options' as a mode signal", () => {
-    const signals = rightOneGoal.keySignals.join(" ");
-    expect(signals).toContain("researched");
-  });
-
-  it("should have key signals for research-based purchasing", () => {
-    const signals = rightOneGoal.keySignals.join(" ").toLowerCase();
+  it("should have mode signals for research-based purchasing", () => {
+    const signals = Object.values(rightOneProbing.modeSignals).flat().join(" ").toLowerCase();
     expect(signals).toContain("research");
   });
 
-  it("should be accessible via getSubPathExplorationGoal helper", () => {
-    const goal = getSubPathExplorationGoal("deliberate", "right_one");
-    expect(goal).toBeDefined();
-    expect(goal?.mode).toBe("#deliberate-researcher");
-    expect(goal?.probingHints.length).toBeGreaterThan(0);
+  it("should be accessible via getSubPathProbing helper", () => {
+    const probing = getSubPathProbing("deliberate", "right_one");
+    expect(probing).toBeDefined();
+    expect(probing?.targetModes).toContain("#deliberate-researcher");
+    expect(probing?.probingHints.length).toBeGreaterThan(0);
   });
 });
 
@@ -883,38 +869,37 @@ describe("Question Tree Routing - Shopping Paths", () => {
 
   describe("Sub-Path Routing (Fixed Q2)", () => {
     it("should route impulse to 5 sub-paths", () => {
-      expect(Object.keys(impulseSubPathGoals).length).toBe(5);
-      expect(impulseSubPathGoals.price_felt_right).toBeDefined();
-      expect(impulseSubPathGoals.treating_myself).toBeDefined();
-      expect(impulseSubPathGoals.caught_eye).toBeDefined();
-      expect(impulseSubPathGoals.trending).toBeDefined();
-      expect(impulseSubPathGoals.other).toBeDefined();
+      expect(Object.keys(impulseSubPathProbing).length).toBe(5);
+      expect(impulseSubPathProbing.price_felt_right).toBeDefined();
+      expect(impulseSubPathProbing.treating_myself).toBeDefined();
+      expect(impulseSubPathProbing.caught_eye).toBeDefined();
+      expect(impulseSubPathProbing.trending).toBeDefined();
+      expect(impulseSubPathProbing.other).toBeDefined();
     });
 
     it("should route deal to 3 sub-paths", () => {
-      expect(Object.keys(dealSubPathGoals).length).toBe(3);
-      expect(dealSubPathGoals.limited_edition).toBeDefined();
-      expect(dealSubPathGoals.sale_discount).toBeDefined();
-      expect(dealSubPathGoals.free_shipping).toBeDefined();
+      expect(Object.keys(dealSubPathProbing).length).toBe(3);
+      expect(dealSubPathProbing.limited_edition).toBeDefined();
+      expect(dealSubPathProbing.sale_discount).toBeDefined();
+      expect(dealSubPathProbing.free_shipping).toBeDefined();
     });
 
     it("should route deliberate to 6 sub-paths", () => {
-      expect(Object.keys(deliberateSubPathGoals).length).toBe(6);
-      expect(deliberateSubPathGoals.afford_it).toBeDefined();
-      expect(deliberateSubPathGoals.right_price).toBeDefined();
-      expect(deliberateSubPathGoals.right_one).toBeDefined();
-      expect(deliberateSubPathGoals.still_wanted).toBeDefined();
-      expect(deliberateSubPathGoals.got_around).toBeDefined();
-      expect(deliberateSubPathGoals.other).toBeDefined();
+      expect(Object.keys(deliberateSubPathProbing).length).toBe(6);
+      expect(deliberateSubPathProbing.afford_it).toBeDefined();
+      expect(deliberateSubPathProbing.right_price).toBeDefined();
+      expect(deliberateSubPathProbing.right_one).toBeDefined();
+      expect(deliberateSubPathProbing.still_wanted).toBeDefined();
+      expect(deliberateSubPathProbing.got_around).toBeDefined();
+      expect(deliberateSubPathProbing.other).toBeDefined();
     });
   });
 
   describe("Mode Assignment Routing", () => {
-    it("should assign correct mode for each impulse sub-path", () => {
-      expect(impulseSubPathGoals.price_felt_right.mode).toBe("#intuitive-threshold-spender");
-      // caught_eye / trending are "probe to determine" branches; base tags are NOT modes.
-      expect(impulseSubPathGoals.caught_eye.mode).toBe("");
-      expect(impulseSubPathGoals.caught_eye.possibleModes).toEqual(
+    it("should assign correct target modes for each impulse sub-path", () => {
+      expect(impulseSubPathProbing.price_felt_right.targetModes).toContain("#intuitive-threshold-spender");
+      // caught_eye / trending are "probe to determine" branches with multiple target modes
+      expect(impulseSubPathProbing.caught_eye.targetModes).toEqual(
         expect.arrayContaining([
           "#scroll-triggered",
           "#in-store-wanderer",
@@ -922,57 +907,56 @@ describe("Question Tree Routing - Shopping Paths", () => {
           "#duplicate-collector",
         ]),
       );
-      expect(impulseSubPathGoals.trending.mode).toBe("");
-      expect(impulseSubPathGoals.trending.possibleModes).toEqual(
+      expect(impulseSubPathProbing.trending.targetModes).toEqual(
         expect.arrayContaining(["#social-media-influenced", "#friend-peer-influenced"]),
       );
     });
 
-    it("should assign correct mode for each deal sub-path", () => {
-      expect(dealSubPathGoals.limited_edition.mode).toBe("#scarcity-driven");
-      expect(dealSubPathGoals.sale_discount.mode).toBe("#deal-driven");
-      expect(dealSubPathGoals.free_shipping.mode).toBe("#threshold-spending-driven");
+    it("should assign correct target modes for each deal sub-path", () => {
+      expect(dealSubPathProbing.limited_edition.targetModes).toContain("#scarcity-driven");
+      expect(dealSubPathProbing.sale_discount.targetModes).toContain("#deal-driven");
+      expect(dealSubPathProbing.free_shipping.targetModes).toContain("#threshold-spending-driven");
     });
 
-    it("should assign correct mode for each deliberate sub-path", () => {
-      expect(deliberateSubPathGoals.afford_it.mode).toBe("#deliberate-budget-saver");
-      expect(deliberateSubPathGoals.right_price.mode).toBe("#deliberate-deal-hunter");
-      expect(deliberateSubPathGoals.right_one.mode).toBe("#deliberate-researcher");
-      expect(deliberateSubPathGoals.still_wanted.mode).toBe("#deliberate-pause-tester");
-      expect(deliberateSubPathGoals.got_around.mode).toBe("#deliberate-low-priority");
+    it("should assign correct target modes for each deliberate sub-path", () => {
+      expect(deliberateSubPathProbing.afford_it.targetModes).toContain("#deliberate-budget-saver");
+      expect(deliberateSubPathProbing.right_price.targetModes).toContain("#deliberate-deal-hunter");
+      expect(deliberateSubPathProbing.right_one.targetModes).toContain("#deliberate-researcher");
+      expect(deliberateSubPathProbing.still_wanted.targetModes).toContain("#deliberate-pause-tester");
+      expect(deliberateSubPathProbing.got_around.targetModes).toContain("#deliberate-low-priority");
     });
   });
 
   describe("Exploration Goal Content Quality", () => {
     it("should have meaningful exploration goals for all paths", () => {
       // Check impulse paths - all should have exploration goals
-      Object.values(impulseSubPathGoals).forEach(goal => {
-        expect(goal.explorationGoal.length).toBeGreaterThan(5);
+      Object.values(impulseSubPathProbing).forEach(probing => {
+        expect(probing.explorationGoal.length).toBeGreaterThan(5);
       });
       
       // Check deal paths
-      Object.values(dealSubPathGoals).forEach(goal => {
-        expect(goal.explorationGoal.length).toBeGreaterThan(5);
+      Object.values(dealSubPathProbing).forEach(probing => {
+        expect(probing.explorationGoal.length).toBeGreaterThan(5);
       });
       
       // Check deliberate paths (these use short goals with light probing)
-      Object.values(deliberateSubPathGoals).forEach(goal => {
-        expect(goal.explorationGoal.length).toBeGreaterThan(5);
+      Object.values(deliberateSubPathProbing).forEach(probing => {
+        expect(probing.explorationGoal.length).toBeGreaterThan(5);
       });
     });
 
     it("should have probing hints for all sub-paths", () => {
       // Check all sub-paths have at least one probing hint
-      Object.values(impulseSubPathGoals).forEach(goal => {
-        expect(goal.probingHints.length).toBeGreaterThan(0);
+      Object.values(impulseSubPathProbing).forEach(probing => {
+        expect(probing.probingHints.length).toBeGreaterThan(0);
       });
       
-      Object.values(dealSubPathGoals).forEach(goal => {
-        expect(goal.probingHints.length).toBeGreaterThan(0);
+      Object.values(dealSubPathProbing).forEach(probing => {
+        expect(probing.probingHints.length).toBeGreaterThan(0);
       });
       
-      Object.values(deliberateSubPathGoals).forEach(goal => {
-        expect(goal.probingHints.length).toBeGreaterThan(0);
+      Object.values(deliberateSubPathProbing).forEach(probing => {
+        expect(probing.probingHints.length).toBeGreaterThan(0);
       });
     });
   });
@@ -1034,10 +1018,11 @@ describe("Graceful Exit Detection", () => {
   describe("Deliberate Path Exits", () => {
     it("should exit gracefully for all deliberate sub-paths (no further probing needed)", () => {
       // All deliberate sub-paths are intentional and should have light probing
-      // The presence of a mode indicates we can exit after light exploration
-      Object.values(deliberateSubPathGoals).filter((goal) => goal.subPath !== "other").forEach(goal => {
-        expect(goal.mode).toBeDefined();
-        expect(goal.mode.startsWith("#deliberate")).toBe(true);
+      // The presence of target modes indicates we can exit after light exploration
+      Object.values(deliberateSubPathProbing).filter((probing) => probing.subPath !== "other").forEach(probing => {
+        expect(probing.targetModes).toBeDefined();
+        expect(probing.targetModes.length).toBeGreaterThan(0);
+        expect(probing.targetModes[0].startsWith("#deliberate")).toBe(true);
       });
     });
 
@@ -1052,16 +1037,16 @@ describe("Graceful Exit Detection", () => {
       };
       
       Object.entries(expectedModes).forEach(([subPath, expectedMode]) => {
-        expect(deliberateSubPathGoals[subPath]).toBeDefined();
-        expect(deliberateSubPathGoals[subPath].mode).toBe(expectedMode);
+        expect(deliberateSubPathProbing[subPath as keyof typeof deliberateSubPathProbing]).toBeDefined();
+        expect(deliberateSubPathProbing[subPath as keyof typeof deliberateSubPathProbing].targetModes).toContain(expectedMode);
       });
     });
   });
 
   describe("Counter-Profile Detection for Impulse Paths", () => {
     it("should detect counter-profile for 'trending' path when user says it's them not trend", () => {
-      const trendingGoal = impulseSubPathGoals.trending;
-      expect(trendingGoal.probingHints).toContain("Do you feel like it's you or more of a trend buy?");
+      const trendingProbing = impulseSubPathProbing.trending;
+      expect(trendingProbing.probingHints).toContain("Do you feel like it's you or more of a trend buy?");
     });
 
     it("price_felt_right should have probing hints for price threshold exploration", () => {
@@ -1074,8 +1059,8 @@ describe("Graceful Exit Detection", () => {
 
   describe("Counter-Profile Detection for Deal Paths", () => {
     it("should have counter-profile pattern for sale_discount when would buy at full price", () => {
-      const saleGoal = dealSubPathGoals.sale_discount;
-      const hints = saleGoal.probingHints.join(" ");
+      const saleProbing = dealSubPathProbing.sale_discount;
+      const hints = saleProbing.probingHints.join(" ");
       expect(hints).toContain("full price");
     });
 
@@ -1122,35 +1107,35 @@ describe("Graceful Exit Detection", () => {
 // ═══════════════════════════════════════════════════════════════
 
 describe("Probing Adherence - right_one Path", () => {
-  const rightOneGoal = deliberateSubPathGoals.right_one;
+  const rightOneProbing = deliberateSubPathProbing.right_one;
 
   it("should have specific probing hints for right_one path", () => {
-    expect(rightOneGoal.probingHints).toBeDefined();
-    expect(rightOneGoal.probingHints.length).toBeGreaterThan(0);
+    expect(rightOneProbing.probingHints).toBeDefined();
+    expect(rightOneProbing.probingHints.length).toBeGreaterThan(0);
   });
 
   it("should include 'Where did you go for your research?' question", () => {
-    const hints = rightOneGoal.probingHints.join(" ").toLowerCase();
+    const hints = rightOneProbing.probingHints.join(" ").toLowerCase();
     expect(hints).toContain("research");
   });
 
   it("should use light probing with minimal questions", () => {
     // Deliberate paths use light probing - 1 question max
-    expect(rightOneGoal.lightProbing).toBe(true);
-    expect(rightOneGoal.probingHints.length).toBeGreaterThanOrEqual(1);
+    expect(rightOneProbing.lightProbing).toBe(true);
+    expect(rightOneProbing.probingHints.length).toBeGreaterThanOrEqual(1);
   });
 
   it("should target #deliberate-researcher mode", () => {
-    expect(rightOneGoal.mode).toBe("#deliberate-researcher");
+    expect(rightOneProbing.targetModes).toContain("#deliberate-researcher");
   });
 
-  it("should have research-related key signals", () => {
-    const keySignals = rightOneGoal.keySignals.join(" ").toLowerCase();
-    expect(keySignals).toContain("research");
+  it("should have research-related mode signals", () => {
+    const modeSignals = Object.values(rightOneProbing.modeSignals).flat().join(" ").toLowerCase();
+    expect(modeSignals).toContain("research");
   });
 
   it("should have exploration goal about research/standards", () => {
-    expect(rightOneGoal.explorationGoal.toLowerCase()).toContain("research");
+    expect(rightOneProbing.explorationGoal.toLowerCase()).toContain("research");
   });
 });
 

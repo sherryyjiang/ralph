@@ -6,12 +6,11 @@ import type { TransactionCategory, QuickReplyOption, Transaction, CheckInSession
 
 /**
  * Path-level exploration goal
- * NOTE: probingHints are NOT defined at the path level - they exist ONLY at the subpath level
- * via SubPathProbing. This is intentional architecture.
+ * NOTE: Mode detection (targetModes, modeSignals) is defined at the subpath level
+ * via SubPathProbing. The LLM derives modes from conversation context + subpath signals.
  */
 export interface ExplorationGoal {
   goal: string;
-  modeIndicators: string[];
   counterProfilePatterns: string[];
 }
 

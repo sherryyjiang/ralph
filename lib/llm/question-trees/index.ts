@@ -8,7 +8,6 @@ export type {
   FixedQuestionResponse,
   ExplorationGoal,
   SubPathProbing,
-  SubPathExplorationGoal,
   ModeDefinition,
   CalibrationResult,
   CoffeeCalibrationResult,
@@ -54,10 +53,6 @@ export {
   giftSubPathProbing,
   maintenanceSubPathProbing,
   getSubPathProbing,
-  impulseSubPathGoals,
-  dealSubPathGoals,
-  deliberateSubPathGoals,
-  getSubPathExplorationGoal,
   getFixedQuestion2Options,
 } from "./shopping";
 

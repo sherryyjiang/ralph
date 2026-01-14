@@ -50,8 +50,8 @@ describe("Shopping Check-In Flow Integration", () => {
       const goal = explorationGoals.impulse;
       expect(goal).toBeDefined();
       expect(goal.goal).toBeDefined();
-      // Note: probingHints are defined at the subpath level, not the path level
-      expect(goal.modeIndicators.length).toBeGreaterThan(0);
+      // Note: Mode detection is now at the subpath level via targetModes and modeSignals
+      expect(goal.counterProfilePatterns.length).toBeGreaterThan(0);
     });
   });
 });

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { explorationGoals, getSubPathProbing, getComparisonExample } from "@/lib/llm/prompts";
-import { getCostComparisonModeAdaptedQuestion, getGracefulExitMessage } from "@/lib/llm/question-trees/index";
+import { explorationGoals, getSubPathProbing } from "@/lib/llm/prompts";
+import { getGracefulExitMessage } from "@/lib/llm/question-trees/index";
+import { buildReflectionPrompt } from "@/lib/llm/prompts/layer3-reflection";
+import type { ReflectionPathType } from "@/lib/llm/question-trees/types";
 import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
 
 // =============================================================================
@@ -284,141 +286,14 @@ Use the SPECIFIC numbered questions instead.`
 
   // Layer 3 reflection instructions
   if (session.currentLayer === 3) {
-    const reflectionPath = session.reflectionPath || "problem"; // Default to behavioral excavation
+    const reflectionPath = (session.reflectionPath || "problem") as ReflectionPathType;
     
-    // Mode-based entry questions for behavioral excavation
-    const modeEntryQuestions: Record<string, string> = {
-      "#intuitive-threshold-spender": "can you think of another time you bought something just because the price felt right?",
-      "#reward-driven-spender": "can you think of another time you bought something to celebrate or reward yourself?",
-      "#comfort-driven-spender": "can you think of another time you shopped because you were stressed or needed a pick-me-up?",
-      "#routine-treat-spender": "can you think of another time you treated yourself as part of your regular routine?",
-      "#scroll-triggered": "can you think of another time something just caught your eye and you went for it?",
-      "#in-store-wanderer": "can you think of another time something just caught your eye and you went for it?",
-      "#aesthetic-driven": "can you think of another time something just caught your eye and you went for it?",
-      "#duplicate-collector": "can you think of another time something just caught your eye and you went for it?",
-      "#exploration-hobbyist": "can you think of another time something just caught your eye and you went for it?",
-      "#social-media-influenced": "can you think of another time you bought something because everyone seemed to have it?",
-      "#friend-peer-influenced": "can you think of another time you bought something because everyone seemed to have it?",
-      "#scarcity-driven": "can you think of another time you bought something because it was running out or limited?",
-      "#deal-driven": "can you think of another time a sale or deal made you go for something?",
-      "#threshold-spending-driven": "can you think of another time you added stuff to hit free shipping or get a bonus?",
-    };
-    
-    const entryQuestion = session.mode ? modeEntryQuestions[session.mode] : undefined;
-    
-    // Behavioral excavation probing hints
-    const behavioralProbingHints = `
-### Probing Question Hints (use progressively):
-1. FREQUENCY: "does this feel like something that happens a lot, sometimes, or rarely?"
-2. USAGE/OUTCOME: "what usually happens with the stuff that slides through — do you end up using it?"
-3. COMFORT: "does that sit okay with you or is there something about it that bugs you?"
-4. ROOT CAUSE (if it bugs them): "if it doesn't feel great, what do you think is behind that?"
-5. BARRIERS (if pattern persists): "you said it bugs you but it keeps happening — what do you think gets in the way?"
-6. CONTEXT HOOKS (use info from Layer 2):
-   - Merchant: "does this happen more at ${transaction.merchant} specifically?"
-   - Timing: "is this usually more of a weekday thing or weekend thing?"`;
-
-    // Emotional reflection probing hints (spec: shopping-check-in.md)
-    const emotionalProbingHints = `
-### Probing Question Hints:
-- NAMING THE FEELING:
-  - "is it more of a 'meh' or does it actually bother you?"
-  - "if you had to name what you're feeling, what would it be?"
-- TENSION EXPLORATION:
-  - "what is it about this that's creating the tension?"
-  - "is it the amount, the frequency, or something else?"
-- VALUES ALIGNMENT:
-  - "does this feel like it lines up with how you want to spend?"`;
-
-    // Open-ended reflection guidance (spec: shopping-check-in.md)
-    const openEndedProbingHints = `
-### How to handle "different":
-- Start with: "what's on your mind?" or "what are you curious about?"
-- Listen for cues and route your next question accordingly:
-  - Frequency/pattern → use Behavioral Excavation style questions
-  - Feelings/tension → use Emotional Reflection style questions
-  - Value/worth/regret → use Cost Comparison style questions
-- If it's novel, answer directly (briefly) and offer a next step.`;
-
-    // Mode-aware emotional reflection adaptation (per shopping-check-in spec)
-    const emotionalModeContext: Record<string, string> = {
-      "#comfort-driven-spender": "spending money shopping because you're stressed",
-      "#routine-treat-spender": "spending money on these regular treats",
-      "#aesthetic-driven": "buying things just because they caught your eye",
-      "#deal-driven": "buying things because they were on sale",
-    };
-    const emotionalModePhrase = session.mode ? emotionalModeContext[session.mode] : undefined;
-    const modeAdaptedSitWellQuestion = emotionalModePhrase
-      ? `does ${emotionalModePhrase} sit well with you?`
-      : "does this sit well with you?";
-
-    const costComparisonExample = getComparisonExample(transaction.amount);
-    const costComparisonModeQuestion = session.mode
-      ? getCostComparisonModeAdaptedQuestion(session.mode, transaction.amount)
-      : undefined;
-    
-    // Reflection path-specific instructions
-    const reflectionInstructions: Record<string, string> = {
-      problem: `## BEHAVIORAL EXCAVATION PATH ("Is this a problem?")
-
-**Goal**: Surface how often autopilot behavior kicks in, and whether they're using what they buy or it's piling up.
-
-${entryQuestion ? `**Mode-Based Entry Question** (use this to start):
-"${entryQuestion}"` : ""}
-
-${behavioralProbingHints}
-
-**Guidelines**:
-- Never tell them they have a problem — help them discover for themselves
-- If they say it's fine, validate and don't push
-- If they show concern, explore gently without judgment`,
-
-      feel: `## EMOTIONAL REFLECTION PATH ("How do I feel about this?")
-
-**Goal**: Surface gut reactions and help the user name their feelings about the spending.
-
-**Entry**: "you spent $${transaction.amount.toFixed(2)} at ${transaction.merchant} — how does that land for you?"
-
-**Mode-aware adaptation** (keep structure, incorporate mode context when helpful):
-- Default: "${modeAdaptedSitWellQuestion}"
-
-${emotionalProbingHints}
-
-**Guidelines**:
-- Validate whatever they're feeling first
-- Explore the emotion BEHIND the purchase AND how they feel NOW
-- If they seem neutral ("meh"), that's fine — don't push
-- If they express concern, explore what specifically bothers them`,
-
-      worth: `## COST COMPARISON PATH ("Is this a good use of money?")
-
-**Goal**: Compare to benchmarks, evaluate tradeoffs, surface opportunity cost.
-
-**Entry** (use this structure):
-"you spent $${transaction.amount.toFixed(2)} at ${transaction.merchant} — that's roughly the equivalent of ${costComparisonExample}. which one feels like a better use of money?"
-
-${costComparisonModeQuestion ? `**Mode-aware adaptation** (use when helpful for this mode):
-"${costComparisonModeQuestion}"
-` : ""}**Probing question hints**:
-- UTILITY/VALUE CHECK: "is this something you'll get a lot of use out of?"
-- REGRET TEST: "if you had to spend that $${transaction.amount.toFixed(2)} again, would you?"
-- COST-PER-USE: "if you use this 10 times, that's about $${(transaction.amount / 10).toFixed(2)} per use — does that feel worth it?"
-
-**Guidelines**:
-- Keep it neutral (no shame, no lecturing)
-- Ask about value in THEIR terms (joy, utility, alignment with goals)
-- Explore opportunity cost gently: "what else could that money have gone toward?"`,
-
-      different: `## OPEN-ENDED PATH ("I have a different question")
-
-**Goal**: Let the user drive. Meet them where they are.
-
-${openEndedProbingHints}
-
-**Guidelines**:
-- Follow their lead, stay warm and concise
-- If their question maps to another path, smoothly pivot and ask ONE specific question`,
-    };
+    // Get the reflection-specific prompt from the consolidated module
+    const reflectionInstructions = buildReflectionPrompt(
+      reflectionPath,
+      session.mode,
+      { merchant: transaction.merchant, amount: transaction.amount }
+    );
     
     return (
       basePrompt +
@@ -427,12 +302,15 @@ ${openEndedProbingHints}
 ## Layer 3 Reflection Instructions
 
 The user has been assigned mode: ${session.mode || "not assigned"}
-Reflection path: ${reflectionPath}
+Reflection path selected: ${reflectionPath}
 
-${reflectionInstructions[reflectionPath] || reflectionInstructions.problem}
+CRITICAL: This is the user's FIRST message in this reflection path.
+You MUST use the exact entry question specified below. DO NOT generate a generic response like "That's a great question to explore" or "What comes to mind?"
 
-**Closing**: After 2-3 meaningful exchanges, offer to close or continue:
-{ "message": "Your closing summary", "exitGracefully": true }`
+${reflectionInstructions}
+
+**After 2-3 meaningful exchanges**, offer to close:
+{ "message": "Your closing summary that reflects what you learned about their patterns", "exitGracefully": true }`
     );
   }
 

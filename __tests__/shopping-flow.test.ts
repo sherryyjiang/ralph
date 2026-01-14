@@ -4,7 +4,7 @@
  * Tests for Layer 1 fixed questions, path routing, and mode assignment logic.
  */
 
-import { getCostComparisonPrompt, getFixedQuestion1Options, getFixedQuestion2Options, explorationGoals } from "@/lib/llm/prompts";
+import { buildReflectionPrompt, getFixedQuestion1Options, getFixedQuestion2Options, explorationGoals } from "@/lib/llm/prompts";
 import { 
   getFixedQuestion2Options as getTreeFixedQuestion2Options,
   SHOPPING_Q2_QUESTIONS,
@@ -754,23 +754,23 @@ describe("Layer 3 Reflection: Cost Comparison mode adaptation", () => {
   const transaction = { merchant: "Zara", amount: 47.12 };
 
   it("threshold-spending-driven should ask about free shipping worth it", () => {
-    const prompt = getCostComparisonPrompt("#threshold-spending-driven", transaction);
+    const prompt = buildReflectionPrompt("worth", "#threshold-spending-driven", transaction);
     expect(prompt).toContain("hit free shipping");
     expect(prompt).toContain("$47.12");
-    expect(prompt).toContain("MODE-ADAPTED QUESTION");
+    expect(prompt).toContain("Mode-Adapted Question");
   });
 
   it("scarcity-driven should ask if they'd buy the limited drop again at price", () => {
-    const prompt = getCostComparisonPrompt("#scarcity-driven", transaction);
+    const prompt = buildReflectionPrompt("worth", "#scarcity-driven", transaction);
     expect(prompt).toContain("limited drop came back");
     expect(prompt).toContain("$47.12");
-    expect(prompt).toContain("MODE-ADAPTED QUESTION");
+    expect(prompt).toContain("Mode-Adapted Question");
   });
 
   it("reward-driven-spender should frame value as a reward they'll use", () => {
-    const prompt = getCostComparisonPrompt("#reward-driven-spender", transaction);
+    const prompt = buildReflectionPrompt("worth", "#reward-driven-spender", transaction);
     expect(prompt).toContain("Is this reward something you'll get a lot of use out of?");
-    expect(prompt).toContain("MODE-ADAPTED QUESTION");
+    expect(prompt).toContain("Mode-Adapted Question");
   });
 });
 

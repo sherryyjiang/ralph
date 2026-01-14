@@ -57,3 +57,17 @@ export interface CoffeeCalibrationResult {
   actualCount: number;
   totalSpend: number;
 }
+
+/**
+ * Layer 3 Reflection Path Probing
+ * Structured data for each reflection path (problem, feel, worth, different)
+ */
+export type ReflectionPathType = "problem" | "feel" | "worth" | "different";
+
+export interface ReflectionPathProbing {
+  path: ReflectionPathType;
+  explorationGoal: string;
+  entryQuestions: Record<string, string>; // mode -> entry question
+  probingHints: string[];
+  evaluationContext?: Record<string, string>; // mode -> context phrase for evaluation
+}

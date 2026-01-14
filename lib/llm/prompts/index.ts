@@ -21,18 +21,7 @@ export { getSystemPrompt, buildSystemPrompt } from "./system-prompts";
 export { getLayer2ProbingPrompt, getModeAssignmentPrompt } from "./layer2-probing";
 
 // Layer 3 Reflection
-export {
-  getBehavioralExcavationEntryQuestion,
-  BEHAVIORAL_EXCAVATION_PROBING,
-  behavioralExcavationEntryQuestions,
-  emotionalReflectionContext,
-  getComparisonExample,
-  getBehavioralExcavationPrompt,
-  getEmotionalReflectionPrompt,
-  getCostComparisonPrompt,
-  getOpenEndedReflectionPrompt,
-  getModeAwareReflectionPrompt,
-} from "./layer3-reflection";
+export { buildReflectionPrompt } from "./layer3-reflection";
 
 // Category-Specific Prompts
 export { getReflectionPrompt, getFoodModePrompt } from "./category-prompts";

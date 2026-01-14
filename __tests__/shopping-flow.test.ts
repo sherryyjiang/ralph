@@ -25,7 +25,7 @@ import {
   EMOTIONAL_REFLECTION_PROBING_HINTS,
   COST_COMPARISON_PROBING_HINTS,
   OPEN_ENDED_REFLECTION_GUIDANCE,
-} from "@/lib/llm/question-trees";
+} from "@/lib/llm/question-trees/index";
 
 // ═══════════════════════════════════════════════════════════════
 // Fixed Question 1 Tests

@@ -19,7 +19,7 @@ import {
   getShoppingFixedQuestion2Text,
   getGracefulExitMessage,
   type CoffeeMotivation,
-} from "@/lib/llm/question-trees";
+} from "@/lib/llm/question-trees/index";
 import type { QuickReplyOption, TransactionCategory, ShoppingPath, ShoppingSubPath, ImpulseSubPath, DealSubPath, CheckInMode } from "@/lib/types";
 
 // ═══════════════════════════════════════════════════════════════

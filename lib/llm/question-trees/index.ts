@@ -38,6 +38,7 @@ export {
   getCostComparisonModeAdaptedQuestion,
   GRACEFUL_EXIT_MESSAGES,
   MODE_AWARE_EXIT_MESSAGE,
+  getGracefulExitMessage,
 } from "./reflection";
 export type { ReflectionPath } from "./reflection";
 

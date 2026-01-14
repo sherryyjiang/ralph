@@ -7,11 +7,12 @@
 import type { TransactionCategory, QuickReplyOption, Transaction, CheckInSession } from "@/lib/types";
 import { 
   getShoppingFixedQuestion1, 
+  getShoppingFixedQuestion2Text,
   shoppingExplorationGoals,
   getSubPathProbing,
   getCostComparisonModeAdaptedQuestion,
   type SubPathProbing,
-} from "./question-trees";
+} from "./question-trees/index";
 
 // =============================================================================
 // Exploration Goals (re-exported for API route)
@@ -239,9 +240,17 @@ export function getFixedQuestion1Options(category: TransactionCategory): QuickRe
 }
 
 /**
- * Get Fixed Question 2 options for a given category and path
+ * Fixed Question 2 payload (question text + options)
  */
-export function getFixedQuestion2Options(category: TransactionCategory, path: string): QuickReplyOption[] | undefined {
+export interface FixedQuestion2 {
+  question: string;
+  options: QuickReplyOption[];
+}
+
+/**
+ * Get Fixed Question 2 question text + options for a given category and path
+ */
+export function getFixedQuestion2Options(category: TransactionCategory, path: string): FixedQuestion2 | undefined {
   if (category !== "shopping") return undefined;
   
   const q2Options: Record<string, QuickReplyOption[]> = {
@@ -279,7 +288,11 @@ export function getFixedQuestion2Options(category: TransactionCategory, path: st
     ],
   };
   
-  return q2Options[path];
+  const question = getShoppingFixedQuestion2Text(path);
+  const options = q2Options[path];
+  if (!question || !options) return undefined;
+
+  return { question, options };
 }
 
 // =============================================================================

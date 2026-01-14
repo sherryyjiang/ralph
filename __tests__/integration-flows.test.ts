@@ -24,7 +24,7 @@ import {
   type FoodMode,
   type CoffeeMotivation,
   type CoffeeMode,
-} from "@/lib/llm/question-trees";
+} from "@/lib/llm/question-trees/index";
 
 // ═══════════════════════════════════════════════════════════════
 // Shopping Flow Integration Tests

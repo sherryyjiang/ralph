@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { explorationGoals, getSubPathProbing, getComparisonExample } from "@/lib/llm/prompts";
-import { getCostComparisonModeAdaptedQuestion, getGracefulExitMessage } from "@/lib/llm/question-trees";
+import { getCostComparisonModeAdaptedQuestion, getGracefulExitMessage } from "@/lib/llm/question-trees/index";
 import type { Transaction, CheckInSession, Message, LLMResponse } from "@/lib/types";
 
 // =============================================================================

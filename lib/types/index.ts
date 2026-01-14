@@ -119,7 +119,8 @@ export type ReflectionPath =
   | "problem"   // "Is this a problem?" - Behavioral excavation
   | "feel"      // "How do I feel?" - Emotional reflection
   | "worth"     // "Is this a good use?" - Cost comparison
-  | "different"; // "I have a different question" - Open-ended
+  | "different" // "I have a different question" - Open-ended
+  | "done";     // "I'm good for now" - Graceful exit
 
 export interface CheckInSession {
   id: string;

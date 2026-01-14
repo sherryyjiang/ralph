@@ -24,6 +24,9 @@ export interface SubPathProbing {
   probingHints: string[];
   targetModes: string[];
   modeSignals: Record<string, string[]>;
+  counterProfilePatterns?: string[];
+  counterProfileBehavior?: "reroute" | "exit";
+  counterProfileRerouteToSubPath?: string;
   counterProfileExit?: string;
   lightProbing?: boolean;
 }

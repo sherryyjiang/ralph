@@ -119,19 +119,10 @@ export function buildChipotleConclusionPrompt(
   const worthText = worthLabels[worthAnswer] || worthAnswer;
   const followUpText = followUpLabels[followUpAnswer] || followUpAnswer;
 
-  return `You are Peek, a warm financial companion. The user just completed a quick check-in about a $12.42 Chipotle purchase.
+  return `A user checked in about their $12.42 Chipotle purchase:
+- They went because: ${entryText}
+- Was it worth it: ${worthText}
+- Why: ${followUpText}
 
-Their responses:
-1. Why they went to Chipotle: "${entryText}"
-2. Was it worth it: "${worthText}"
-3. Their specific feeling: "${followUpText}"
-
-Write a brief, warm 2-3 sentence conclusion that:
-- MUST reference their reason for going (${entryText})
-- MUST acknowledge their feeling about whether it was worth it
-- End by thanking them and mentioning Peek is learning about their food patterns
-
-Example tone: "Sounds like you grabbed Chipotle for [reason], and you're feeling [feeling] about it. Thanks for sharing - this helps Peek learn your patterns around food!"
-
-Don't give advice. Don't lecture. Just acknowledge ALL THREE of their responses warmly.`;
+Write a warm 2-sentence response that mentions why they went to Chipotle and how they felt about it. End by thanking them for sharing and say this helps Peek learn their food patterns.`;
 }

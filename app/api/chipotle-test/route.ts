@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-// Use same model as main chat route
-const MODEL_ID = process.env.NEXT_PUBLIC_LLM_MODEL || "zai-glm-4.6";
+// Use a simpler, more reliable model for this task
+const MODEL_ID = "llama-3.3-70b";
 
 function getClient(): OpenAI {
   const apiKey = process.env.CEREBRAS_API_KEY;
@@ -36,43 +36,23 @@ export async function POST(request: NextRequest) {
 
     const client = getClient();
 
-    // Use user role for the full prompt
     const response = await client.chat.completions.create({
       model: MODEL_ID,
       messages: [
         {
+          role: "system",
+          content: "You are Peek, a warm and friendly financial companion. Respond conversationally in 2-3 sentences. Never use bullet points, markdown, or formatting. Just write natural sentences.",
+        },
+        {
           role: "user",
-          content: prompt + "\n\nRespond with ONLY the 2-3 sentence conclusion message.",
+          content: prompt,
         },
       ],
       temperature: 0.7,
-      max_tokens: 500, // Increased to allow for reasoning + content
+      max_tokens: 150,
     });
 
-    console.log("Chipotle test API - full response:", JSON.stringify(response, null, 2));
-
-    // Handle both content field and reasoning field (model may use either)
-    const messageObj = response.choices[0]?.message as { content?: string; reasoning?: string };
-    let message = messageObj?.content?.trim();
-
-    // If content is empty but reasoning has text, extract the response from reasoning
-    if (!message && messageObj?.reasoning) {
-      console.log("Using reasoning field as response");
-      // The reasoning often contains the actual response - extract it
-      const reasoning = messageObj.reasoning;
-      // Look for the actual response part (usually after "Here's my draft:" or similar)
-      const draftMatch = reasoning.match(/(?:Here's my (?:draft|response)|draft:)\s*["\n]([^"]+)/i);
-      if (draftMatch) {
-        message = draftMatch[1].trim();
-      } else {
-        // Just use the last paragraph of reasoning as the response
-        const paragraphs = reasoning.split('\n\n').filter((p: string) => p.trim());
-        const lastParagraph = paragraphs[paragraphs.length - 1];
-        if (lastParagraph && lastParagraph.length > 20) {
-          message = lastParagraph.replace(/^["']|["']$/g, '').trim();
-        }
-      }
-    }
+    const message = response.choices[0]?.message?.content?.trim();
 
     if (!message) {
       console.error("No message content in LLM response");
@@ -83,7 +63,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message });
   } catch (error) {
-    // Log the full error for debugging
     console.error("Chipotle test API error:", error);
     if (error instanceof Error) {
       console.error("Error message:", error.message);

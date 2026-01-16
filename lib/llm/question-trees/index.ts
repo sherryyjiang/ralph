@@ -103,6 +103,8 @@ export {
   TEMU_DIAGNOSIS_QUESTIONS,
   TEMU_EXIT_OPTIONS,
   TEMU_REFLECTION_QUESTIONS,
+  TEMU_BREAKDOWN_PROMPT,
+  TEMU_BREAKDOWN_NOTE,
   getTemuCalibrationResult,
   buildTemuSummaryPrompt,
   buildTemuClosingPrompt,

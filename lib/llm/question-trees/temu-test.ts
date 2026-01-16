@@ -14,31 +14,6 @@ export const TEMU_DIAGNOSIS_QUESTIONS: FixedQuestionResponse[] = [
       { id: "other", label: "Other / custom", emoji: "📝", value: "other", color: "white" },
     ],
   },
-  {
-    content: "When the price feels right, what usually makes it feel like a no-brainer?",
-    options: [
-      { id: "under_limit", label: "It is under a personal price limit", emoji: "💰", value: "under_limit", color: "yellow" },
-      { id: "bundle", label: "Bundles or multi-buys", emoji: "📦", value: "bundle", color: "yellow" },
-      { id: "free_shipping", label: "Free shipping or threshold perks", emoji: "🚚", value: "free_shipping", color: "yellow" },
-      { id: "just_fun", label: "It just feels fun and low-stakes", emoji: "🎈", value: "just_fun", color: "white" },
-    ],
-  },
-  {
-    content: "How intentional are your Temu buys most of the time?",
-    options: [
-      { id: "planned", label: "Planned in advance", emoji: "🗓️", value: "planned", color: "white" },
-      { id: "mixed", label: "A mix of planned and spontaneous", emoji: "🧩", value: "mixed", color: "yellow" },
-      { id: "spontaneous", label: "Mostly spontaneous", emoji: "⚡", value: "spontaneous", color: "yellow" },
-    ],
-  },
-  {
-    content: "After the packages arrive, what usually happens?",
-    options: [
-      { id: "use", label: "I use most of it", emoji: "✅", value: "use", color: "white" },
-      { id: "some_use", label: "Some gets used, some doesn’t", emoji: "🤔", value: "some_use", color: "yellow" },
-      { id: "unused", label: "A lot sits unused", emoji: "📦", value: "unused", color: "yellow" },
-    ],
-  },
 ];
 
 export const TEMU_EXIT_OPTIONS: QuickReplyOption[] = [
@@ -51,6 +26,11 @@ export const TEMU_REFLECTION_QUESTIONS: Record<string, string> = {
   worth: "Does that amount feel worth it for what you got?",
   different: "What question is on your mind?",
 };
+
+export const TEMU_BREAKDOWN_PROMPT = "Want to dig deeper into the numbers to see where this came from?";
+
+export const TEMU_BREAKDOWN_NOTE =
+  "Sometimes the orders land on days you do not really think of as shopping days, and the amounts are small enough that they do not feel big in the moment, but they add up fast.";
 
 export interface TemuCalibrationResult {
   isClose: boolean;

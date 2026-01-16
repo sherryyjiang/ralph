@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ChatContainer } from "@/components/chat/chat-container";
-import { getTemuMonthlySpend, getTemuTestTransaction } from "@/lib/data/temu-test";
+import { getTemuItemPurchases, getTemuMonthlySpend, getTemuTestTransaction } from "@/lib/data/temu-test";
 import {
   TEMU_ENTRY_QUESTION,
   TEMU_DIAGNOSIS_QUESTIONS,
   TEMU_EXIT_OPTIONS,
   TEMU_REFLECTION_QUESTIONS,
+  TEMU_BREAKDOWN_PROMPT,
+  TEMU_BREAKDOWN_NOTE,
   getTemuCalibrationResult,
   buildTemuSummaryPrompt,
   buildTemuClosingPrompt,
@@ -16,13 +18,40 @@ import {
 } from "@/lib/llm/question-trees/index";
 import type { Message, QuickReplyOption } from "@/lib/types";
 
-type FlowStep = "awareness" | "diagnosis" | "summary" | "reflection_choice" | "reflection_prompt" | "closing";
+type FlowStep =
+  | "awareness"
+  | "breakdown_offer"
+  | "breakdown_shown"
+  | "diagnosis"
+  | "summary"
+  | "reflection_choice"
+  | "reflection_prompt"
+  | "closing";
 
 function parseCurrencyInput(value: string): number {
   const cleaned = value.replace(/[^0-9.]/g, "");
   const parsed = Number.parseFloat(cleaned);
   return Number.isFinite(parsed) ? parsed : 0;
 }
+
+function formatShortDate(date: Date): string {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function buildBreakdownList(): string {
+  const items = getTemuItemPurchases();
+  const lines = items.map((entry) => {
+    const date = formatShortDate(entry.transaction.date);
+    const amount = entry.transaction.amount.toFixed(2);
+    return `- ${date}: Temu ($${amount})`;
+  });
+  return ["Here are the Temu purchases this month:", ...lines, "", TEMU_BREAKDOWN_NOTE].join("\n");
+}
+
+const BREAKDOWN_OPTIONS: QuickReplyOption[] = [
+  { id: "breakdown_yes", label: "Yeah, show me", emoji: "✅", value: "yes", color: "white" },
+  { id: "breakdown_no", label: "No, keep going", emoji: "➡️", value: "no", color: "white" },
+];
 
 export default function TemuTestCheckInPage() {
   const params = useParams();
@@ -41,6 +70,8 @@ export default function TemuTestCheckInPage() {
   const [diagnosisAnswers, setDiagnosisAnswers] = useState<string[]>([]);
   const [guess, setGuess] = useState<number | null>(null);
   const [reflectionPath, setReflectionPath] = useState<string | null>(null);
+  const [diagnosisPrompts, setDiagnosisPrompts] = useState<string[]>([]);
+  const [patternLabel, setPatternLabel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +90,26 @@ export default function TemuTestCheckInPage() {
       { id: `assistant_${Date.now()}`, role: "assistant", content, timestamp: new Date(), options },
     ]);
   }, []);
+
+  const initializeDiagnosisPrompts = useCallback(
+    (label: string) => {
+      setPatternLabel(label);
+      const purchases = getTemuItemPurchases();
+      const browseEntry = purchases.find((entry) => entry.context === "browse") || purchases[0];
+      const lastEntry = purchases[0];
+      const browseDate = formatShortDate(browseEntry.transaction.date);
+      const lastDate = formatShortDate(lastEntry.transaction.date);
+
+      const prompts = [
+        `What did you get the last time you were scrolling and finding random items on Temu on ${browseDate}?`,
+        `How many times have you used ${browseEntry.item}? Do you find it worth it?`,
+        `How about ${lastDate} when you bought ${lastEntry.item} — what was going on then?`,
+        `Seems like there might be a bit of a pattern with ${label} — is this something you would like to work on or are you okay for now?`,
+      ];
+      setDiagnosisPrompts(prompts);
+    },
+    []
+  );
 
   const fetchSummary = useCallback(async (answers: string[], guessValue: number) => {
     setIsLoading(true);
@@ -123,12 +174,21 @@ export default function TemuTestCheckInPage() {
       const updatedAnswers = [...diagnosisAnswers, answer];
       setDiagnosisAnswers(updatedAnswers);
 
-      if (diagnosisIndex < TEMU_DIAGNOSIS_QUESTIONS.length - 1) {
+      if (diagnosisIndex === 0) {
         const nextIndex = diagnosisIndex + 1;
         setDiagnosisIndex(nextIndex);
         setTimeout(() => {
-          const nextQ = TEMU_DIAGNOSIS_QUESTIONS[nextIndex];
-          addAssistantMessage(nextQ.content, nextQ.options);
+          addAssistantMessage(diagnosisPrompts[0]);
+        }, 350);
+        return;
+      }
+
+      const nextPrompt = diagnosisPrompts[diagnosisIndex];
+      if (nextPrompt) {
+        const nextIndex = diagnosisIndex + 1;
+        setDiagnosisIndex(nextIndex);
+        setTimeout(() => {
+          addAssistantMessage(nextPrompt);
         }, 350);
         return;
       }
@@ -140,7 +200,7 @@ export default function TemuTestCheckInPage() {
       addAssistantMessage(reflectionOptions.content, reflectionOptions.options);
       setCurrentStep("reflection_choice");
     },
-    [addAssistantMessage, diagnosisAnswers, diagnosisIndex, fetchSummary, guess, actualSpend]
+    [addAssistantMessage, diagnosisAnswers, diagnosisIndex, diagnosisPrompts, fetchSummary, guess, actualSpend]
   );
 
   const handleSendMessage = useCallback(
@@ -154,6 +214,26 @@ export default function TemuTestCheckInPage() {
         const calibration = getTemuCalibrationResult(guessValue, actualSpend);
         addAssistantMessage(calibration.message);
 
+        if (!calibration.isClose) {
+          setCurrentStep("breakdown_offer");
+          addAssistantMessage(TEMU_BREAKDOWN_PROMPT, BREAKDOWN_OPTIONS);
+          return;
+        }
+
+        setCurrentStep("diagnosis");
+        setDiagnosisIndex(0);
+        setTimeout(() => {
+          const firstQ = TEMU_DIAGNOSIS_QUESTIONS[0];
+          addAssistantMessage(firstQ.content, firstQ.options);
+        }, 400);
+        return;
+      }
+
+      if (currentStep === "breakdown_offer") {
+        const wantsBreakdown = /yes|yeah|yep|sure|show|ok|okay/i.test(content);
+        if (wantsBreakdown) {
+          addAssistantMessage(buildBreakdownList());
+        }
         setCurrentStep("diagnosis");
         setDiagnosisIndex(0);
         setTimeout(() => {
@@ -164,6 +244,9 @@ export default function TemuTestCheckInPage() {
       }
 
       if (currentStep === "diagnosis") {
+        if (!patternLabel && diagnosisIndex === 0) {
+          initializeDiagnosisPrompts("mixed Temu browsing");
+        }
         await advanceDiagnosis(content);
         return;
       }
@@ -179,7 +262,17 @@ export default function TemuTestCheckInPage() {
         router.push("/");
       }
     },
-    [addAssistantMessage, addUserMessage, advanceDiagnosis, actualSpend, currentStep, fetchClosing, reflectionPath, router]
+    [
+      addAssistantMessage,
+      addUserMessage,
+      advanceDiagnosis,
+      actualSpend,
+      currentStep,
+      fetchClosing,
+      initializeDiagnosisPrompts,
+      reflectionPath,
+      router,
+    ]
   );
 
   useEffect(() => {
@@ -210,7 +303,32 @@ export default function TemuTestCheckInPage() {
 
       addUserMessage(displayText);
 
+      if (currentStep === "breakdown_offer") {
+        if (value === "yes") {
+          addAssistantMessage(buildBreakdownList());
+        }
+        setCurrentStep("diagnosis");
+        setDiagnosisIndex(0);
+        setTimeout(() => {
+          const firstQ = TEMU_DIAGNOSIS_QUESTIONS[0];
+          addAssistantMessage(firstQ.content, firstQ.options);
+        }, 400);
+        return;
+      }
+
       if (currentStep === "diagnosis") {
+        if (!patternLabel) {
+          const patternMap: Record<string, string> = {
+            deal: "deal-driven browsing",
+            browse: "scroll-triggered finds",
+            specific: "targeted list buying",
+            influenced: "ad-triggered pulls",
+            other: "impulse mix",
+          };
+          const label = patternMap[value] || "mixed Temu browsing";
+          initializeDiagnosisPrompts(label);
+        }
+
         await advanceDiagnosis(displayText);
         return;
       }
@@ -233,7 +351,7 @@ export default function TemuTestCheckInPage() {
         router.push("/");
       }
     },
-    [addAssistantMessage, addUserMessage, advanceDiagnosis, currentStep, messages, router]
+    [addAssistantMessage, addUserMessage, advanceDiagnosis, currentStep, initializeDiagnosisPrompts, messages, patternLabel, router]
   );
 
   const handleClose = useCallback(() => {

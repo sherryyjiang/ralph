@@ -55,7 +55,6 @@ export function TemuTestCard() {
               <div className="text-sm text-[#a89cc0]">{formatDate(txn.date)}</div>
               <div className="text-sm text-white">{txn.merchant}</div>
             </div>
-            <div className="text-sm text-[#ffd700]">${txn.amount.toFixed(2)}</div>
           </div>
         ))}
       </div>

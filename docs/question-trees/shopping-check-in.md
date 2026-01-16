@@ -153,13 +153,23 @@ When user selects **"A good deal/discount or limited drop made me go for it"**, 
 
 ---
 
-## Layer 2: LLM Probing (Mode Assignment)
+## Layer 2: LLM Probing (Pre-Assignment)
 
 After the two fixed questions, the LLM probes deeper using:
 - **🔵 Blue boxes**: Exploration goals (context for the LLM)
 - **🟢 Green boxes**: Probing question hints (specific questions to ask)
 
-The mode is assigned AFTER probing is complete.
+The mode is assigned AFTER the usage check in Layer 2.5.
+
+---
+
+## Layer 2.5: Usage Check (Required)
+
+After Layer 2 probing is complete, ask the user a single required question before assigning a mode:
+
+**Question:** "Are you using this?"
+
+This ensures we always capture whether the purchase actually gets used before transitioning to reflection.
 
 ---
 
@@ -461,8 +471,8 @@ These paths require **lighter probing** because the purchase was intentional. Mo
 │                                                                                          │
 │  🟢 PROBING QUESTION HINTS:                                                              │
 │  • "Was this online or in-store?"                                                        │
-│  • "Did you add any items to the cart or your purchase that you didn't originally       │
-│     intend to buy? What were they?"                                                      │
+│  • "Did you add any items to your purchase that you didn't originally intend to buy     │
+│     to hit a threshold or get a bonus? What were they?"                                  │
 │  • "Would you have bought just the original item without the bonus?"                     │
 │  • "Was it worth what you added?"                                                        │
 │                                                                                          │

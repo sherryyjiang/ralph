@@ -17,6 +17,7 @@ import {
   getCoffeeEconomicEvaluation,
   getSubPathProbing,
   getShoppingFixedQuestion2Text,
+  SHOPPING_USAGE_QUESTION,
   getGracefulExitMessage,
   type CoffeeMotivation,
 } from "@/lib/llm/question-trees/index";
@@ -1162,7 +1163,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
     }
   }, [messages, addUserMessage, addAssistantMessage, transaction, sessionId, currentLayer, currentPath, currentMode, calibrationPhase, setPath, setSubPath, setLayer, setLoading, setMode, setUserGuess, setActualAmount, setUserGuessCount, setActualCount, setCalibrationPhase, addTag, session, setReflectionPath]);
 
-  // Handle free-form text input (Layer 2 probing and Layer 3 reflection)
+  // Handle free-form text input (Layer 2 probing, Layer 2.5 usage check, and Layer 3 reflection)
   const handleSendMessage = useCallback(async (content: string) => {
     addUserMessage(content);
     setLoading(true);
@@ -1207,6 +1208,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
           probingDepth: newProbingDepth,
           // Pass layer 3 exchange count at top level for API route
           layer3ExchangeCount: newLayer3ExchangeCount,
+          requestModeAssignment: currentLayer === 2.5,
         }),
       });
 
@@ -1214,7 +1216,7 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
       setLoading(false);
 
       // Handle mode assignment from LLM response
-      if (data.assignedMode && currentLayer === 2) {
+      if (data.assignedMode && (currentLayer === 2 || currentLayer === 2.5)) {
         setMode(data.assignedMode);
       }
 
@@ -1249,8 +1251,14 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         return;
       }
 
-      // Handle transition to Layer 3 after probing
+      // Handle transition to Layer 2.5 usage check after probing (shopping only)
       if (data.shouldTransition && currentLayer === 2) {
+        if (transaction.category === "shopping") {
+          setLayer(2.5);
+          addAssistantMessage(SHOPPING_USAGE_QUESTION, undefined, false);
+          return;
+        }
+
         // Store mode if provided
         if (data.assignedMode) {
           setMode(data.assignedMode);
@@ -1268,6 +1276,30 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
         }
         
         // Show transition message with Layer 3 options
+        addAssistantMessage(
+          transitionMessage,
+          LAYER_3_REFLECTION_OPTIONS,
+          false
+        );
+        return;
+      }
+
+      // Handle transition to Layer 3 after usage check
+      if (data.shouldTransition && currentLayer === 2.5) {
+        if (data.assignedMode) {
+          setMode(data.assignedMode);
+        }
+        setLayer(3);
+
+        const modeLabel = data.assignedMode ? getModeLabel(data.assignedMode) : null;
+        let transitionMessage = data.message || "I think I understand the pattern here.";
+
+        if (modeLabel) {
+          transitionMessage += `\n\nBased on what you've shared, it sounds like you might be a **${modeLabel}**. That's just a pattern I noticed — no judgment! Would you like to explore any of these?`;
+        } else {
+          transitionMessage += "\n\nWould you like to explore any of these?";
+        }
+
         addAssistantMessage(
           transitionMessage,
           LAYER_3_REFLECTION_OPTIONS,
@@ -1294,8 +1326,8 @@ function CheckInChat({ sessionId, transaction, onClose, initialPath, initialGues
       const errorMessage = err instanceof Error ? err.message : "Something went wrong";
       setError(errorMessage);
       
-      // Fallback: transition to Layer 3 if in Layer 2
-      if (currentLayer === 2) {
+      // Fallback: transition to Layer 3 if in Layer 2 or 2.5
+      if (currentLayer === 2 || currentLayer === 2.5) {
         addAssistantMessage(
           "Thanks for sharing! How would you like to explore this further?",
           LAYER_3_REFLECTION_OPTIONS,

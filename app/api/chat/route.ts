@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
     // Determine if we should request mode assignment based on probing depth
     const shouldRequestModeAssignment =
       requestModeAssignment ||
+      session.currentLayer === 2.5 ||
       (session.currentLayer === 2 && probingDepth >= MIN_PROBING_DEPTH);
 
     // Build system prompt with probing depth and mode assignment context
@@ -222,6 +223,38 @@ REALIZATION: "Wow I didn't realize I was doing this so often"
 ${session.mode ? `- Assigned Mode: ${session.mode}` : ""}
 
 ${questionTreeSection ? `## Question Tree Context\n${questionTreeSection}` : ""}`;
+
+  // Layer 2.5: Usage check complete - assign mode and transition
+  if (session.currentLayer === 2.5) {
+    return (
+      basePrompt +
+      `
+
+## Layer 2.5 Usage Check (REQUIRED)
+
+You just received the user's response to the explicit usage question: "Are you using this?"
+
+You MUST now:
+1. Acknowledge what they shared about usage (1 sentence)
+2. Assign the most fitting mode based on the full conversation (including usage)
+3. Transition to Layer 3 reflection
+
+You MUST NOT ask any more questions.
+
+RESPOND WITH JSON:
+{
+  "message": "Your warm summary that acknowledges their usage response",
+  "assignedMode": "#mode-id",
+  "shouldTransition": true
+}
+
+If the user shows COUNTER-PROFILE behavior (intentional when you expected impulsive), include:
+{
+  "message": "Your acknowledging message",
+  "exitGracefully": true
+}`
+    );
+  }
 
   // Add mode assignment instructions if probing is complete
   if (requestModeAssignment && session.currentLayer === 2) {

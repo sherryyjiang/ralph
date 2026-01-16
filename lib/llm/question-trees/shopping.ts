@@ -13,6 +13,8 @@ export const SHOPPING_Q2_QUESTIONS: Record<ShoppingPath, string> = {
   maintenance: "Did you get the same thing or switched it up?",
 };
 
+export const SHOPPING_USAGE_QUESTION = "Are you using this?";
+
 export function getShoppingFixedQuestion2Text(path: string): string | null {
   if (path in SHOPPING_Q2_QUESTIONS) {
     return SHOPPING_Q2_QUESTIONS[path as keyof typeof SHOPPING_Q2_QUESTIONS];
@@ -221,7 +223,7 @@ export const dealSubPathProbing: Record<string, SubPathProbing> = {
     explorationGoal: "Did they add items just to hit the threshold?",
     probingHints: [
       "Was this online or in-store?",
-      "Did you add any items to the cart that you didn't originally intend to buy?",
+      "Did you add any items to the purchase that you didn't originally intend to buy to hit a threshold or get a bonus?",
       "Would you have bought just the original item without the bonus?",
       "Was it worth what you added?",
     ],

@@ -26,7 +26,7 @@ export interface Transaction {
 // =============================================================================
 
 export type CheckInStatus = "pending" | "in_progress" | "completed" | "dismissed";
-export type CheckInLayer = 1 | 2 | 3;
+export type CheckInLayer = 1 | 2 | 2.5 | 3;
 
 /**
  * Shopping check-in paths based on Fixed Question 1 responses

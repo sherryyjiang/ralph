@@ -58,6 +58,7 @@ export type { ReflectionPathOption, EvaluationOutcome } from "./reflection";
 // Shopping
 export {
   SHOPPING_Q2_QUESTIONS,
+  SHOPPING_USAGE_QUESTION,
   getShoppingFixedQuestion1,
   getShoppingFixedQuestion2Text,
   shoppingExplorationGoals,

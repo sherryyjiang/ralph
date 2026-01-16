@@ -9,6 +9,7 @@ import {
 } from "@/lib/data/synthetic-transactions";
 import type { Transaction, TransactionCategory } from "@/lib/types";
 import { ChipotleTestCard } from "@/components/home/chipotle-test-card";
+import { TemuTestCard } from "@/components/home/temu-test-card";
 
 // ═══════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
@@ -226,8 +227,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory | "all">("all");
   
-  // Pending check-ins: 2 shopping + food + coffee + chipotle test = 5
-  const pendingCheckIns = shoppingTransactions.length + 3;
+  // Pending check-ins: 2 shopping + food + coffee + chipotle test + temu test = 6
+  const pendingCheckIns = shoppingTransactions.length + 4;
 
   // Handle shopping path selection
   const handlePathSelect = (transactionId: string, path: string) => {
@@ -313,6 +314,9 @@ export default function DashboardPage() {
           {(selectedCategory === "all" || selectedCategory === "food") && (
             <ChipotleTestCard />
           )}
+
+          {/* Temu Test Card */}
+          {selectedCategory === "all" && <TemuTestCard />}
         </div>
       </div>
     </div>

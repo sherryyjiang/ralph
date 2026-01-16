@@ -96,3 +96,14 @@ export {
   getCoffeeModeFromMotivation,
 } from "./coffee";
 export type { CoffeeMode, CoffeeMotivation, CoffeeModeAssignment, CoffeeModeExploration } from "./coffee";
+
+// Temu (Standalone Experiment)
+export {
+  TEMU_ENTRY_QUESTION,
+  TEMU_DIAGNOSIS_QUESTIONS,
+  TEMU_EXIT_OPTIONS,
+  TEMU_REFLECTION_QUESTIONS,
+  getTemuCalibrationResult,
+  buildTemuSummaryPrompt,
+  buildTemuClosingPrompt,
+} from "./temu-test";

@@ -71,6 +71,7 @@ export default function TemuTestCheckInPage() {
   const [guess, setGuess] = useState<number | null>(null);
   const [reflectionPath, setReflectionPath] = useState<string | null>(null);
   const [diagnosisPrompts, setDiagnosisPrompts] = useState<string[]>([]);
+  const diagnosisPromptsRef = useRef<string[]>([]);
   const [patternLabel, setPatternLabel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,10 +103,11 @@ export default function TemuTestCheckInPage() {
 
       const prompts = [
         `What did you get the last time you were scrolling and finding random items on Temu on ${browseDate}?`,
-        `How many times have you used ${browseEntry.item}? Do you find it worth it?`,
-        `How about ${lastDate} when you bought ${lastEntry.item} — what was going on then?`,
+        "How many times have you used what you bought? Do you find it worth it?",
+        `How about ${lastDate} when you last bought something on Temu — what was going on then?`,
         `Seems like there might be a bit of a pattern with ${label} — is this something you would like to work on or are you okay for now?`,
       ];
+      diagnosisPromptsRef.current = prompts;
       setDiagnosisPrompts(prompts);
     },
     []
@@ -178,12 +180,12 @@ export default function TemuTestCheckInPage() {
         const nextIndex = diagnosisIndex + 1;
         setDiagnosisIndex(nextIndex);
         setTimeout(() => {
-          addAssistantMessage(diagnosisPrompts[0]);
+          addAssistantMessage(diagnosisPromptsRef.current[0]);
         }, 350);
         return;
       }
 
-      const nextPrompt = diagnosisPrompts[diagnosisIndex];
+      const nextPrompt = diagnosisPromptsRef.current[diagnosisIndex];
       if (nextPrompt) {
         const nextIndex = diagnosisIndex + 1;
         setDiagnosisIndex(nextIndex);
